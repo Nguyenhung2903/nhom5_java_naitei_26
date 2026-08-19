@@ -7,16 +7,15 @@
 ## Mục Lục
 1. [Giới Thiệu & Công Nghệ](#giới-thiệu--công-nghệ)
 2. [Yêu Cầu Môi Trường](#yêu-cầu-môi-trường)
-3. [Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)](#cấu-hình-cơ-sở-dữ-liệu--biến-môi-trường-jwt--supabase)
+3. [Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường](#cấu-hình-cơ-sở-dữ-liệu--biến-môi-trường)
 4. [Hướng Dẫn Khởi Chạy & Biên Dịch](#hướng-dẫn-khởi-chạy--biên-dịch)
 5. [Tài Khoản Mẫu & Khởi Tạo Dữ Liệu (Seed Data)](#tài-khoản-mẫu--khởi-tạo-dữ-liệu-seed-data)
-6. [Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai](#danh-mục-api-xác-thực--phân-quyền-đã-triển-khai)
-7. [Kiến Trúc Phân Tầng (Package Architecture)](#kiến-trúc-phân-tầng-package-architecture)
-8. [Quy Chuẩn Thiết Kế RESTful API & Error Handling](#quy-chuẩn-thiết-kế-restful-api--error-handling)
-9. [Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)](#cơ-chế-bảo-mật-jwt--phân-quyền-rbac)
-10. [Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)](#tích-hợp--sử-dụng-swagger--openapi-bearer-jwt)
-11. [Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)](#hướng-dẫn-thêm-mới-một-tính-năng-hoàn-chỉnh-full-flow)
-12. [Quy Chuẩn Code & Quy Ước Sun* NAITEI 26 / Redmine](#quy-chuẩn-code--quy-ước-sun-naitei-26--redmine)
+6. [Kiến Trúc Phân Tầng (Package Architecture)](#kiến-trúc-phân-tầng-package-architecture)
+7. [Quy Chuẩn Thiết Kế RESTful API & Error Handling](#quy-chuẩn-thiết-kế-restful-api--error-handling)
+8. [Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)](#cơ-chế-bảo-mật-jwt--phân-quyền-rbac)
+9. [Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)](#tích-hợp--sử-dụng-swagger--openapi-bearer-jwt)
+10. [Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)](#hướng-dẫn-thêm-mới-một-tính-năng-hoàn-chỉnh-full-flow)
+11. [Quy Chuẩn Code & Quy Ước Sun* NAITEI 26 / Redmine](#quy-chuẩn-code--quy-ước-sun-naitei-26--redmine)
 
 ---
 
@@ -52,53 +51,12 @@ java -version
 
 ---
 
-## Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)
+## Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường
 
-Dự án sử dụng cơ sở dữ liệu PostgreSQL trên nền tảng đám mây **Supabase**. Để bảo mật thông tin mật khẩu, các cấu hình nhạy cảm được tách biệt và **không** đưa lên Git.
+Dự án sử dụng cơ sở dữ liệu PostgreSQL trên **Supabase Cloud** — toàn bộ cấu hình kết nối (URL, username) đã được cài sẵn trong `src/main/resources/application.yaml`. Developer chỉ cần cung cấp **mật khẩu Supabase** qua biến môi trường `DB_PASSWORD`.
 
-### 1. File cấu hình chính: `src/main/resources/application.yaml`
-```yaml
-server:
-  port: ${PORT:8080}
-  servlet:
-    context-path: /api
+> Liên hệ trưởng nhóm để lấy giá trị `DB_PASSWORD`.
 
-spring:
-  application:
-    name: server
-
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres.uuqydetbopbuvutpxhbh}
-    password: ${DB_PASSWORD:[YOUR-PASSWORD]}
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
-    show-sql: ${SPRING_JPA_SHOW_SQL:true}
-    open-in-view: false
-
-app:
-  cors:
-    allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
-  swagger:
-    auto-open: ${APP_SWAGGER_AUTO_OPEN:true}
-  jwt:
-    # Chuỗi Secret Key an toàn tối thiểu 256 bits cho thuật toán HMAC-SHA256
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-    # Thời hạn hiệu lực Access Token: 7 ngày (604800000 ms)
-    expiration-ms: ${JWT_EXPIRATION_MS:604800000}
-  init-admin:
-    enabled: ${INIT_ADMIN_ENABLED:true}
-    username: ${INIT_ADMIN_USERNAME:admin}
-    password: ${INIT_ADMIN_PASSWORD:Admin@123456}
-    email: ${INIT_ADMIN_EMAIL:admin@cinemanest.vn}
-    full-name: ${INIT_ADMIN_FULLNAME:System Administrator}
-```
-
-### 2. Thiết lập Biến Môi Trường khi chạy Local
 - **Windows (PowerShell)**:
   ```powershell
   $env:DB_PASSWORD="<YOUR_SUPABASE_PASSWORD>"
@@ -153,20 +111,7 @@ Khi ứng dụng khởi động, lớp `DataInitializer` sẽ tự động kiể
 
 ---
 
-## Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai
 
-| STT | HTTP Method | Đường dẫn API | Quyền hạn | Mô tả |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | `POST` | `/api/auth/register` | **Public** | Đăng ký tài khoản khách hàng mới (mặc định Role `USER`, Status `ACTIVE`) |
-| 2 | `POST` | `/api/auth/login` | **Public** | Đăng nhập bằng Username HOẶC Email kèm Password -> nhận JWT Token |
-| 3 | `GET` | `/api/auth/me` | **Authenticated** | Lấy thông tin cá nhân của tài khoản đang đăng nhập |
-| 4 | `POST` | `/api/auth/change-password` | **Authenticated** | Đổi mật khẩu tài khoản hiện tại |
-| 5 | `GET` | `/api/test/ping` | **Public** | Kiểm tra kết nối Backend & CORS |
-| 6 | `GET` | `/api/test/public` | **Public** | Endpoint công khai mẫu |
-| 7 | `GET` | `/api/test/user-only` | **USER** hoặc **ADMIN** | Endpoint yêu cầu đăng nhập |
-| 8 | `GET` | `/api/test/admin-only` | **ADMIN** | Endpoint chỉ Quản trị viên mới truy cập được (trả về 403 nếu là USER) |
-
----
 
 ## Kiến Trúc Phân Tầng (Package Architecture)
 
