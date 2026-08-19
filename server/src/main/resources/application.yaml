@@ -37,7 +37,23 @@ spring:
           lob:
             non_contextual_creation: true
 
-# Cấu hình CORS cho phép Client Vite React truy cập
+# Cấu hình ứng dụng RoGym
 app:
   cors:
     allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
+  swagger:
+    auto-open: ${APP_SWAGGER_AUTO_OPEN:true}
+
+# Cấu hình Swagger / OpenAPI (SpringDoc)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+

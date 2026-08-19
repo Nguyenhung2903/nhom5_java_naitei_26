@@ -38,8 +38,11 @@ public class SecurityConfig {
                                 "/health/**",
                                 "/auth/**",
                                 "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         .anyRequest().permitAll() // Permit all for active feature development phase
                 );
