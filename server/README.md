@@ -1,26 +1,26 @@
-# 🎬 Movie Ticket Booking - Backend (Server)
+# Movie Ticket Booking - Backend (Server)
 
 > Dự án Backend cho hệ thống Đặt vé xem phim (**Movie Ticket Booking**) - Nhóm 5, khóa học Sun* Java NAITEI 26.
 
 ---
 
-## 📑 Mục Lục
-1. [Giới Thiệu & Công Nghệ](#-giới-thiệu--công-nghệ)
-2. [Yêu Cầu Môi Trường](#-yêu-cầu-môi-trường)
-3. [Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)](#-cấu-hình-cơ-sở-dữ-liệu--biến-môi-trường-jwt--supabase)
-4. [Hướng Dẫn Khởi Chạy & Biên Dịch](#-hướng-dẫn-khởi-chạy--biên-dịch)
-5. [Tài Khoản Mẫu & Khởi Tạo Dữ Liệu (Seed Data)](#-tài-khoản-mẫu--khởi-tạo-dữ-liệu-seed-data)
-6. [Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai](#-danh-mục-api-xác-thực--phân-quyền-đã-triển-khai)
-7. [Kiến Trúc Phân Tầng (Package Architecture)](#-kiến-trúc-phân-tầng-package-architecture)
-8. [Quy Chuẩn Thiết Kế RESTful API & Error Handling](#-quy-chuẩn-thiết-kế-restful-api--error-handling)
-9. [Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)](#-cơ-chế-bảo-mật-jwt--phân-quyền-rbac)
-10. [Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)](#-tích-hợp--sử-dụng-swagger--openapi-bearer-jwt)
-11. [Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)](#-hướng-dẫn-thêm-mới-một-tính-năng-hoàn-chỉnh-full-flow)
-12. [Quy Chuẩn Code & Quy Ước Sun* NAITEI 26 / Redmine](#-quy-chuẩn-code--quy-ước-sun-naitei-26--redmine)
+## Mục Lục
+1. [Giới Thiệu & Công Nghệ](#giới-thiệu--công-nghệ)
+2. [Yêu Cầu Môi Trường](#yêu-cầu-môi-trường)
+3. [Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)](#cấu-hình-cơ-sở-dữ-liệu--biến-môi-trường-jwt--supabase)
+4. [Hướng Dẫn Khởi Chạy & Biên Dịch](#hướng-dẫn-khởi-chạy--biên-dịch)
+5. [Tài Khoản Mẫu & Khởi Tạo Dữ Liệu (Seed Data)](#tài-khoản-mẫu--khởi-tạo-dữ-liệu-seed-data)
+6. [Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai](#danh-mục-api-xác-thực--phân-quyền-đã-triển-khai)
+7. [Kiến Trúc Phân Tầng (Package Architecture)](#kiến-trúc-phân-tầng-package-architecture)
+8. [Quy Chuẩn Thiết Kế RESTful API & Error Handling](#quy-chuẩn-thiết-kế-restful-api--error-handling)
+9. [Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)](#cơ-chế-bảo-mật-jwt--phân-quyền-rbac)
+10. [Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)](#tích-hợp--sử-dụng-swagger--openapi-bearer-jwt)
+11. [Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)](#hướng-dẫn-thêm-mới-một-tính-năng-hoàn-chỉnh-full-flow)
+12. [Quy Chuẩn Code & Quy Ước Sun* NAITEI 26 / Redmine](#quy-chuẩn-code--quy-ước-sun-naitei-26--redmine)
 
 ---
 
-## 🚀 Giới Thiệu & Công Nghệ
+## Giới Thiệu & Công Nghệ
 
 Backend cung cấp hệ thống RESTful API an toàn, hiệu năng cao phục vụ cho nghiệp vụ đặt vé xem phim:
 
@@ -37,7 +37,7 @@ Backend cung cấp hệ thống RESTful API an toàn, hiệu năng cao phục v�
 
 ---
 
-## 💻 Yêu Cầu Môi Trường
+## Yêu Cầu Môi Trường
 
 Trước khi phát triển, máy tính cần được cài đặt:
 - **Java Development Kit (JDK)**: Phiên bản **Java 21** ([Eclipse Temurin 21](https://adoptium.net/) hoặc OpenJDK 21).
@@ -52,7 +52,7 @@ java -version
 
 ---
 
-## 🗄️ Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)
+## Cấu Hình Cơ Sở Dữ Liệu & Biến Môi Trường (JWT / Supabase)
 
 Dự án sử dụng cơ sở dữ liệu PostgreSQL trên nền tảng đám mây **Supabase**. Để bảo mật thông tin mật khẩu, các cấu hình nhạy cảm được tách biệt và **không** đưa lên Git.
 
@@ -110,7 +110,7 @@ app:
 
 ---
 
-## 🛠️ Hướng Dẫn Khởi Chạy & Biên Dịch
+## Hướng Dẫn Khởi Chạy & Biên Dịch
 
 Mọi thao tác đều thực hiện từ thư mục `server/`.
 
@@ -142,7 +142,7 @@ Khi khởi động thành công:
 
 ---
 
-## 👥 Tài Khoản Mẫu & Khởi Tạo Dữ Liệu (Seed Data)
+## Tài Khoản Mẫu & Khởi Tạo Dữ Liệu (Seed Data)
 
 Khi ứng dụng khởi động, lớp `DataInitializer` sẽ tự động kiểm tra và tạo 2 tài khoản mẫu nếu cơ sở dữ liệu chưa tồn tại:
 
@@ -153,7 +153,7 @@ Khi ứng dụng khởi động, lớp `DataInitializer` sẽ tự động kiể
 
 ---
 
-## 🔑 Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai
+## Danh Mục API Xác Thực & Phân Quyền Đã Triển Khai
 
 | STT | HTTP Method | Đường dẫn API | Quyền hạn | Mô tả |
 | :--- | :--- | :--- | :--- | :--- |
@@ -168,7 +168,7 @@ Khi ứng dụng khởi động, lớp `DataInitializer` sẽ tự động kiể
 
 ---
 
-## 🏗️ Kiến Trúc Phân Tầng (Package Architecture)
+## Kiến Trúc Phân Tầng (Package Architecture)
 
 Dự án áp dụng mô hình kiến trúc phân lớp chuẩn (Layered Architecture):
 
@@ -225,7 +225,7 @@ server/src/main/java/com/nhom_5/server/
 
 ---
 
-## 📡 Quy Chuẩn Thiết Kế RESTful API & Error Handling
+## Quy Chuẩn Thiết Kế RESTful API & Error Handling
 
 Mọi Developer tham gia phát triển đều **bắt buộc tuân theo các quy chuẩn** dưới đây:
 
@@ -318,7 +318,7 @@ throw new AppException(ErrorCode.BAD_REQUEST, "Suất chiếu đã diễn ra, kh
 
 ---
 
-## 🔒 Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)
+## Cơ Chế Bảo Mật, JWT & Phân Quyền (RBAC)
 
 Hệ thống áp dụng mô hình xác thực **Stateless JWT**:
 - Client gửi Token qua HTTP Header: `Authorization: Bearer <access_token>`
@@ -366,7 +366,7 @@ if (SecurityUtil.isAdmin()) {
 
 ---
 
-## 📖 Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)
+## Tích Hợp & Sử Dụng Swagger / OpenAPI (Bearer JWT)
 
 Để kiểm thử trực tiếp các API bảo mật trên Swagger UI:
 
@@ -385,7 +385,7 @@ if (SecurityUtil.isAdmin()) {
 
 ---
 
-## 🔄 Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)
+## Hướng Dẫn Thêm Mới Một Tính Năng Hoàn Chỉnh (Full Flow)
 
 Quy trình 6 bước chuẩn để tạo một chức năng mới (Ví dụ: Module **Movie**):
 

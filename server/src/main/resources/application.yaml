@@ -12,20 +12,20 @@ spring:
 
   datasource:
     # URL kết nối Supabase Pooler (hỗ trợ IPv4 - Region Seoul ap-northeast-2)
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&tcpKeepAlive=true&connectTimeout=30&socketTimeout=60}
     username: ${SPRING_DATASOURCE_USERNAME:postgres.uuqydetbopbuvutpxhbh}
     password: ${DB_PASSWORD:[YOUR-PASSWORD]}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
-      idle-timeout: 30000
-      max-lifetime: 60000
-      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      keepalive-time: 30000
+      connection-timeout: 30000
       pool-name: SupabaseHikariCP
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: ${SPRING_JPA_SHOW_SQL:true}

@@ -10,7 +10,7 @@ spring:
 
   datasource:
     # URL kết nối Supabase Pooler (Region ap-northeast-2 Seoul)
-    url: jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
+    url: jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&tcpKeepAlive=true&connectTimeout=30&socketTimeout=60
     username: postgres.uuqydetbopbuvutpxhbh
     # Điền mật khẩu database Supabase:
     password: [YOUR-PASSWORD]
@@ -18,12 +18,13 @@ spring:
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
-      idle-timeout: 30000
-      max-lifetime: 60000
-      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      keepalive-time: 30000
+      connection-timeout: 30000
+      pool-name: SupabaseHikariCP
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
