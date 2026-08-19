@@ -43,6 +43,17 @@ app:
     allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
   swagger:
     auto-open: ${APP_SWAGGER_AUTO_OPEN:true}
+  jwt:
+    # Khóa bí mật ký JWT dạng Hex/Base64 đủ độ dài an toàn cho HMAC-SHA256 (tối thiểu 256 bits / 32 bytes)
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    # Thời hạn hiệu lực của Access Token (ms) - Mặc định 7 ngày (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
+    expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+  init-admin:
+    enabled: ${INIT_ADMIN_ENABLED:true}
+    username: ${INIT_ADMIN_USERNAME:admin}
+    password: ${INIT_ADMIN_PASSWORD:Admin@123456}
+    email: ${INIT_ADMIN_EMAIL:admin@cinemanest.vn}
+    full-name: ${INIT_ADMIN_FULLNAME:System Administrator}
 
 # Cấu hình Swagger / OpenAPI (SpringDoc)
 springdoc:
