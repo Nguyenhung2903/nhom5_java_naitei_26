@@ -5,6 +5,7 @@
 ---
 
 ## 📑 Mục Lục
+0. 📘 **[Cẩm Nang Quy Chuẩn Thiết Kế & Phát Triển Frontend (DEVELOPMENT_GUIDELINES.md)](docs/DEVELOPMENT_GUIDELINES.md)** ⭐ *(Bắt buộc đọc khi Onboarding)*
 1. [Giới Thiệu & Công Nghệ](#-giới-thiệu--công-nghệ)
 2. [Yêu Cầu Môi Trường](#-yêu-cầu-môi-trường)
 3. [Hướng Dẫn Cài Đặt & Khởi Chạy](#-hướng-dẫn-cài-đặt--khởi-chạy)
@@ -123,7 +124,8 @@ export default defineConfig({
 
 ```
 client/
-├── docs/                      # 📚 Toàn bộ tài liệu chi tiết về Design System & 27 UI Components
+├── docs/                      # 📚 Toàn bộ tài liệu chi tiết về Kiến Trúc & Design System
+│   ├── DEVELOPMENT_GUIDELINES.md # 🌟 Cẩm nang quy chuẩn thiết kế & phát triển Frontend (Onboarding)
 │   ├── DESIGN_TOKENS.md       # Bảng mã màu, CSS variables, typography, motion
 │   ├── PORTABILITY_GUIDE.md   # Hướng dẫn tích hợp UI Kit
 │   ├── QUICK_START.md         # Hướng dẫn tạo trang, bảng dữ liệu, form nhanh
