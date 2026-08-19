@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { api } from '@/lib/api'
 import {
   Button,
   Card,
@@ -17,10 +18,28 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@/components/ui'
-import { Dumbbell, Flame, Trophy, Users, Bell, Sparkles } from 'lucide-react'
+import { Dumbbell, Flame, Trophy, Users, Bell, Sparkles, Activity, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export function App() {
   const [inputValue, setInputValue] = useState('')
+  const [apiStatus, setApiStatus] = useState<{
+    loading: boolean
+    result?: { status: string; message: string; timestamp?: string }
+    error?: string
+  }>({ loading: false })
+
+  const handleTestApi = async () => {
+    setApiStatus({ loading: true })
+    try {
+      const data = await api.get<{ status: string; message: string; timestamp: string }>('/test/ping')
+      setApiStatus({ loading: false, result: data })
+    } catch (err) {
+      setApiStatus({
+        loading: false,
+        error: err instanceof Error ? err.message : 'Không thể kết nối tới Backend',
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[var(--rogym-bg-base)] text-[var(--rogym-text-primary)] font-body p-6 md:p-12">
@@ -71,6 +90,50 @@ export function App() {
             </div>
           </Card>
         </div>
+
+        {/* CORS & Backend API Status Section */}
+        <Card variant="elevated" className="p-6 border-[var(--rogym-border-focus)]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-[var(--rogym-green)]" />
+                <h3 className="text-lg font-bold text-white uppercase tracking-wide">Kiểm tra kết nối Backend (CORS & Spring Security)</h3>
+              </div>
+              <p className="text-sm text-[var(--rogym-text-secondary)]">
+                Target: <code className="text-xs text-[var(--rogym-teal)] bg-black/40 px-2 py-0.5 rounded">GET http://localhost:8080/api/test/ping</code>
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              loading={apiStatus.loading}
+              onClick={handleTestApi}
+              leftIcon={<Activity className="w-4 h-4" />}
+            >
+              Test CORS Connection
+            </Button>
+          </div>
+
+          {apiStatus.result && (
+            <div className="mt-4 p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
+              <div className="space-y-1 text-sm">
+                <p className="font-semibold text-emerald-300">{apiStatus.result.message}</p>
+                <p className="text-xs text-emerald-400/80">Timestamp: {apiStatus.result.timestamp}</p>
+              </div>
+            </div>
+          )}
+
+          {apiStatus.error && (
+            <div className="mt-4 p-4 rounded-xl bg-rose-950/40 border border-rose-500/30 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
+              <div className="space-y-1 text-sm">
+                <p className="font-semibold text-rose-300">Kết nối thất bại</p>
+                <p className="text-xs text-rose-400/80">{apiStatus.error}</p>
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Stat Cards */}
         <section className="space-y-4">
