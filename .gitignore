@@ -89,6 +89,11 @@ coverage/
 # ==========================================
 HELP.md
 target/
+application-local.yaml
+application-local.yml
+application-local.properties
+!**/src/main/resources/application-local.yaml.example
+!**/src/main/resources/application-local.yml.example
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -98,3 +103,4 @@ build/
 .gradle/
 !**/src/main/**/build/
 !**/src/test/**/build/
+

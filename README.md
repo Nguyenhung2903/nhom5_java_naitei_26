@@ -20,6 +20,12 @@ Mock project NAITEI 26 - Java. Nhóm 5.
 
 Quy ước tạo ticket, estimate time và liên kết Pull Request với Redmine được mô tả trong file REDMINE.md.
 
+## Tài liệu hướng dẫn chi tiết
+
+- 💻 **Frontend (React + Vite + Tailwind + RoGym UI Kit)**: [client/README.md](client/README.md)
+- ⚙️ **Backend (Spring Boot 4 + Java 21 + PostgreSQL Supabase)**: [server/README.md](server/README.md)
+- 📌 **Quy ước Redmine & Quản lý Task**: [REDMINE.md](REDMINE.md)
+
 ## Các bước thực hiện
 
 1. Design database
@@ -28,3 +34,4 @@ Quy ước tạo ticket, estimate time và liên kết Pull Request với Redmin
 4. Init models, add relationship
 5. Design static pages
 6. Other pulls
+

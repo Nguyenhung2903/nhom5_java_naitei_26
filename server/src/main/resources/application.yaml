@@ -1,3 +1,43 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
 spring:
   application:
     name: server
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  datasource:
+    # URL kết nối Supabase Pooler (hỗ trợ IPv4 - Region Seoul ap-northeast-2)
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres.uuqydetbopbuvutpxhbh}
+    password: ${DB_PASSWORD:[YOUR-PASSWORD]}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      max-lifetime: 60000
+      connection-timeout: 20000
+      pool-name: SupabaseHikariCP
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+# Cấu hình CORS cho phép Client Vite React truy cập
+app:
+  cors:
+    allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"

@@ -2,8 +2,10 @@ package com.nhom_5.server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@ActiveProfiles("local")
 class ServerApplicationTests {
 
 	@Test
@@ -11,3 +13,5 @@ class ServerApplicationTests {
 	}
 
 }
+
+
