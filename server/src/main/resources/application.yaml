@@ -1,0 +1,70 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: server
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  datasource:
+    # URL kết nối Supabase Pooler (hỗ trợ IPv4 - Region Seoul ap-northeast-2)
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&tcpKeepAlive=true&connectTimeout=30&socketTimeout=60}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres.uuqydetbopbuvutpxhbh}
+    password: ${DB_PASSWORD:[YOUR-PASSWORD]}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+      keepalive-time: 30000
+      connection-timeout: 30000
+      pool-name: SupabaseHikariCP
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+# Cấu hình ứng dụng RoGym
+app:
+  cors:
+    allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
+  swagger:
+    auto-open: ${APP_SWAGGER_AUTO_OPEN:true}
+  jwt:
+    # Khóa bí mật ký JWT dạng Hex/Base64 đủ độ dài an toàn cho HMAC-SHA256 (tối thiểu 256 bits / 32 bytes)
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    # Thời hạn hiệu lực của Access Token (ms) - Mặc định 7 ngày (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
+    expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+  init-admin:
+    enabled: ${INIT_ADMIN_ENABLED:true}
+    username: ${INIT_ADMIN_USERNAME:admin}
+    password: ${INIT_ADMIN_PASSWORD:Admin@123456}
+    email: ${INIT_ADMIN_EMAIL:admin@cinemanest.vn}
+    full-name: ${INIT_ADMIN_FULLNAME:System Administrator}
+
+# Cấu hình Swagger / OpenAPI (SpringDoc)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+
