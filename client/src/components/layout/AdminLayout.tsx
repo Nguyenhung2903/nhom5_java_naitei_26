@@ -7,6 +7,8 @@ import {
   Film,
   CalendarDays,
   DoorOpen,
+  MapPin,
+  Armchair,
   Ticket,
   Users,
   LogOut,
@@ -31,7 +33,9 @@ export function AdminLayout() {
     { label: 'Tổng quan (Dashboard)', path: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
     { label: 'Quản lý Phim', path: '/admin/movies', icon: <Film className="w-4 h-4" /> },
     { label: 'Quản lý Suất chiếu', path: '/admin/showtimes', icon: <CalendarDays className="w-4 h-4" /> },
+    { label: 'Quản lý Rạp', path: '/admin/theaters', icon: <MapPin className="w-4 h-4" /> },
     { label: 'Quản lý Phòng chiếu', path: '/admin/rooms', icon: <DoorOpen className="w-4 h-4" /> },
+    { label: 'Quản lý Ghế', path: '/admin/seats', icon: <Armchair className="w-4 h-4" /> },
     { label: 'Quản lý Đặt vé', path: '/admin/bookings', icon: <Ticket className="w-4 h-4" /> },
     { label: 'Quản lý Người dùng', path: '/admin/users', icon: <Users className="w-4 h-4" /> },
   ]
