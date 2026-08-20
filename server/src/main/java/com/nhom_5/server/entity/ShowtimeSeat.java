@@ -18,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import jakarta.persistence.UniqueConstraint;
 
 @Getter
 @Setter
@@ -25,7 +26,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "showtime_seat")
+@Table(name = "showtime_seat", uniqueConstraints = @UniqueConstraint(columnNames = { "showtime_id", "seat_id" }))
 public class ShowtimeSeat extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

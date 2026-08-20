@@ -56,6 +56,8 @@ public class SecurityConfig {
                         // Cho phép truy cập công khai không cần token
                         .requestMatchers(
                                 "/auth/**",
+                                "/showtimes/**",
+                                "/combos/**",
                                 "/test/public",
                                 "/test/ping",
                                 "/health/**",
