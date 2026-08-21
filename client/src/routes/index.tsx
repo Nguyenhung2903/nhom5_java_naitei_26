@@ -21,6 +21,9 @@ import { TheaterManagementPage } from '@/pages/admin/TheaterManagementPage'
 import { RoomManagementPage } from '@/pages/admin/RoomManagementPage'
 import { SeatManagementPage } from '@/pages/admin/SeatManagementPage'
 import { ShowtimeManagementPage } from '@/pages/admin/ShowtimeManagementPage'
+import { MovieManagementPage } from '@/pages/admin/MovieManagementPage'
+import { NewsManagementPage } from '@/pages/admin/NewsManagementPage'
+import { PromotionManagementPage } from '@/pages/admin/PromotionManagementPage'
 import { NotFoundPage } from '@/pages/common/NotFoundPage'
 import { ForbiddenPage } from '@/pages/common/ForbiddenPage'
 
@@ -101,7 +104,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'movies',
-            element: <DashboardPage />, // Placeholder cho quản lý phim
+            element: <MovieManagementPage />,
+          },
+          {
+            path: 'news',
+            element: <NewsManagementPage />,
+          },
+          {
+            path: 'promotions',
+            element: <PromotionManagementPage />,
           },
           {
             path: 'showtimes',

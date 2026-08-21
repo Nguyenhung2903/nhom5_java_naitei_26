@@ -7,6 +7,7 @@ import com.nhom_5.server.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                 // Cấu hình phân quyền endpoint
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập công khai không cần token
+                        .requestMatchers(HttpMethod.GET, "/movies/**", "/news/**", "/promotions/**").permitAll()
                         .requestMatchers(
                                 "/auth/**",
                                 "/showtimes/**",
