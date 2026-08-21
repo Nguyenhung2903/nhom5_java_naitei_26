@@ -39,8 +39,8 @@ public class ShowtimeSeatService {
         Instant holdExpiration = now.plus(5, ChronoUnit.MINUTES);
 
         for (ShowtimeSeat seat : seats) {
-            if (seat.getStatus() == ShowtimeSeatStatus.SOLD) {
-                throw new IllegalStateException("Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đã được bán");
+            if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
+                throw new IllegalStateException("Ghế đã được đặt và thanh toán");
             }
             if (seat.getStatus() == ShowtimeSeatStatus.HELD) {
                 if (seat.getHeldUntil() != null && seat.getHeldUntil().isAfter(now)) {

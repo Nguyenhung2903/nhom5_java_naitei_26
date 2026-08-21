@@ -5,8 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,14 +39,6 @@ public class TicketCombo extends BaseEntity {
     @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(name = "total_price", precision = 12, scale = 2)
+    @Column(name = "total_price", precision = 12, scale = 2, insertable = false, updatable = false)
     private BigDecimal totalPrice;
-
-    @PrePersist
-    @PreUpdate
-    public void calculateTotalPrice() {
-        if (unitPrice != null && quantity != null) {
-            this.totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        }
-    }
 }

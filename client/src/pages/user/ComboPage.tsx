@@ -96,12 +96,20 @@ export function ComboPage() {
         quantity: quantities[c.id]
       }))
     
-    console.log("Tiếp tục thanh toán với combo: ", selectedCombos)
-    // Navigate to next step (Payment)
-    // navigate(`/booking/${showtimeId}/payment`, {
-    //   state: { holdExpiration, selectedSeatIds, seatsTotalAmount, selectedCombos }
-    // })
-    alert("Chức năng thanh toán đang được phát triển!")
+    const combosTotalAmount = combos.reduce((sum, combo) => {
+      const qty = quantities[combo.id] || 0
+      return sum + (combo.price * qty)
+    }, 0)
+
+    navigate(`/booking/${showtimeId}/checkout`, {
+      state: {
+        holdExpiration,
+        selectedSeatIds,
+        seatsTotalAmount,
+        selectedCombos,
+        combosTotalAmount,
+      }
+    })
   }
 
   if (loading) return <PageLoader ariaLabel="Đang tải danh sách combo..." />
