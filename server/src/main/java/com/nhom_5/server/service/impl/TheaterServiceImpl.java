@@ -6,6 +6,7 @@ import com.nhom_5.server.entity.Theater;
 import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.RoomRepository;
+import com.nhom_5.server.repository.MovieRepository;
 import com.nhom_5.server.repository.TheaterRepository;
 import com.nhom_5.server.service.TheaterService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,23 @@ import java.util.UUID;
 public class TheaterServiceImpl implements TheaterService {
     private final TheaterRepository theaterRepository;
     private final RoomRepository roomRepository;
+    private final MovieRepository movieRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<TheaterResponse> getAll() {
         return theaterRepository.findAll().stream().map(TheaterResponse::fromEntity).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TheaterResponse> getByMovieId(UUID movieId) {
+        if (!movieRepository.existsById(movieId)) {
+            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phim với ID: " + movieId);
+        }
+        return theaterRepository.findAllByMovieId(movieId).stream()
+                .map(TheaterResponse::fromEntity)
+                .toList();
     }
 
     @Override

@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface TheaterService {
     List<TheaterResponse> getAll();
+    List<TheaterResponse> getByMovieId(UUID movieId);
     TheaterResponse getById(UUID id);
     TheaterResponse create(TheaterRequest request);
     TheaterResponse update(UUID id, TheaterRequest request);

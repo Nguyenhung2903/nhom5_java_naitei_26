@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,8 +29,12 @@ public class TheaterController {
     private final TheaterService theaterService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TheaterResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách rạp thành công", theaterService.getAll()));
+    public ResponseEntity<ApiResponse<List<TheaterResponse>>> getAll(
+            @RequestParam(required = false) UUID movieId) {
+        List<TheaterResponse> theaters = movieId == null
+                ? theaterService.getAll()
+                : theaterService.getByMovieId(movieId);
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách rạp thành công", theaters));
     }
 
     @GetMapping("/{id}")

@@ -11,6 +11,7 @@ import { HomePage } from '@/pages/user/HomePage'
 import { ProfilePage } from '@/pages/user/ProfilePage'
 import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
 import { ComboPage } from '@/pages/user/ComboPage'
+import { MovieShowtimePage } from '@/pages/user/MovieShowtimePage'
 import { CheckoutPage } from '@/pages/user/CheckoutPage'
 import { PaymentPage } from '@/pages/user/PaymentPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
+          {
+            path: 'booking/:movieId/showtimes',
+            element: <MovieShowtimePage />,
+          },
           {
             path: 'profile',
             element: <ProfilePage />,

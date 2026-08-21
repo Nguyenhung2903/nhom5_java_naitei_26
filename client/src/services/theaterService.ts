@@ -7,6 +7,10 @@ export const theaterService = {
     const response = await api.get<ApiResponse<Theater[]>>('/theaters')
     return response.data || []
   },
+  getByMovieId: async (movieId: string): Promise<Theater[]> => {
+    const response = await api.get<ApiResponse<Theater[]>>(`/theaters?movieId=${encodeURIComponent(movieId)}`)
+    return response.data || []
+  },
   create: async (payload: TheaterRequest): Promise<Theater> => {
     const response = await api.post<ApiResponse<Theater>>('/theaters', payload)
     if (!response.data) throw new Error(response.message || 'Tạo rạp thất bại')
