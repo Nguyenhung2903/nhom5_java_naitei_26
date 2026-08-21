@@ -11,6 +11,8 @@ import { HomePage } from '@/pages/user/HomePage'
 import { ProfilePage } from '@/pages/user/ProfilePage'
 import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
 import { ComboPage } from '@/pages/user/ComboPage'
+import { CheckoutPage } from '@/pages/user/CheckoutPage'
+import { PaymentPage } from '@/pages/user/PaymentPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
@@ -38,6 +40,14 @@ export const router = createBrowserRouter([
       {
         path: 'booking/:showtimeId/combos',
         element: <ComboPage />,
+      },
+      {
+        path: 'booking/:showtimeId/checkout',
+        element: <CheckoutPage />,
+      },
+      {
+        path: 'booking/:showtimeId/payment',
+        element: <PaymentPage />,
       },
       // Các route khách hàng cần đăng nhập
       {
