@@ -14,11 +14,11 @@ import { AlertCircle, ArrowLeft, Info, Clock } from 'lucide-react'
 export function ShowtimeSeatPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
   const navigate = useNavigate()
-  
+
   const [seats, setSeats] = useState<ShowtimeSeat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([])
   const [countdown, setCountdown] = useState<number | null>(null)
   const [holding, setHolding] = useState(false)
@@ -54,19 +54,21 @@ export function ShowtimeSeatPage() {
     return () => clearInterval(timer)
   }, [countdown])
 
+  // Chuyển giây thành phút 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
+  //Hàm chạy khi người dùng click vào ghế 
   const handleSeatClick = (seat: ShowtimeSeat) => {
     if (countdown !== null) return // Already holding, cannot change selection
 
     const now = new Date()
     const isHeld = seat.status === 'HELD'
     let isHeldValid = false
-    
+
     if (isHeld && seat.heldUntil) {
       const heldUntilDate = new Date(seat.heldUntil)
       if (heldUntilDate > now) {
@@ -76,8 +78,8 @@ export function ShowtimeSeatPage() {
 
     if (seat.status === 'SOLD' || isHeldValid) return
 
-    setSelectedSeatIds((prev) => 
-      prev.includes(seat.id) 
+    setSelectedSeatIds((prev) =>
+      prev.includes(seat.id)
         ? prev.filter((id) => id !== seat.id)
         : [...prev, seat.id]
     )
@@ -88,17 +90,17 @@ export function ShowtimeSeatPage() {
 
     setHolding(true)
     setError(null)
-    
+
     try {
       await showtimeSeatService.holdSeats(showtimeId, selectedSeatIds)
-      
+
       const holdExpiration = new Date().getTime() + 5 * 60 * 1000 // 5 minutes
       const seatsTotalAmount = seats
         .filter(s => selectedSeatIds.includes(s.id))
         .reduce((sum, s) => sum + s.price, 0)
 
-      navigate(`/booking/${showtimeId}/combos`, { 
-        state: { holdExpiration, selectedSeatIds, seatsTotalAmount } 
+      navigate(`/booking/${showtimeId}/combos`, {
+        state: { holdExpiration, selectedSeatIds, seatsTotalAmount }
       })
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 401) {
@@ -134,7 +136,7 @@ export function ShowtimeSeatPage() {
             </p>
           </div>
         </div>
-        
+
         {countdown !== null && (
           <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 px-4 py-2 rounded-lg">
             <Clock className="w-5 h-5 animate-pulse" />
@@ -181,7 +183,7 @@ export function ShowtimeSeatPage() {
         ) : (
           <div className="grid grid-cols-10 gap-2 sm:gap-3">
             {seats.map((seat) => {
-              const isBooked = seat.status === 'SOLD'
+              const isBooked = seat.status === 'BOOKED'
               const now = new Date()
               let isHeld = false
               if (seat.status === 'HELD' && seat.heldUntil) {
@@ -190,12 +192,13 @@ export function ShowtimeSeatPage() {
               }
               const isSelected = selectedSeatIds.includes(seat.id)
 
+              //màu ghế trống 
               let seatClass = 'bg-[var(--rogym-surface-hover)] border-[var(--rogym-border-subtle)] text-white hover:border-[var(--rogym-primary)] hover:text-[var(--rogym-primary)] cursor-pointer transition-all'
-              
+
               if (isBooked) {
                 seatClass = 'bg-gray-700/50 border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
               } else if (isSelected) {
-                seatClass = countdown !== null 
+                seatClass = countdown !== null
                   ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' // Show yellow when held
                   : 'bg-[var(--rogym-primary)]/20 border-[var(--rogym-primary)] text-[var(--rogym-primary)] shadow-[0_0_10px_rgba(34,197,94,0.3)]'
               } else if (isHeld) {
@@ -203,7 +206,7 @@ export function ShowtimeSeatPage() {
               }
 
               return (
-                <button 
+                <button
                   key={seat.id}
                   onClick={() => handleSeatClick(seat)}
                   disabled={isBooked || isHeld || countdown !== null}
@@ -217,7 +220,7 @@ export function ShowtimeSeatPage() {
           </div>
         )}
       </div>
-      
+
       {/* Footer actions */}
       <div className="flex items-center justify-between pt-4 border-t border-[var(--rogym-border-subtle)]">
         <div>
@@ -230,8 +233,8 @@ export function ShowtimeSeatPage() {
             </div>
           )}
         </div>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           onClick={handleHoldSeats}
           disabled={selectedSeatIds.length === 0 || countdown !== null || holding}
           loading={holding}
