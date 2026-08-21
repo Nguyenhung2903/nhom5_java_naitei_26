@@ -9,26 +9,51 @@ import com.nhom_5.server.repository.MovieRepository;
 import com.nhom_5.server.repository.RoomRepository;
 import com.nhom_5.server.repository.ShowtimeRepository;
 import com.nhom_5.server.repository.ShowtimeSeatRepository;
+import com.nhom_5.server.repository.TheaterRepository;
 import com.nhom_5.server.service.ShowtimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ShowtimeServiceImpl implements ShowtimeService {
+    private static final ZoneId BUSINESS_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
     private final ShowtimeRepository showtimeRepository;
     private final MovieRepository movieRepository;
     private final RoomRepository roomRepository;
     private final ShowtimeSeatRepository showtimeSeatRepository;
+    private final TheaterRepository theaterRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<ShowtimeResponse> getAll() {
         return showtimeRepository.findAll().stream().map(ShowtimeResponse::fromEntity).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ShowtimeResponse> getByMovieAndTheaterAndDate(UUID movieId, UUID theaterId, LocalDate date) {
+        if (!movieRepository.existsById(movieId)) {
+            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phim với ID: " + movieId);
+        }
+        if (!theaterRepository.existsById(theaterId)) {
+            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy rạp với ID: " + theaterId);
+        }
+
+        var startTime = date.atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
+        var endTime = date.plusDays(1).atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
+        return showtimeRepository.findAllByMovieIdAndTheaterIdAndStartTimeBetween(
+                        movieId, theaterId, startTime, endTime)
+                .stream()
+                .map(ShowtimeResponse::fromEntity)
+                .toList();
     }
 
     @Override

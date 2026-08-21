@@ -7,6 +7,15 @@ export const showtimeService = {
     const response = await api.get<ApiResponse<Showtime[]>>('/showtimes')
     return response.data || []
   },
+  getByMovieAndTheaterAndDate: async (
+    movieId: string,
+    theaterId: string,
+    date: string,
+  ): Promise<Showtime[]> => {
+    const params = new URLSearchParams({ movieId, theaterId, date })
+    const response = await api.get<ApiResponse<Showtime[]>>(`/showtimes?${params.toString()}`)
+    return response.data || []
+  },
   create: async (payload: ShowtimeRequest): Promise<Showtime> => {
     const response = await api.post<ApiResponse<Showtime>>('/showtimes', payload)
     if (!response.data) throw new Error(response.message || 'Tạo suất chiếu thất bại')

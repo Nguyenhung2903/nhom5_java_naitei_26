@@ -5,6 +5,7 @@ import com.nhom_5.server.entity.Theater;
 import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.RoomRepository;
+import com.nhom_5.server.repository.MovieRepository;
 import com.nhom_5.server.repository.TheaterRepository;
 import com.nhom_5.server.service.impl.TheaterServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,8 @@ class TheaterServiceTest {
     private TheaterRepository theaterRepository;
     @Mock
     private RoomRepository roomRepository;
+    @Mock
+    private MovieRepository movieRepository;
     @InjectMocks
     private TheaterServiceImpl theaterService;
 
@@ -62,5 +65,15 @@ class TheaterServiceTest {
         when(theaterRepository.save(any(Theater.class))).thenReturn(saved);
 
         assertEquals(saved.getId(), theaterService.create(request).getId());
+    }
+
+    @Test
+    void getByMovieIdRejectsMissingMovie() {
+        UUID movieId = UUID.randomUUID();
+        when(movieRepository.existsById(movieId)).thenReturn(false);
+
+        AppException exception = assertThrows(AppException.class, () -> theaterService.getByMovieId(movieId));
+
+        assertEquals(ErrorCode.NOT_FOUND, exception.getErrorCode());
     }
 }

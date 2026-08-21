@@ -3,6 +3,8 @@ package com.nhom_5.server.controller;
 import com.nhom_5.server.dto.request.ShowtimeRequest;
 import com.nhom_5.server.dto.response.ApiResponse;
 import com.nhom_5.server.dto.response.ShowtimeResponse;
+import com.nhom_5.server.exception.AppException;
+import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.service.ShowtimeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/showtimes")
@@ -28,8 +32,21 @@ public class ShowtimeController {
     private final ShowtimeService showtimeService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ShowtimeResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách suất chiếu thành công", showtimeService.getAll()));
+    public ResponseEntity<ApiResponse<List<ShowtimeResponse>>> getAll(
+            @RequestParam(required = false) UUID movieId,
+            @RequestParam(required = false) UUID theaterId,
+            @RequestParam(required = false) LocalDate date) {
+        boolean hasAnyFilter = movieId != null || theaterId != null || date != null;
+        boolean hasAllFilters = movieId != null && theaterId != null && date != null;
+        if (hasAnyFilter && !hasAllFilters) {
+                throw new AppException(
+                    ErrorCode.BAD_REQUEST,
+                "movieId, theaterId và date phải cùng được cung cấp");
+        }
+        List<ShowtimeResponse> showtimes = hasAllFilters
+            ? showtimeService.getByMovieAndTheaterAndDate(movieId, theaterId, date)
+            : showtimeService.getAll();
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách suất chiếu thành công", showtimes));
     }
 
     @GetMapping("/{id}")
