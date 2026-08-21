@@ -37,7 +37,7 @@ export function CheckoutPage() {
     combosTotalAmount 
   } = location.state || {}
 
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // Form Info

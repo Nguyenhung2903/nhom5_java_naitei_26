@@ -183,7 +183,7 @@ export function ShowtimeSeatPage() {
         ) : (
           <div className="grid grid-cols-10 gap-2 sm:gap-3">
             {seats.map((seat) => {
-              const isBooked = seat.status === 'BOOKED'
+              const isBooked = seat.status === 'SOLD'
               const now = new Date()
               let isHeld = false
               if (seat.status === 'HELD' && seat.heldUntil) {
