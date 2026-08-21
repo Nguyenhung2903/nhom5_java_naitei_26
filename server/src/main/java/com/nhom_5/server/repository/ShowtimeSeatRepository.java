@@ -15,6 +15,10 @@ import java.util.UUID;
 
 @Repository
 public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID> {
+    boolean existsBySeatId(UUID seatId);
+
+    boolean existsByShowtimeId(UUID showtimeId);
+
     // Lấy các ghế của 1 suất chiếu
     List<ShowtimeSeat> findByShowtimeId(UUID showtimeId);
 

@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface NewsRepository extends JpaRepository<News, UUID> {
+    boolean existsByTitleIgnoreCase(String title);
 
     @Query("""
             SELECT n

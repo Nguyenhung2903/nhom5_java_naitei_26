@@ -13,6 +13,8 @@ import java.util.UUID;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, UUID> {
+    boolean existsByTitleIgnoreCase(String title);
+
     @Query("""
             SELECT DISTINCT m
             FROM Movie m
