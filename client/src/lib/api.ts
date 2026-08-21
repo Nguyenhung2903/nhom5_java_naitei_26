@@ -3,7 +3,7 @@
  * Hỗ trợ CORS, tự động đính kèm JWT Bearer token và chuẩn hóa lỗi trả về.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 
 export class ApiError extends Error {
   status: number

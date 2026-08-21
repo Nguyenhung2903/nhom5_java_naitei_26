@@ -9,6 +9,8 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 // Pages
 import { HomePage } from '@/pages/user/HomePage'
 import { ProfilePage } from '@/pages/user/ProfilePage'
+import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
+import { ComboPage } from '@/pages/user/ComboPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
@@ -28,6 +30,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'booking/:showtimeId/seats',
+        element: <ShowtimeSeatPage />,
+      },
+      {
+        path: 'booking/:showtimeId/combos',
+        element: <ComboPage />,
       },
       // Các route khách hàng cần đăng nhập
       {
