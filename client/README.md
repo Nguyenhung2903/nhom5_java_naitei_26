@@ -83,6 +83,7 @@ Sau khi chạy thành công, mở trình duyệt tại: **`http://localhost:5173
 | `npm run build` | Kiểm tra kiểu dữ liệu TypeScript (`tsc -b`) và biên dịch ra thư mục `dist/` |
 | `npm run preview` | Chạy thử bản build production tại máy cục bộ |
 | `npm run lint` | Quét kiểm tra lỗi cú pháp và quy chuẩn code với ESLint |
+| `npm run test` | Chạy bộ kiểm thử frontend bằng Vitest |
 
 ---
 

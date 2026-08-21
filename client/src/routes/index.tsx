@@ -14,6 +14,10 @@ import { ComboPage } from '@/pages/user/ComboPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
+import { TheaterManagementPage } from '@/pages/admin/TheaterManagementPage'
+import { RoomManagementPage } from '@/pages/admin/RoomManagementPage'
+import { SeatManagementPage } from '@/pages/admin/SeatManagementPage'
+import { ShowtimeManagementPage } from '@/pages/admin/ShowtimeManagementPage'
 import { NotFoundPage } from '@/pages/common/NotFoundPage'
 import { ForbiddenPage } from '@/pages/common/ForbiddenPage'
 
@@ -86,11 +90,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'showtimes',
-            element: <DashboardPage />, // Placeholder cho quản lý suất chiếu
+            element: <ShowtimeManagementPage />,
           },
           {
             path: 'rooms',
-            element: <DashboardPage />, // Placeholder cho quản lý phòng chiếu
+            element: <RoomManagementPage />,
+          },
+          {
+            path: 'theaters',
+            element: <TheaterManagementPage />,
+          },
+          {
+            path: 'seats',
+            element: <SeatManagementPage />,
           },
           {
             path: 'bookings',

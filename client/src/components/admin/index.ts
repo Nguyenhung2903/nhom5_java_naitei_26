@@ -1,0 +1,1 @@
+export { AdminCrudPage } from './AdminCrudPage'
