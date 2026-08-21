@@ -204,7 +204,7 @@ export function PaymentPage() {
                 <PayPalScriptProvider options={{ "clientId": "test", currency: "USD" }}>
                   <PayPalButtons 
                     style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
-                    createOrder={(data, actions) => {
+                    createOrder={(_data, actions) => {
                       return actions.order.create({
                         intent: "CAPTURE",
                         purchase_units: [
@@ -217,7 +217,7 @@ export function PaymentPage() {
                         ],
                       });
                     }}
-                    onApprove={(data, actions) => {
+                    onApprove={(_data, actions) => {
                       return actions.order!.capture().then(async (details) => {
                         try {
                           const combosList = Array.isArray(selectedCombos) 
@@ -233,7 +233,8 @@ export function PaymentPage() {
                             discountCode: discountCode
                           })
 
-                          alert(`Thanh toán thành công bởi ${details.payer.name?.given_name}!`)
+                          const payerName = details.payer?.name?.given_name || 'PayPal'
+                          alert(`Thanh toán thành công bởi ${payerName}!`)
                           navigate('/')
                         } catch (err: any) {
                           setError(err.response?.data?.message || "Lưu thông tin đặt vé thất bại. Vui lòng liên hệ hỗ trợ.")
