@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8080}
   servlet:
     context-path: /api
 
@@ -37,7 +37,7 @@ spring:
           lob:
             non_contextual_creation: true
 
-# Cấu hình ứng dụng RoGym
+# Cấu hình ứng dụng CinemaNest
 app:
   cors:
     allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
