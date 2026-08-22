@@ -5,8 +5,6 @@ import { Avatar, Button, Badge } from '@/components/ui'
 import {
   Clapperboard,
   Film,
-  Calendar,
-  MapPin,
   Sparkles,
   User,
   LogOut,

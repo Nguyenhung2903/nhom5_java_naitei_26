@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Quản lý Tin tức (News)", description = "API tra cứu và quản trị tin tức")
+@Tag(name = "news-controller", description = "API tra cứu và quản trị tin tức")
 @RestController
 @RequestMapping("/news")
 @RequiredArgsConstructor
