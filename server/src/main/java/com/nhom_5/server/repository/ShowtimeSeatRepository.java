@@ -42,4 +42,5 @@ public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID
     List<ShowtimeSeat> findByShowtimeIdAndIdsForUpdate(@Param("showtimeId") UUID showtimeId,
             @Param("ids") List<UUID> ids);
 
+    List<ShowtimeSeat> findByStatus(com.nhom_5.server.entity.enums.ShowtimeSeatStatus status);
 }

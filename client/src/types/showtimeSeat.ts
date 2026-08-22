@@ -4,6 +4,6 @@ export interface ShowtimeSeat {
   seatNumber: number
   seatType: string
   price: number
-  status: 'AVAILABLE' | 'SOLD' | 'HELD'
+  status: 'AVAILABLE' | 'BOOKED' | 'HELD'
   heldUntil: string | null
 }

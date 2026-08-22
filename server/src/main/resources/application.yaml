@@ -54,6 +54,11 @@ app:
     password: ${INIT_ADMIN_PASSWORD:Admin@123456}
     email: ${INIT_ADMIN_EMAIL:admin@cinemanest.vn}
     full-name: ${INIT_ADMIN_FULLNAME:System Administrator}
+  vnpay:
+    tmn-code: ${VNPAY_TMN_CODE:G71X6TK1}
+    hash-secret: ${VNPAY_HASH_SECRET:GGZZRWLLXORMNPVLMVGHZWHAWIYBVCPA}
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    return-url: ${VNPAY_RETURN_URL:http://localhost:5173/payment/vnpay-return}
 
 # Cấu hình Swagger / OpenAPI (SpringDoc)
 springdoc:

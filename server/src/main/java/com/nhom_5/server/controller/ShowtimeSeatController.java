@@ -38,4 +38,12 @@ public class ShowtimeSeatController {
         showtimeSeatService.holdSeats(showtimeId, request.getSeatIds(), currentUser);
         return ApiResponse.success("Đã giữ ghế thành công");
     }
+
+    @PostMapping("/{showtimeId}/seats/release")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiResponse<String> releaseSeats(@PathVariable UUID showtimeId, @RequestBody HoldSeatsRequest request) {
+        User currentUser = SecurityUtil.getCurrentUser();
+        showtimeSeatService.releaseSeats(showtimeId, request.getSeatIds(), currentUser);
+        return ApiResponse.success("Đã thả ghế thành công");
+    }
 }

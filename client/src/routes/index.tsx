@@ -14,6 +14,8 @@ import { ComboPage } from '@/pages/user/ComboPage'
 import { MovieShowtimePage } from '@/pages/user/MovieShowtimePage'
 import { CheckoutPage } from '@/pages/user/CheckoutPage'
 import { PaymentPage } from '@/pages/user/PaymentPage'
+import { VNPayReturnPage } from '@/pages/user/VNPayReturnPage'
+import { MyTicketsPage } from '@/pages/user/MyTicketsPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
@@ -53,6 +55,10 @@ export const router = createBrowserRouter([
         path: 'booking/:showtimeId/payment',
         element: <PaymentPage />,
       },
+      {
+        path: 'payment/vnpay-return',
+        element: <VNPayReturnPage />,
+      },
       // Các route khách hàng cần đăng nhập
       {
         element: <ProtectedRoute />,
@@ -64,6 +70,10 @@ export const router = createBrowserRouter([
           {
             path: 'profile',
             element: <ProfilePage />,
+          },
+          {
+            path: 'my-tickets',
+            element: <MyTicketsPage />,
           },
         ],
       },

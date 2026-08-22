@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  TicketIcon,
 } from 'lucide-react'
 
 export function UserLayout() {
@@ -31,9 +32,9 @@ export function UserLayout() {
 
   const navLinks = [
     { label: 'Trang chủ', path: '/', icon: <Film className="w-4 h-4" /> },
-    { label: 'Phim đang chiếu', path: '/#movies', icon: <Clapperboard className="w-4 h-4" /> },
-    { label: 'Lịch chiếu', path: '/#showtimes', icon: <Calendar className="w-4 h-4" /> },
-    { label: 'Cụm rạp', path: '/#cinemas', icon: <MapPin className="w-4 h-4" /> },
+    { label: 'Rạp chiếu', path: '/cinemas', icon: <Clapperboard className="w-4 h-4" /> },
+    { label: 'Vé của tôi', path: '/my-tickets', icon: <TicketIcon className="w-4 h-4" /> },
+    { label: 'Khuyến mãi', path: '/promotions', icon: <Sparkles className="w-4 h-4" /> },
   ]
 
   return (
@@ -41,7 +42,7 @@ export function UserLayout() {
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-50 bg-[var(--rogym-bg-base)]/80 backdrop-blur-md border-b border-[var(--rogym-border-subtle)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <span className="p-2 rounded-xl bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/30 text-[var(--rogym-green)] group-hover:scale-105 transition-transform">
@@ -65,11 +66,10 @@ export function UserLayout() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'text-[var(--rogym-teal)] bg-[var(--rogym-green)]/10 font-semibold'
-                      : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                    ? 'text-[var(--rogym-teal)] bg-[var(--rogym-green)]/10 font-semibold'
+                    : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5'
+                    }`}
                 >
                   {link.icon}
                   <span>{link.label}</span>

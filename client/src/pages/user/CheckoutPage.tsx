@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { showtimeSeatService } from '@/services/showtimeSeatService'
 import {
   PageLoader,
   Alert,
@@ -71,6 +72,7 @@ export function CheckoutPage() {
       setCountdown(remaining)
       if (remaining <= 0) {
         clearInterval(timer)
+        showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
         navigate(`/booking/${showtimeId}/seats`)
       }
     }, 1000)
@@ -129,7 +131,7 @@ export function CheckoutPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link to={`/booking/${showtimeId}/combos`} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
+          <Link to={`/booking/${showtimeId}/combos`} state={location.state} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
