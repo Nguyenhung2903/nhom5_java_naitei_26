@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { bookingService } from '@/services/bookingService'
+import { showtimeSeatService } from '@/services/showtimeSeatService'
 import {
-  PageLoader,
   Alert,
   AlertDescription,
   Button,
+  PageLoader
 } from '@/components/ui'
-import { AlertCircle, ArrowLeft, Clock, CreditCard, Store } from 'lucide-react'
-
-// Tỉ giá giả lập: 1 USD = 25.000 VNĐ
-const VND_TO_USD_RATE = 25000
+import { AlertCircle, ArrowLeft, Clock, CreditCard } from 'lucide-react'
 
 export function PaymentPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
@@ -26,7 +23,7 @@ export function PaymentPage() {
     discountCode
   } = location.state || {}
 
-  const [paymentMethod, setPaymentMethod] = useState<'COUNTER' | 'PAYPAL'>('COUNTER')
+  const [paymentMethod, setPaymentMethod] = useState<'VNPAY'>('VNPAY')
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,12 +47,13 @@ export function PaymentPage() {
       setCountdown(remaining)
       if (remaining <= 0) {
         clearInterval(timer)
+        showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
         navigate(`/booking/${showtimeId}/seats`)
       }
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [holdExpiration, navigate, showtimeId, finalTotalAmount])
+  }, [holdExpiration, navigate, showtimeId, finalTotalAmount, selectedSeatIds])
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -63,33 +61,33 @@ export function PaymentPage() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
-  // Xử lý thanh toán tại quầy
-  const handleCounterPayment = async () => {
+  const handleVNPayPayment = async () => {
     setIsProcessing(true)
+    setError(null)
     try {
       const combosList = Array.isArray(selectedCombos) 
         ? selectedCombos.map((item: any) => ({ comboId: item.id, quantity: item.quantity }))
         : []
 
-      await bookingService.createBooking({
+      // Save pending booking info to localStorage so we can retrieve it after VNPay redirects back
+      const pendingBooking = {
         showtimeId: showtimeId!,
         seatIds: selectedSeatIds || [],
         combos: combosList,
-        paymentMethod: 'COUNTER',
         discountCode: discountCode
-      })
+      }
+      localStorage.setItem('pending_vnpay_booking', JSON.stringify(pendingBooking))
 
-      alert("Đặt vé thành công! Vui lòng thanh toán tại quầy trước giờ chiếu 15 phút.")
-      navigate('/')
+      // Get VNPay URL
+      const url = await bookingService.createVNPayUrl(finalTotalAmount)
+      
+      // Redirect to VNPay
+      window.location.href = url
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn hàng.")
-    } finally {
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo URL thanh toán VNPay.")
       setIsProcessing(false)
     }
   }
-
-  // Chuyển đổi VNĐ sang USD cho PayPal
-  const finalTotalUSD = (finalTotalAmount / VND_TO_USD_RATE).toFixed(2)
 
   if (finalTotalAmount === undefined) return null
 
@@ -128,55 +126,29 @@ export function PaymentPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Lựa chọn phương thức */}
         <div className="md:col-span-7 space-y-4">
-          
           <div 
-            onClick={() => setPaymentMethod('COUNTER')}
+            onClick={() => setPaymentMethod('VNPAY')}
             className={`cursor-pointer border rounded-xl p-6 transition-all ${
-              paymentMethod === 'COUNTER' 
+              paymentMethod === 'VNPAY' 
                 ? 'border-[var(--rogym-primary)] bg-[var(--rogym-primary)]/10' 
                 : 'border-[var(--rogym-border-subtle)] bg-[var(--rogym-surface)] hover:bg-[var(--rogym-surface-hover)]'
             }`}
           >
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full ${paymentMethod === 'COUNTER' ? 'bg-[var(--rogym-primary)]/20 text-[var(--rogym-primary)]' : 'bg-[var(--rogym-surface-hover)] text-[var(--rogym-text-muted)]'}`}>
-                <Store className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-white">Thanh toán tại quầy</h3>
-                <p className="text-sm text-[var(--rogym-text-muted)] mt-1">
-                  Đến rạp lấy vé và thanh toán bằng tiền mặt hoặc thẻ tín dụng.
-                </p>
-              </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COUNTER' ? 'border-[var(--rogym-primary)]' : 'border-[var(--rogym-border-subtle)]'}`}>
-                {paymentMethod === 'COUNTER' && <div className="w-3 h-3 rounded-full bg-[var(--rogym-primary)]" />}
-              </div>
-            </div>
-          </div>
-
-          <div 
-            onClick={() => setPaymentMethod('PAYPAL')}
-            className={`cursor-pointer border rounded-xl p-6 transition-all ${
-              paymentMethod === 'PAYPAL' 
-                ? 'border-[var(--rogym-primary)] bg-[var(--rogym-primary)]/10' 
-                : 'border-[var(--rogym-border-subtle)] bg-[var(--rogym-surface)] hover:bg-[var(--rogym-surface-hover)]'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full ${paymentMethod === 'PAYPAL' ? 'bg-[var(--rogym-primary)]/20 text-[var(--rogym-primary)]' : 'bg-[var(--rogym-surface-hover)] text-[var(--rogym-text-muted)]'}`}>
+              <div className={`p-3 rounded-full ${paymentMethod === 'VNPAY' ? 'bg-[var(--rogym-primary)]/20 text-[var(--rogym-primary)]' : 'bg-[var(--rogym-surface-hover)] text-[var(--rogym-text-muted)]'}`}>
                 <CreditCard className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-white">Thanh toán qua PayPal</h3>
+                <h3 className="text-lg font-bold text-white">Thanh toán qua VNPAY</h3>
                 <p className="text-sm text-[var(--rogym-text-muted)] mt-1">
-                  Thanh toán an toàn, tiện lợi qua cổng thanh toán quốc tế PayPal.
+                  Thanh toán qua ví điện tử VNPAY hoặc quét mã QR ngân hàng (VNPAY-QR).
                 </p>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'PAYPAL' ? 'border-[var(--rogym-primary)]' : 'border-[var(--rogym-border-subtle)]'}`}>
-                {paymentMethod === 'PAYPAL' && <div className="w-3 h-3 rounded-full bg-[var(--rogym-primary)]" />}
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'VNPAY' ? 'border-[var(--rogym-primary)]' : 'border-[var(--rogym-border-subtle)]'}`}>
+                {paymentMethod === 'VNPAY' && <div className="w-3 h-3 rounded-full bg-[var(--rogym-primary)]" />}
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Tổng kết thanh toán & Nút hành động */}
@@ -187,70 +159,16 @@ export function PaymentPage() {
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalTotalAmount)}
             </div>
 
-            {paymentMethod === 'COUNTER' && (
+            {paymentMethod === 'VNPAY' && (
               <Button 
                 variant="primary" 
                 size="lg"
-                className="w-full"
-                onClick={handleCounterPayment}
+                className="w-full mt-4"
+                onClick={handleVNPayPayment}
                 disabled={isProcessing}
               >
-                {isProcessing ? <PageLoader ariaLabel="Đang xử lý..." className="scale-75" /> : 'Xác Nhận Đặt Vé'}
+                {isProcessing ? <PageLoader ariaLabel="Đang tạo mã thanh toán..." className="scale-75" /> : 'Thanh Toán Ngay'}
               </Button>
-            )}
-
-            {paymentMethod === 'PAYPAL' && (
-              <div className="mt-4">
-                <PayPalScriptProvider options={{ "clientId": "test", currency: "USD" }}>
-                  <PayPalButtons 
-                    style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
-                    createOrder={(_data, actions) => {
-                      return actions.order.create({
-                        intent: "CAPTURE",
-                        purchase_units: [
-                          {
-                            amount: {
-                              currency_code: "USD",
-                              value: finalTotalUSD,
-                            },
-                          },
-                        ],
-                      });
-                    }}
-                    onApprove={(_data, actions) => {
-                      return actions.order!.capture().then(async (details) => {
-                        try {
-                          const combosList = Array.isArray(selectedCombos) 
-                            ? selectedCombos.map((item: any) => ({ comboId: item.id, quantity: item.quantity }))
-                            : []
-
-                          await bookingService.createBooking({
-                            showtimeId: showtimeId!,
-                            seatIds: selectedSeatIds || [],
-                            combos: combosList,
-                            paymentMethod: 'PAYPAL',
-                            paymentTransactionId: details.id,
-                            discountCode: discountCode
-                          })
-
-                          const payerName = details.payer?.name?.given_name || 'PayPal'
-                          alert(`Thanh toán thành công bởi ${payerName}!`)
-                          navigate('/')
-                        } catch (err: any) {
-                          setError(err.response?.data?.message || "Lưu thông tin đặt vé thất bại. Vui lòng liên hệ hỗ trợ.")
-                        }
-                      });
-                    }}
-                    onError={(err) => {
-                      console.error("PayPal Checkout onError", err);
-                      setError("Thanh toán PayPal bị lỗi hoặc đã bị huỷ.");
-                    }}
-                  />
-                </PayPalScriptProvider>
-                <div className="text-xs text-center text-[var(--rogym-text-muted)] mt-4">
-                  (Số tiền thanh toán: ~ ${finalTotalUSD} USD)
-                </div>
-              </div>
             )}
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
 import type { ShowtimeSeat } from '@/types/showtimeSeat'
@@ -76,7 +76,7 @@ export function ShowtimeSeatPage() {
       }
     }
 
-    if (seat.status === 'SOLD' || isHeldValid) return
+    if (seat.status === 'BOOKED' || isHeldValid) return
 
     setSelectedSeatIds((prev) =>
       prev.includes(seat.id)
@@ -112,6 +112,21 @@ export function ShowtimeSeatPage() {
       setHolding(false)
     }
   }
+
+  const rows = useMemo(() => {
+    const grouped = seats.reduce((acc, seat) => {
+      if (!acc[seat.seatRow]) acc[seat.seatRow] = []
+      acc[seat.seatRow].push(seat)
+      return acc
+    }, {} as Record<string, ShowtimeSeat[]>)
+
+    const sortedRows = Object.keys(grouped).sort()
+    sortedRows.forEach(row => {
+      grouped[row].sort((a, b) => a.seatNumber - b.seatNumber)
+    })
+
+    return sortedRows.map(row => grouped[row])
+  }, [seats])
 
   if (loading && seats.length === 0) return <PageLoader ariaLabel="Đang tải sơ đồ ghế..." />
 
@@ -158,18 +173,22 @@ export function ShowtimeSeatPage() {
       </div>
 
       {/* Legend (Chú thích) */}
-      <div className="flex justify-center gap-6 mb-8 text-sm">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-8 text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-[var(--rogym-surface-hover)] border border-[var(--rogym-border-subtle)]"></div>
-          <span className="text-white">Ghế trống</span>
+          <div className="w-5 h-5 rounded bg-purple-600 border border-purple-500"></div>
+          <span className="text-white">Thường</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-gray-600 border border-gray-700"></div>
+          <div className="w-5 h-5 rounded bg-red-500 border border-red-600"></div>
+          <span className="text-white">VIP</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-gray-700/50 border border-gray-700"></div>
           <span className="text-[var(--rogym-text-muted)]">Đã bán</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-[var(--rogym-primary)]/20 border border-[var(--rogym-primary)]"></div>
-          <span className="text-[var(--rogym-primary)]">Đang chọn</span>
+          <div className="w-5 h-5 rounded bg-yellow-500/20 border border-yellow-500"></div>
+          <span className="text-yellow-500">Đang chọn</span>
         </div>
       </div>
 
@@ -181,42 +200,51 @@ export function ShowtimeSeatPage() {
             <p>Không tìm thấy dữ liệu ghế cho suất chiếu này.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-10 gap-2 sm:gap-3">
-            {seats.map((seat) => {
-              const isBooked = seat.status === 'SOLD'
-              const now = new Date()
-              let isHeld = false
-              if (seat.status === 'HELD' && seat.heldUntil) {
-                const heldUntilDate = new Date(seat.heldUntil)
-                if (heldUntilDate > now) isHeld = true
-              }
-              const isSelected = selectedSeatIds.includes(seat.id)
+          <div className="flex flex-col gap-2 sm:gap-3 items-center">
+            {rows.map((rowSeats, rowIndex) => (
+              <div key={rowIndex} className="flex gap-2 sm:gap-3">
+                {rowSeats.map((seat) => {
+                  const isBooked = seat.status === 'BOOKED'
+                  const now = new Date()
+                  let isHeld = false
+                  if (seat.status === 'HELD' && seat.heldUntil) {
+                    const heldUntilDate = new Date(seat.heldUntil)
+                    if (heldUntilDate > now) isHeld = true
+                  }
+                  const isSelected = selectedSeatIds.includes(seat.id)
 
-              //màu ghế trống 
-              let seatClass = 'bg-[var(--rogym-surface-hover)] border-[var(--rogym-border-subtle)] text-white hover:border-[var(--rogym-primary)] hover:text-[var(--rogym-primary)] cursor-pointer transition-all'
+                  //màu ghế trống dựa trên loại ghế
+                  let seatClass = 'cursor-pointer transition-all'
+                  if (seat.seatType === 'VIP') {
+                    seatClass += ' bg-red-500 border-red-600 text-white hover:bg-red-400'
+                  } else {
+                    seatClass += ' bg-purple-600 border-purple-500 text-white hover:bg-purple-500'
+                  }
 
-              if (isBooked) {
-                seatClass = 'bg-gray-700/50 border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
-              } else if (isSelected) {
-                seatClass = countdown !== null
-                  ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' // Show yellow when held
-                  : 'bg-[var(--rogym-primary)]/20 border-[var(--rogym-primary)] text-[var(--rogym-primary)] shadow-[0_0_10px_rgba(34,197,94,0.3)]'
-              } else if (isHeld) {
-                seatClass = 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500/70 cursor-not-allowed'
-              }
+                  if (isBooked) {
+                    seatClass = 'bg-gray-700/50 border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
+                  } else if (isSelected) {
+                    seatClass = countdown !== null
+                      ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500'
+                      : 'bg-yellow-500/20 border-yellow-500 text-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]'
+                  } else if (isHeld) {
+                    seatClass = 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500/70 cursor-not-allowed'
+                  }
 
-              return (
-                <button
-                  key={seat.id}
-                  onClick={() => handleSeatClick(seat)}
-                  disabled={isBooked || isHeld || countdown !== null}
-                  title={`Ghế ${seat.seatRow}${seat.seatNumber} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(seat.price)}`}
-                  className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded text-xs sm:text-sm font-semibold border focus:outline-none ${seatClass}`}
-                >
-                  {seat.seatRow}{seat.seatNumber}
-                </button>
-              )
-            })}
+                  return (
+                    <button
+                      key={seat.id}
+                      onClick={() => handleSeatClick(seat)}
+                      disabled={isBooked || isHeld || countdown !== null}
+                      title={`Ghế ${seat.seatRow}${seat.seatNumber} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(seat.price)}`}
+                      className={`relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg text-xs sm:text-sm font-semibold border focus:outline-none ${seatClass}`}
+                    >
+                      {seat.seatRow}{seat.seatNumber}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         )}
       </div>

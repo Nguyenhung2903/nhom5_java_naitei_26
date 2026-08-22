@@ -1,6 +1,7 @@
 package com.nhom_5.server.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.nhom_5.server.repository.ShowtimeSeatRepository;
 import com.nhom_5.server.entity.ShowtimeSeat;
@@ -56,6 +57,40 @@ public class ShowtimeSeatService {
         }
 
         showtimeSeatRepository.saveAll(seats);
+    }
+
+    @Transactional
+    public void releaseSeats(UUID showtimeId, List<UUID> seatIds, User user) {
+        List<ShowtimeSeat> seats = showtimeSeatRepository.findByShowtimeIdAndIdsForUpdate(showtimeId, seatIds);
+        
+        for (ShowtimeSeat seat : seats) {
+            if (seat.getStatus() == ShowtimeSeatStatus.HELD && seat.getHeldBy() != null && seat.getHeldBy().getId().equals(user.getId())) {
+                seat.setStatus(ShowtimeSeatStatus.AVAILABLE);
+                seat.setHeldBy(null);
+                seat.setHeldUntil(null);
+            }
+        }
+        showtimeSeatRepository.saveAll(seats);
+    }
+
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void releaseExpiredHolds() {
+        List<ShowtimeSeat> heldSeats = showtimeSeatRepository.findByStatus(ShowtimeSeatStatus.HELD);
+        Instant now = Instant.now();
+        List<ShowtimeSeat> expiredSeats = heldSeats.stream()
+            .filter(seat -> seat.getHeldUntil() != null && seat.getHeldUntil().isBefore(now))
+            .peek(seat -> {
+                seat.setStatus(ShowtimeSeatStatus.AVAILABLE);
+                seat.setHeldBy(null);
+                seat.setHeldUntil(null);
+            })
+            .toList();
+
+        if (!expiredSeats.isEmpty()) {
+            showtimeSeatRepository.saveAll(expiredSeats);
+            System.out.println("Released " + expiredSeats.size() + " expired seat holds.");
+        }
     }
 
     private ShowtimeSeatResponse toResponse(ShowtimeSeat seat) {

@@ -6,6 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
+import com.nhom_5.server.entity.User;
+import java.util.List;
+
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
+    List<Booking> findByUserOrderByBookingTimeDesc(User user);
+    List<Booking> findByUserAndPaymentStatusOrderByBookingTimeDesc(User user, com.nhom_5.server.entity.enums.PaymentStatus paymentStatus);
 }

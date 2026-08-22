@@ -2,16 +2,25 @@ package com.nhom_5.server.service.impl;
 
 import com.nhom_5.server.dto.request.ComboItemRequest;
 import com.nhom_5.server.dto.request.CreateBookingRequest;
+import com.nhom_5.server.dto.response.MyBookingResponse;
 import com.nhom_5.server.entity.*;
 import com.nhom_5.server.entity.enums.BookingStatus;
+import com.nhom_5.server.entity.enums.PaymentMethod;
 import com.nhom_5.server.entity.enums.PaymentStatus;
 import com.nhom_5.server.entity.enums.PaymentTransactionStatus;
 import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
 import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
+import com.nhom_5.server.exception.PaymentFailedException;
 import com.nhom_5.server.repository.*;
 import com.nhom_5.server.service.BookingService;
+import com.nhom_5.server.config.VNPayConfig;
 import com.nhom_5.server.util.SecurityUtil;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +30,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +43,57 @@ public class BookingServiceImpl implements BookingService {
     private final TicketRepository ticketRepository;
     private final TicketComboRepository ticketComboRepository;
     private final PaymentRepository paymentRepository;
+    private final VNPayConfig vnPayConfig;
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = PaymentFailedException.class)
     public void createBooking(CreateBookingRequest request) {
+        // 0. Verify VNPay Signature
+        boolean isPaymentSuccess = true;
+        String responseCode = "00";
+        if (request.getPaymentMethod() == PaymentMethod.VNPAY) {
+            Map<String, String> vnpayParams = request.getVnpayParams();
+            if (vnpayParams == null || vnpayParams.isEmpty()) {
+                throw new AppException(ErrorCode.BAD_REQUEST);
+            }
+            
+            String vnp_SecureHash = vnpayParams.get("vnp_SecureHash");
+            if (vnp_SecureHash == null) {
+                throw new AppException(ErrorCode.BAD_REQUEST);
+            }
+            
+            // Remove hash params for validation
+            vnpayParams.remove("vnp_SecureHash");
+            vnpayParams.remove("vnp_SecureHashType");
+
+            List<String> fieldNames = new ArrayList<>(vnpayParams.keySet());
+            Collections.sort(fieldNames);
+            StringBuilder hashData = new StringBuilder();
+            Iterator<String> itr = fieldNames.iterator();
+            while (itr.hasNext()) {
+                String fieldName = itr.next();
+                String fieldValue = vnpayParams.get(fieldName);
+                if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                    hashData.append(fieldName);
+                    hashData.append('=');
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                    if (itr.hasNext()) {
+                        hashData.append('&');
+                    }
+                }
+            }
+
+            String signValue = VNPayConfig.hmacSHA512(vnPayConfig.getSecretKey(), hashData.toString());
+            if (!signValue.equals(vnp_SecureHash)) {
+                throw new AppException(ErrorCode.BAD_REQUEST); // Invalid signature
+            }
+
+            responseCode = vnpayParams.get("vnp_ResponseCode");
+            if (!"00".equals(responseCode)) {
+                isPaymentSuccess = false;
+            }
+        }
+
         User currentUser = SecurityUtil.getCurrentUser();
 
         // 1. Process Promotion
@@ -54,12 +111,13 @@ public class BookingServiceImpl implements BookingService {
             ShowtimeSeat seat = showtimeSeatRepository.findById(seatId)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
             
-            if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
-                throw new AppException(ErrorCode.BAD_REQUEST);
+            if (isPaymentSuccess) {
+                if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
+                    throw new AppException(ErrorCode.BAD_REQUEST);
+                }
+                seat.setStatus(ShowtimeSeatStatus.BOOKED);
+                showtimeSeatRepository.save(seat);
             }
-
-            seat.setStatus(ShowtimeSeatStatus.BOOKED);
-            showtimeSeatRepository.save(seat);
 
             showtimeSeats.add(seat);
             seatsTotal = seatsTotal.add(seat.getPrice());
@@ -113,42 +171,35 @@ public class BookingServiceImpl implements BookingService {
                 .promotion(promotion)
                 .bookingCode(bookingCode)
                 .totalAmount(finalTotal)
-                .bookingStatus(BookingStatus.CONFIRMED)
+                .bookingStatus(isPaymentSuccess ? BookingStatus.CONFIRMED : BookingStatus.CANCELLED)
+                .paymentStatus(isPaymentSuccess ? PaymentStatus.PAID : PaymentStatus.UNPAID)
                 .build();
         
         booking = bookingRepository.save(booking);
 
-        // 6. Create Tickets and attach Combos to the first ticket
-        boolean isFirstTicket = true;
-        for (ShowtimeSeat seat : showtimeSeats) {
-            Ticket ticket = Ticket.builder()
-                    .booking(booking)
-                    .showtimeSeat(seat)
-                    .price(seat.getPrice())
-                    .build();
-            ticket = ticketRepository.save(ticket);
-            
-            if (isFirstTicket && !combosToSave.isEmpty()) {
-                for (TicketCombo tc : combosToSave) {
-                    tc.setTicket(ticket);
-                    ticketComboRepository.save(tc);
+        if (isPaymentSuccess) {
+            // 6. Create Tickets and attach Combos to the first ticket
+            boolean isFirstTicket = true;
+            for (ShowtimeSeat seat : showtimeSeats) {
+                Ticket ticket = Ticket.builder()
+                        .booking(booking)
+                        .showtimeSeat(seat)
+                        .price(seat.getPrice())
+                        .build();
+                ticket = ticketRepository.save(ticket);
+                
+                if (isFirstTicket && !combosToSave.isEmpty()) {
+                    for (TicketCombo tc : combosToSave) {
+                        tc.setTicket(ticket);
+                        ticketComboRepository.save(tc);
+                    }
+                    isFirstTicket = false;
                 }
-                isFirstTicket = false;
             }
         }
 
         // 7. Create Payment
-        PaymentTransactionStatus paymentTransactionStatus = PaymentTransactionStatus.PENDING;
-        PaymentStatus bookingPaymentStatus = PaymentStatus.UNPAID;
-
-        if (request.getPaymentMethod() == com.nhom_5.server.entity.enums.PaymentMethod.PAYPAL) {
-            paymentTransactionStatus = PaymentTransactionStatus.SUCCESS;
-            bookingPaymentStatus = PaymentStatus.PAID;
-        }
-
-        // Cập nhật bookingPaymentStatus
-        booking.setPaymentStatus(bookingPaymentStatus);
-        bookingRepository.save(booking);
+        PaymentTransactionStatus paymentTransactionStatus = isPaymentSuccess ? PaymentTransactionStatus.SUCCESS : PaymentTransactionStatus.FAILED;
 
         Payment payment = Payment.builder()
                 .booking(booking)
@@ -160,5 +211,68 @@ public class BookingServiceImpl implements BookingService {
                 .build();
         
         paymentRepository.save(payment);
+
+        if (!isPaymentSuccess) {
+            throw new PaymentFailedException("Thanh toán thất bại, đã lưu lịch sử giao dịch. Mã lỗi VNPay: " + responseCode);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyBookingResponse> getMyBookings() {
+        User currentUser = SecurityUtil.getCurrentUser();
+        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusOrderByBookingTimeDesc(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
+
+        return bookings.stream().map(booking -> {
+            MyBookingResponse response = MyBookingResponse.builder()
+                    .id(booking.getId())
+                    .bookingCode(booking.getBookingCode())
+                    .bookingTime(booking.getBookingTime())
+                    .totalAmount(booking.getTotalAmount())
+                    .bookingStatus(booking.getBookingStatus())
+                    .paymentStatus(booking.getPaymentStatus())
+                    .build();
+
+            // Lấy thông tin phim và rạp từ vé đầu tiên (nếu có)
+            List<Ticket> tickets = booking.getTickets();
+            if (tickets != null && !tickets.isEmpty()) {
+                Ticket firstTicket = tickets.get(0);
+                Showtime showtime = firstTicket.getShowtimeSeat().getShowtime();
+                Movie movie = showtime.getMovie();
+                Room room = showtime.getRoom();
+                Theater theater = room.getTheater();
+
+                response.setMovieTitle(movie.getTitle());
+                response.setMoviePoster(movie.getPoster());
+                response.setAgeRating(movie.getAgeRating() != null ? movie.getAgeRating() : "");
+
+                response.setTheaterName(theater.getName());
+                response.setRoomName(room.getName());
+                response.setShowtimeStartTime(showtime.getStartTime());
+                response.setShowtimeEndTime(showtime.getEndTime());
+
+                // Danh sách ghế
+                List<String> seatNames = tickets.stream()
+                        .map(t -> t.getShowtimeSeat().getSeat().getSeatRow() + t.getShowtimeSeat().getSeat().getSeatNumber())
+                        .collect(Collectors.toList());
+                response.setSeatNames(seatNames);
+
+                // Danh sách combo
+                List<String> comboNames = new ArrayList<>();
+                for (Ticket ticket : tickets) {
+                    if (ticket.getTicketCombos() != null) {
+                        for (TicketCombo tc : ticket.getTicketCombos()) {
+                            comboNames.add(tc.getQuantity() + "x " + tc.getCombo().getName());
+                        }
+                    }
+                }
+                response.setCombos(comboNames);
+            } else {
+                response.setSeatNames(new ArrayList<>());
+                response.setCombos(new ArrayList<>());
+            }
+
+            return response;
+        }).collect(Collectors.toList());
     }
 }

@@ -9,4 +9,7 @@ export const showtimeSeatService = {
   holdSeats: async (showtimeId: string, seatIds: string[]): Promise<void> => {
     await api.post(`/showtimes/${showtimeId}/seats/hold`, { seatIds })
   },
+  releaseSeats: async (showtimeId: string, seatIds: string[]): Promise<void> => {
+    await api.post(`/showtimes/${showtimeId}/seats/release`, { seatIds })
+  },
 }

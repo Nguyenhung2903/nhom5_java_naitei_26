@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import com.nhom_5.server.dto.response.MyBookingResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/bookings")
@@ -22,5 +25,12 @@ public class BookingController {
     public ApiResponse<String> createBooking(@RequestBody CreateBookingRequest request) {
         bookingService.createBooking(request);
         return ApiResponse.success("Đặt vé thành công");
+    }
+
+    @GetMapping("/my-tickets")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiResponse<List<MyBookingResponse>> getMyBookings() {
+        List<MyBookingResponse> bookings = bookingService.getMyBookings();
+        return ApiResponse.success(bookings);
     }
 }

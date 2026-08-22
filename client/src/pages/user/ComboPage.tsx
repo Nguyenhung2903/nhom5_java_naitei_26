@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { comboService } from '@/services/comboService'
+import { showtimeSeatService } from '@/services/showtimeSeatService'
 import type { Combo } from '@/types/combo'
 import {
   PageLoader,
@@ -66,12 +67,13 @@ export function ComboPage() {
       if (remaining <= 0) {
         clearInterval(timer)
         // Timer expired, redirect back to seats
+        showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
         navigate(`/booking/${showtimeId}/seats`)
       }
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [holdExpiration, navigate, showtimeId])
+  }, [holdExpiration, navigate, showtimeId, selectedSeatIds])
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -112,6 +114,14 @@ export function ComboPage() {
     })
   }
 
+  const handleBackToSeats = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (showtimeId && selectedSeatIds) {
+      showtimeSeatService.releaseSeats(showtimeId, selectedSeatIds).catch(console.error)
+    }
+    navigate(`/booking/${showtimeId}/seats`)
+  }
+
   if (loading) return <PageLoader ariaLabel="Đang tải danh sách combo..." />
 
   const combosTotalAmount = combos.reduce((sum, combo) => {
@@ -126,9 +136,9 @@ export function ComboPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-4">
         <div className="flex items-center gap-4">
-          <Link to={`/booking/${showtimeId}/seats`} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
+          <button onClick={handleBackToSeats} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
             <ArrowLeft className="w-6 h-6" />
-          </Link>
+          </button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold font-display uppercase tracking-wide text-white">
               Chọn Combo

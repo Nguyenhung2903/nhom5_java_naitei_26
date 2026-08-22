@@ -20,4 +20,5 @@ public class CreateBookingRequest {
     private PaymentMethod paymentMethod;
     private String paymentTransactionId;
     private String discountCode;
+    private java.util.Map<String, String> vnpayParams;
 }
