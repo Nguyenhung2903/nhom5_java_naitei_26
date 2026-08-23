@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Quản lý Phim (Movies)", description = "API tra cứu và quản trị danh mục phim")
+@Tag(name = "movie-controller", description = "API tra cứu và quản trị danh mục phim")
 @RestController
 @RequestMapping("/movies")
 @RequiredArgsConstructor
