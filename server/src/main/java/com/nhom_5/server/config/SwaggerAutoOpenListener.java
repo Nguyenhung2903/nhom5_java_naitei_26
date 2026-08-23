@@ -33,7 +33,7 @@ public class SwaggerAutoOpenListener {
         // In banner thông tin khởi động trên Console Log
         log.info("\n" +
                 "=================================================================================\n" +
-                "  🏋️  RoGym Gym Management API Server đã khởi động thành công!\n" +
+                "  🎬  CinemaNest Movie Ticket Booking API Server đã khởi động thành công!\n" +
                 "---------------------------------------------------------------------------------\n" +
                 "  🌐  Base API URL  : {}\n" +
                 "  🚀  Swagger UI    : {}\n" +
