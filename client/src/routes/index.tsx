@@ -12,6 +12,8 @@ import { ProfilePage } from '@/pages/user/ProfilePage'
 import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
 import { ComboPage } from '@/pages/user/ComboPage'
 import { MovieShowtimePage } from '@/pages/user/MovieShowtimePage'
+import { PromotionPage } from '@/pages/user/PromotionPage'
+import { NewsDetailPage, NewsPage } from '@/pages/user/NewsPage'
 import { CheckoutPage } from '@/pages/user/CheckoutPage'
 import { PaymentPage } from '@/pages/user/PaymentPage'
 import { VNPayReturnPage } from '@/pages/user/VNPayReturnPage'
@@ -58,6 +60,18 @@ export const router = createBrowserRouter([
       {
         path: 'payment/vnpay-return',
         element: <VNPayReturnPage />,
+      },
+      {
+        path: 'promotions',
+        element: <PromotionPage />,
+      },
+      {
+        path: 'news',
+        element: <NewsPage />,
+      },
+      {
+        path: 'news/:newsId',
+        element: <NewsDetailPage />,
       },
       // Các route khách hàng cần đăng nhập
       {
