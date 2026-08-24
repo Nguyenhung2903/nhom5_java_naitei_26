@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { Avatar, Button, Badge } from '@/components/ui'
+import { Avatar, Badge, ButtonLink } from '@/components/ui'
 import {
   Clapperboard,
   Film,
@@ -25,6 +25,7 @@ export function UserLayout() {
   const handleLogout = () => {
     logout()
     setUserDropdownOpen(false)
+    setMobileMenuOpen(false)
     navigate('/')
   }
 
@@ -40,7 +41,6 @@ export function UserLayout() {
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-50 bg-[var(--rogym-bg-base)]/80 backdrop-blur-md border-b border-[var(--rogym-border-subtle)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <span className="p-2 rounded-xl bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/30 text-[var(--rogym-green)] group-hover:scale-105 transition-transform">
@@ -57,17 +57,18 @@ export function UserLayout() {
           </Link>
 
           {/* Desktop Nav Items */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path
               return (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${isActive
-                    ? 'text-[var(--rogym-teal)] bg-[var(--rogym-green)]/10 font-semibold'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5'
-                    }`}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-[var(--rogym-green)]/10 text-[var(--rogym-teal)] border border-[var(--rogym-green)]/20 shadow-sm'
+                      : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
                 >
                   {link.icon}
                   <span>{link.label}</span>
@@ -83,7 +84,9 @@ export function UserLayout() {
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-surface)] hover:border-[var(--rogym-border-focus)] transition-all cursor-pointer"
+                  aria-expanded={userDropdownOpen}
+                  aria-haspopup="true"
+                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-card)] hover:border-[var(--rogym-border-teal-hover)] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--rogym-teal)]/30"
                 >
                   <Avatar
                     name={user.fullName}
@@ -100,7 +103,11 @@ export function UserLayout() {
                       {user.role}
                     </p>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-[var(--rogym-text-muted)]" />
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[var(--rogym-text-muted)] transition-transform duration-200 ${
+                      userDropdownOpen ? 'rotate-180 text-white' : ''
+                    }`}
+                  />
                 </button>
 
                 {/* Dropdown Menu */}
@@ -110,63 +117,80 @@ export function UserLayout() {
                       className="fixed inset-0 z-40"
                       onClick={() => setUserDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[var(--rogym-bg-surface)] border border-[var(--rogym-border-focus)] shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                      <div className="px-3 py-2 border-b border-[var(--rogym-border-subtle)] mb-1">
-                        <p className="text-sm font-semibold text-white">{user.fullName}</p>
-                        <p className="text-xs text-[var(--rogym-text-secondary)] truncate">
-                          {user.email}
-                        </p>
+                    <div className="absolute right-0 mt-2 w-60 rounded-2xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-teal-dim)] shadow-[0_16px_48px_rgba(0,0,0,0.85)] p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+                      <div className="px-3 py-2.5 border-b border-[var(--rogym-border-subtle)] mb-1">
+                        <div className="flex items-center gap-2.5 mb-1">
+                          <Avatar
+                            name={user.fullName}
+                            src={user.avatar}
+                            size="xs"
+                            status="online"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-white truncate">
+                              {user.fullName}
+                            </p>
+                            <p className="text-[11px] text-[var(--rogym-text-secondary)] truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
                         {isAdmin && (
-                          <Badge tone="accent" size="xs" className="mt-1.5">
+                          <Badge tone="accent" size="xs" className="mt-1">
                             Quản trị viên (Admin)
                           </Badge>
                         )}
                       </div>
 
-                      {isAdmin && (
+                      <div className="space-y-0.5">
+                        {isAdmin && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="rogym-dropdown-item rounded-lg !text-xs !py-2"
+                          >
+                            <Shield className="w-4 h-4 text-[var(--rogym-teal)] shrink-0" />
+                            <span className="font-semibold text-[var(--rogym-teal)]">
+                              Trang Quản trị (Admin)
+                            </span>
+                          </Link>
+                        )}
+
                         <Link
-                          to="/admin"
+                          to="/profile"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--rogym-teal)] hover:bg-white/5 rounded-lg transition-colors"
+                          className="rogym-dropdown-item rounded-lg !text-xs !py-2"
                         >
-                          <Shield className="w-4 h-4" />
-                          <span>Trang Quản trị (Admin)</span>
+                          <User className="w-4 h-4 text-[var(--rogym-text-muted)] shrink-0" />
+                          <span>Hồ sơ cá nhân</span>
                         </Link>
-                      )}
 
-                      <Link
-                        to="/profile"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                      >
-                        <User className="w-4 h-4" />
-                        <span>Hồ sơ cá nhân</span>
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mt-1 cursor-pointer text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Đăng xuất</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="rogym-dropdown-item is-danger rounded-lg !text-xs !py-2 mt-1"
+                        >
+                          <LogOut className="w-4 h-4 shrink-0" />
+                          <span>Đăng xuất</span>
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login">
-                  <Button variant="secondary" size="sm">
-                    Đăng nhập
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button variant="primary" size="sm" leftIcon={<Sparkles className="w-3.5 h-3.5" />}>
-                    Đăng ký
-                  </Button>
-                </Link>
+                <ButtonLink to="/login" variant="secondary" size="sm">
+                  Đăng nhập
+                </ButtonLink>
+                <ButtonLink
+                  to="/register"
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                >
+                  Đăng ký
+                </ButtonLink>
               </div>
             )}
           </div>
@@ -176,78 +200,122 @@ export function UserLayout() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+              className="p-2 rounded-lg text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Dropdown Nav */}
+        {/* Mobile Backdrop & Dropdown Nav */}
         {mobileMenuOpen && (
-          <div className="md:hidden px-4 pt-2 pb-4 space-y-2 border-t border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-base)]">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5"
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </Link>
-            ))}
-
-            <div className="pt-3 border-t border-[var(--rogym-border-subtle)]">
-              {isAuthenticated && user ? (
-                <div className="space-y-2">
-                  <div className="px-3 py-1">
-                    <p className="text-sm font-semibold text-white">{user.fullName}</p>
-                    <p className="text-xs text-[var(--rogym-text-muted)]">{user.email}</p>
-                  </div>
-                  {isAdmin && (
+          <>
+            <div
+              className="fixed inset-0 top-16 bg-black/70 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="relative z-50 md:hidden px-4 pt-3 pb-6 space-y-3 border-t border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-base)] shadow-2xl animate-in slide-in-from-top-2 duration-200">
+              <nav className="space-y-1">
+                {navLinks.map((link) => {
+                  const isActive = location.pathname === link.path
+                  return (
                     <Link
-                      to="/admin"
+                      key={link.path}
+                      to={link.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--rogym-teal)] hover:bg-white/5 rounded-lg"
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-[var(--rogym-green)]/10 text-[var(--rogym-teal)] border border-[var(--rogym-green)]/20'
+                          : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 border border-transparent'
+                      }`}
                     >
-                      <Shield className="w-4 h-4" />
-                      <span>Trang Quản trị (Admin)</span>
+                      {link.icon}
+                      <span>{link.label}</span>
                     </Link>
-                  )}
-                  <Link
-                    to="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 rounded-lg"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Hồ sơ cá nhân</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg text-left"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Đăng xuất</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="secondary" size="sm" fullWidth>
+                  )
+                })}
+              </nav>
+
+              <div className="pt-3 border-t border-[var(--rogym-border-subtle)]">
+                {isAuthenticated && user ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[var(--rogym-bg-surface)] border border-[var(--rogym-border-subtle)]">
+                      <Avatar
+                        name={user.fullName}
+                        src={user.avatar}
+                        size="sm"
+                        status="online"
+                        border
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-white truncate">{user.fullName}</p>
+                        <p className="text-[11px] text-[var(--rogym-text-muted)] truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      {isAdmin && (
+                        <Badge tone="accent" size="xs">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[var(--rogym-teal)] hover:bg-white/5 transition-colors"
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>Trang Quản trị (Admin)</span>
+                        </Link>
+                      )}
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Hồ sơ cá nhân</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <ButtonLink
+                      to="/login"
+                      variant="secondary"
+                      size="sm"
+                      fullWidth
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       Đăng nhập
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="primary" size="sm" fullWidth>
+                    </ButtonLink>
+                    <ButtonLink
+                      to="/register"
+                      variant="primary"
+                      size="sm"
+                      fullWidth
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
                       Đăng ký
-                    </Button>
-                  </Link>
-                </div>
-              )}
+                    </ButtonLink>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 
@@ -260,23 +328,33 @@ export function UserLayout() {
       <footer className="border-t border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-surface)] py-10 px-4 sm:px-6 lg:px-8 mt-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-[var(--rogym-text-muted)]">
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-lg bg-[var(--rogym-green)]/10 text-[var(--rogym-green)]">
+            <span className="p-2 rounded-xl bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/30 text-[var(--rogym-green)]">
               <Clapperboard className="w-5 h-5" />
             </span>
             <div>
               <p className="font-bold text-white font-display uppercase tracking-wider">CinemaNest</p>
-              <p className="text-xs">Hệ thống Đặt vé xem phim Trực tuyến</p>
+              <p className="text-xs text-[var(--rogym-text-muted)]">
+                Hệ thống Đặt vé xem phim Trực tuyến
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-6 text-xs">
-            <Link to="/" className="hover:text-white transition-colors">Trang chủ</Link>
-            <Link to="/#movies" className="hover:text-white transition-colors">Phim đang chiếu</Link>
-            <Link to="/#terms" className="hover:text-white transition-colors">Điều khoản sử dụng</Link>
-            <Link to="/#privacy" className="hover:text-white transition-colors">Chính sách bảo mật</Link>
+          <div className="flex flex-wrap gap-6 text-xs text-[var(--rogym-text-secondary)]">
+            <Link to="/" className="hover:text-[var(--rogym-teal)] transition-colors">
+              Trang chủ
+            </Link>
+            <Link to="/#movies" className="hover:text-[var(--rogym-teal)] transition-colors">
+              Phim đang chiếu
+            </Link>
+            <Link to="/#terms" className="hover:text-[var(--rogym-teal)] transition-colors">
+              Điều khoản sử dụng
+            </Link>
+            <Link to="/#privacy" className="hover:text-[var(--rogym-teal)] transition-colors">
+              Chính sách bảo mật
+            </Link>
           </div>
 
-          <p className="text-xs">
+          <p className="text-xs text-[var(--rogym-text-muted)]">
             © 2026 Nhóm 5 - Sun* Java NAITEI 26. All rights reserved.
           </p>
         </div>
@@ -286,3 +364,4 @@ export function UserLayout() {
 }
 
 export default UserLayout
+
