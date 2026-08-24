@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { movieService } from '@/services/movieService'
 import type { Movie, MovieStatus } from '@/types/movie'
@@ -19,8 +20,24 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui'
-import { Film, Ticket, Sparkles, Clock, Shield, Calendar, AlertCircle } from 'lucide-react'
+import { Film, Ticket, Sparkles, Clock, Shield, Newspaper, BadgePercent, RefreshCcw } from 'lucide-react'
+import { movieService } from '@/services/movieService'
+import { newsService } from '@/services/newsService'
+import { promotionService } from '@/services/promotionService'
+import type { Movie } from '@/types/movie'
+import type { News } from '@/types/news'
+import type { Promotion } from '@/types/promotion'
 
+const movieStatusMap = {
+  NOW_SHOWING: { tone: 'success' as const, label: 'Đang chiếu' },
+  COMING_SOON: { tone: 'info' as const, label: 'Sắp chiếu' },
+  ENDED: { tone: 'muted' as const, label: 'Ngừng chiếu' },
+}
+
+function formatPromotionValue(promotion: Promotion) {
+  if (promotion.discountType === 'PERCENT') return `${promotion.discountValue}%`
+  return `${promotion.discountValue.toLocaleString('vi-VN')} đ`
+}
 export function HomePage() {
   const { user, isAuthenticated, isAdmin } = useAuth()
   const [movies, setMovies] = useState<Movie[]>([])
@@ -57,7 +74,46 @@ export function HomePage() {
   }, [])
 
   const filteredMovies = movies.filter((m) => m.status === activeStatusTab)
+  const [newsList, setNewsList] = useState<News[]>([])
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
+  const featuredMovies = useMemo(
+    () => movies.filter((movie) => movie.status !== 'ENDED').slice(0, 6),
+    [movies]
+  )
+
+  const activePromotions = useMemo(
+    () => promotions.filter((promotion) => promotion.status === 'ACTIVE').slice(0, 3),
+    [promotions]
+  )
+
+  const latestNews = useMemo(() => newsList.slice(0, 3), [newsList])
+
+  const loadHomeData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [movieData, newsData, promotionData] = await Promise.all([
+        movieService.getMovies(),
+        newsService.getNews(),
+        promotionService.getPromotions({ status: 'ACTIVE' }),
+      ])
+      setMovies(movieData)
+      setNewsList(newsData)
+      setPromotions(promotionData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu từ máy chủ')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadHomeData()
+  }, [])
   return (
     <div className="space-y-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Welcome Banner */}
@@ -123,138 +179,152 @@ export function HomePage() {
               <span>Phim Nổi Bật</span>
             </h2>
             <p className="text-xs text-[var(--rogym-text-muted)]">
-              Danh sách các tác phẩm điện ảnh cập nhật từ hệ thống
+              Dữ liệu phim được tải trực tiếp từ hệ thống quản trị
             </p>
           </div>
-
-          {/* Status Tabs */}
-          <Tabs
-            value={activeStatusTab}
-            onValueChange={(val) => setActiveStatusTab(val as MovieStatus)}
-            variant="pills"
-            size="sm"
-          >
-            <TabsList>
-              <TabsTrigger value="NOW_SHOWING">Phim Đang Chiếu</TabsTrigger>
-              <TabsTrigger value="COMING_SOON">Phim Sắp Chiếu</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-2">
+            <StatusBadge status="active" label={`${featuredMovies.length} phim`} />
+            <Button type="button" variant="secondary" size="sm" onClick={loadHomeData} loading={loading} leftIcon={<RefreshCcw className="w-4 h-4" />}>
+              Tải lại
+            </Button>
+          </div>
         </div>
 
-        {/* Error Alert */}
         {error && (
-          <Alert tone="error">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <Card variant="danger" padding="sm">
+            <p className="text-sm text-red-200">{error}</p>
+          </Card>
         )}
 
-        {/* Skeleton Loading State */}
-        {loading && (
+        {loading ? (
+          <Card variant="elevated" className="py-10 text-center text-sm text-[var(--rogym-text-muted)]">
+            Đang tải dữ liệu phim...
+          </Card>
+        ) : featuredMovies.length === 0 ? (
+          <Card variant="elevated" className="py-10 text-center text-sm text-[var(--rogym-text-muted)]">
+            Chưa có phim đang hoặc sắp chiếu.
+          </Card>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} variant="elevated" className="overflow-hidden border-[var(--rogym-border-subtle)] p-4 space-y-4">
-                <Skeleton className="w-full aspect-[16/9] rounded-xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-2/3" />
-                </div>
-                <Skeleton className="h-10 w-full rounded-xl" />
+            {featuredMovies.map((movie, index) => (
+              <Card
+                key={movie.id}
+                variant="elevated"
+                className="flex flex-col justify-between overflow-hidden border-[var(--rogym-border-subtle)] hover:border-[var(--rogym-border-focus)] transition-all duration-300 group"
+              >
+                <CardHeader className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Badge tone={index === 0 ? 'accent' : 'primary'} size="sm">
+                      {index === 0 ? 'Nổi bật' : 'CinemaNest'}
+                    </Badge>
+                    <StatusBadge status={movie.status} statusMap={movieStatusMap} size="sm" />
+                  </div>
+                  <CardTitle className="text-lg font-bold text-white group-hover:text-[var(--rogym-green)] transition-colors">
+                    {movie.title}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-[var(--rogym-text-secondary)] line-clamp-2">
+                    {movie.description || 'Thông tin phim đang được cập nhật.'}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between text-xs text-[var(--rogym-text-muted)] border-t border-[var(--rogym-border-subtle)] pt-3">
+                    <span>{movie.genres.map((genre) => genre.name).join(', ') || movie.language || 'Điện ảnh'}</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                      {movie.duration} phút
+                    </span>
+                  </div>
+
+                  {movie.status === 'NOW_SHOWING' ? (
+                    <Link to={`/booking/${movie.id}/showtimes`}>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        fullWidth
+                        leftIcon={<Ticket className="w-4 h-4" />}
+                        className="cursor-pointer"
+                      >
+                        Đặt vé ngay
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      fullWidth
+                      disabled
+                      leftIcon={<Ticket className="w-4 h-4" />}
+                    >
+                      Sắp mở bán
+                    </Button>
+                  )}
+                </CardContent>
               </Card>
             ))}
           </div>
         )}
+      </section>
 
-        {/* Empty Data State */}
-        {!loading && !error && filteredMovies.length === 0 && (
-          <PageEmptyState
-            title="Chưa có phim ở danh mục này"
-            description={
-              activeStatusTab === 'NOW_SHOWING'
-                ? 'Hiện chưa có phim nào đang chiếu trong hệ thống.'
-                : 'Hiện chưa có phim nào trong danh sách sắp chiếu.'
-            }
-          />
-        )}
-
-        {/* Movie Cards List */}
-        {!loading && !error && filteredMovies.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {filteredMovies.map((movie) => {
-              const genreNames =
-                movie.genres && movie.genres.length > 0
-                  ? movie.genres.map((g) => g.name).join(', ')
-                  : 'Chưa cập nhật'
-
-              const isNowShowing = movie.status === 'NOW_SHOWING'
-
-              return (
-                <Card
-                  key={movie.id}
-                  variant="elevated"
-                  className="flex flex-col justify-between overflow-hidden border-[var(--rogym-border-subtle)] hover:border-[var(--rogym-border-teal-hover)] transition-all duration-300 group"
-                >
-                  {/* Poster Media / Fallback */}
-                  <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden bg-[var(--rogym-bg-card-darker)]">
-                    {movie.poster ? (
-                      <CardMedia
-                        src={movie.poster}
-                        alt={movie.title}
-                        aspectRatio="16/9"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[var(--rogym-bg-card-hover)] to-[var(--rogym-bg-deep)] text-[var(--rogym-text-muted)]">
-                        <Film className="w-10 h-10 mb-2 opacity-50 text-[var(--rogym-teal)]" />
-                        <span className="text-xs font-semibold text-center text-white/70 line-clamp-1">
-                          {movie.title}
-                        </span>
-                      </div>
-                    )}
-                    <div className="absolute top-3 left-3 z-10">
-                      <Badge
-                        tone={isNowShowing ? 'primary' : 'warning'}
-                        size="sm"
-                      >
-                        {isNowShowing ? 'Đang chiếu' : 'Sắp chiếu'}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <CardHeader className="space-y-1.5 p-4 sm:p-5">
-                    <CardTitle className="text-base sm:text-lg font-bold text-white group-hover:text-[var(--rogym-teal)] transition-colors line-clamp-1">
-                      {movie.title}
-                    </CardTitle>
-                    <CardDescription className="text-xs text-[var(--rogym-text-secondary)] line-clamp-2 min-h-[36px]">
-                      {movie.description || 'Chưa có thông tin mô tả cho bộ phim này.'}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4 px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
-                    <div className="flex items-center justify-between text-xs text-[var(--rogym-text-muted)] border-t border-[var(--rogym-border-subtle)] pt-3">
-                      <span className="truncate max-w-[60%] font-medium">{genreNames}</span>
-                      <span className="flex items-center gap-1 shrink-0 font-medium text-[var(--rogym-teal)]">
-                        <Clock className="w-3.5 h-3.5" />
-                        {movie.duration} phút
-                      </span>
-                    </div>
-
-                    <ButtonLink
-                      to={`/booking/${movie.id}/showtimes`}
-                      variant={isNowShowing ? 'primary' : 'outline-green'}
-                      size="md"
-                      fullWidth
-                      leftIcon={isNowShowing ? <Ticket className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
-                    >
-                      {isNowShowing ? 'Đặt vé ngay' : 'Xem suất chiếu'}
-                    </ButtonLink>
-                  </CardContent>
-                </Card>
-              )
-            })}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card variant="elevated" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-bold uppercase tracking-wide text-white">
+              <BadgePercent className="h-5 w-5 text-[var(--rogym-green)]" />
+              Khuyến mãi mới
+            </h2>
+            <Link to="/promotions" className="text-xs font-semibold text-[var(--rogym-teal)] hover:text-white">
+              Xem tất cả
+            </Link>
           </div>
-        )}
+          <div className="space-y-3">
+            {activePromotions.length === 0 ? (
+              <p className="text-sm text-[var(--rogym-text-muted)]">Chưa có khuyến mãi đang hoạt động.</p>
+            ) : (
+              activePromotions.map((promotion) => (
+                <div key={promotion.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-white">{promotion.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-[var(--rogym-text-secondary)]">{promotion.description || promotion.code}</p>
+                    </div>
+                    <Badge tone="success" size="sm">{promotion.code}</Badge>
+                  </div>
+                  <p className="mt-3 text-xs font-semibold text-[var(--rogym-teal)]">Giảm {formatPromotionValue(promotion)}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card variant="elevated" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-bold uppercase tracking-wide text-white">
+              <Newspaper className="h-5 w-5 text-[var(--rogym-green)]" />
+              Tin tức
+            </h2>
+            <Link to="/news" className="text-xs font-semibold text-[var(--rogym-teal)] hover:text-white">
+              Xem tất cả
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {latestNews.length === 0 ? (
+              <p className="text-sm text-[var(--rogym-text-muted)]">Chưa có tin tức nào.</p>
+            ) : (
+              latestNews.map((news) => (
+                <Link key={news.id} to={`/news/${news.id}`} className="grid grid-cols-[72px_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-[var(--rogym-border-focus)]">
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-white/5">
+                    {news.thumbnail ? <img src={news.thumbnail} alt={news.title} className="h-full w-full object-cover" /> : <Newspaper className="h-6 w-6 text-[var(--rogym-text-muted)]" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">{news.title}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-[var(--rogym-text-secondary)]">{news.content}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </Card>
       </section>
     </div>
   )
