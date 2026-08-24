@@ -96,39 +96,47 @@ export function HomePage() {
   return (
     <div className="space-y-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* 1. Hero Showcase Banner */}
-      <section className="relative overflow-hidden rounded-3xl border border-[var(--rogym-border-teal-dim)] bg-gradient-to-r from-[var(--rogym-bg-card)] via-black to-[var(--rogym-bg-card)] p-8 md:p-14 shadow-2xl">
-        <img
-          src="/cover.jpg"
-          alt="Cinema Showcase"
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0 opacity-50"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/85 to-black/50 z-0 pointer-events-none" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[var(--rogym-green)]/15 rounded-full blur-3xl pointer-events-none z-0" />
+      <section className="relative overflow-hidden rounded-3xl border border-[var(--rogym-border-teal-dim)] bg-gradient-to-r from-[var(--rogym-bg-card)] via-[#07100b] to-black shadow-2xl">
+        {/* Ambient background glows */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[var(--rogym-green)]/10 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[var(--rogym-teal)]/10 rounded-full blur-3xl pointer-events-none z-0" />
 
-        <div className="relative z-10 max-w-2xl space-y-5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/35 text-[var(--rogym-teal)] text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
-            <span>Nền Tảng Điện Ảnh & Đặt Vé Chuẩn Quốc Tế</span>
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-[420px]">
+          {/* Left Column: Text & CTA */}
+          <div className="order-2 lg:order-1 lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 md:p-12 lg:p-14 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/35 text-[var(--rogym-teal)] text-xs font-bold uppercase tracking-wider self-start">
+              <Sparkles className="w-4 h-4" />
+              <span>Nền Tảng Điện Ảnh & Đặt Vé Chuẩn Quốc Tế</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-display tracking-tight text-white uppercase leading-tight">
+              Trải Nghiệm Điện Ảnh <span className="text-[var(--rogym-green)]">Đỉnh Cao</span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-[var(--rogym-text-secondary)] leading-relaxed max-w-xl">
+              Hệ thống rạp chiếu chuẩn quốc tế với phòng chiếu IMAX, âm thanh Dolby Atmos 360°, ghế VIP Suite cao cấp và tiện ích đặt vé trực tuyến siêu tốc.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <a href="#movies">
+                <Button variant="primary" size="lg" leftIcon={<Ticket className="w-5 h-5" />}>
+                  Xem phim & Đặt vé ngay
+                </Button>
+              </a>
+
+              <ButtonLink to="/register" variant="outline-white" size="lg">
+                Đăng ký thành viên
+              </ButtonLink>
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-white uppercase leading-tight">
-            Trải Nghiệm Điện Ảnh <span className="text-[var(--rogym-green)]">Đỉnh Cao</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-[var(--rogym-text-secondary)] leading-relaxed">
-            Hệ thống rạp chiếu chuẩn quốc tế với phòng chiếu IMAX, âm thanh Dolby Atmos 360°, ghế VIP Suite cao cấp và tiện ích đặt vé trực tuyến siêu tốc.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <a href="#movies">
-              <Button variant="primary" size="lg" leftIcon={<Ticket className="w-5 h-5" />}>
-                Xem phim & Đặt vé ngay
-              </Button>
-            </a>
-
-            <ButtonLink to="/register" variant="outline-white" size="lg">
-              Đăng ký thành viên
-            </ButtonLink>
+          {/* Right Column: Full Bleed Image with CSS Mask Soft Transition */}
+          <div className="order-1 lg:order-2 lg:col-span-5 relative min-h-[260px] sm:min-h-[320px] lg:min-h-full overflow-hidden">
+            <img
+              src="/cover.jpg"
+              alt="Cinema Showcase"
+              className="absolute inset-0 w-full h-full object-cover object-center [mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)] lg:[mask-image:linear-gradient(to_right,transparent_0%,black_40%,black_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)] lg:[-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_40%,black_100%)]"
+            />
           </div>
         </div>
       </section>

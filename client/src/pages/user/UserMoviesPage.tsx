@@ -169,7 +169,7 @@ export function UserMoviesPage() {
                     <div className="flex items-center gap-3 text-xs text-[var(--rogym-text-secondary)]">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
-                        {movie.durationMinutes} phút
+                        {movie.duration} phút
                       </span>
                       {movie.releaseDate && (
                         <span className="flex items-center gap-1">
