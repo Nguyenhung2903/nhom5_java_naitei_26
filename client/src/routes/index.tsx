@@ -8,6 +8,7 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 
 // Pages
 import { HomePage } from '@/pages/user/HomePage'
+import { CinemasPage } from '@/pages/user/CinemasPage'
 import { ProfilePage } from '@/pages/user/ProfilePage'
 import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
 import { ComboPage } from '@/pages/user/ComboPage'
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'cinemas',
+        element: <CinemasPage />,
       },
       {
         path: 'booking/:showtimeId/seats',

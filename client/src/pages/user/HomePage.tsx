@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import {
   Card,
@@ -14,6 +14,7 @@ import { Film, Ticket, Sparkles, Star, Clock, Shield } from 'lucide-react'
 
 export function HomePage() {
   const { user, isAuthenticated, isAdmin } = useAuth()
+  const navigate = useNavigate()
 
   const featuredMovies = [
     {
@@ -160,6 +161,7 @@ export function HomePage() {
                   fullWidth
                   leftIcon={<Ticket className="w-4 h-4" />}
                   className="cursor-pointer"
+                  onClick={() => navigate(`/booking/${movie.id}/showtimes`)}
                 >
                   Đặt vé ngay
                 </Button>
