@@ -5,22 +5,15 @@ import { Avatar, Badge } from '@/components/ui'
 import {
   LayoutDashboard,
   Film,
-  CalendarDays,
-  DoorOpen,
-  MapPin,
-  Armchair,
   Ticket,
-  Users,
-  LogOut,
-  Shield,
-  Menu,
-  Newspaper,
-  BadgePercent,
-  X,
   User,
+  LogOut,
+  UserCheck,
+  Menu,
+  X,
 } from 'lucide-react'
 
-export function AdminLayout() {
+export function UserPortalLayout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -31,18 +24,11 @@ export function AdminLayout() {
     navigate('/login')
   }
 
-  const adminNavItems = [
-    { label: 'Tổng quan (Dashboard)', path: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { label: 'Quản lý Phim', path: '/admin/movies', icon: <Film className="w-4 h-4" /> },
-    { label: 'Quản lý Tin tức', path: '/admin/news', icon: <Newspaper className="w-4 h-4" /> },
-    { label: 'Quản lý Khuyến mãi', path: '/admin/promotions', icon: <BadgePercent className="w-4 h-4" /> },
-    { label: 'Quản lý Suất chiếu', path: '/admin/showtimes', icon: <CalendarDays className="w-4 h-4" /> },
-    { label: 'Quản lý Rạp', path: '/admin/theaters', icon: <MapPin className="w-4 h-4" /> },
-    { label: 'Quản lý Phòng chiếu', path: '/admin/rooms', icon: <DoorOpen className="w-4 h-4" /> },
-    { label: 'Quản lý Ghế', path: '/admin/seats', icon: <Armchair className="w-4 h-4" /> },
-    { label: 'Quản lý Đặt vé', path: '/admin/bookings', icon: <Ticket className="w-4 h-4" /> },
-    { label: 'Quản lý Người dùng', path: '/admin/users', icon: <Users className="w-4 h-4" /> },
-    { label: 'Hồ sơ cá nhân', path: '/admin/profile', icon: <User className="w-4 h-4" /> },
+  const userNavItems = [
+    { label: 'Tổng quan (Dashboard)', path: '/user', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: 'Phim & Đặt vé', path: '/user/movies', icon: <Film className="w-4 h-4" /> },
+    { label: 'Vé của tôi', path: '/user/tickets', icon: <Ticket className="w-4 h-4" /> },
+    { label: 'Hồ sơ cá nhân', path: '/user/profile', icon: <User className="w-4 h-4" /> },
   ]
 
   return (
@@ -55,7 +41,7 @@ export function AdminLayout() {
         />
       )}
 
-      {/* Admin Sidebar */}
+      {/* User Portal Sidebar */}
       <aside
         className={`fixed md:sticky top-0 h-screen w-64 bg-[var(--rogym-bg-surface)] border-r border-[var(--rogym-border-subtle)] flex flex-col justify-between z-50 transition-transform duration-200 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
@@ -64,16 +50,16 @@ export function AdminLayout() {
         <div>
           {/* Brand Header */}
           <div className="p-5 border-b border-[var(--rogym-border-subtle)] flex items-center justify-between">
-            <Link to="/admin" className="flex items-center gap-2.5">
+            <Link to="/user" className="flex items-center gap-2.5">
               <span className="p-2 rounded-xl bg-[var(--rogym-green)]/15 border border-[var(--rogym-green)]/30 text-[var(--rogym-green)]">
-                <Shield className="w-5 h-5" />
+                <UserCheck className="w-5 h-5" />
               </span>
               <div>
                 <span className="font-display font-bold text-base uppercase tracking-wider text-white">
-                  Admin Hub
+                  Member Hub
                 </span>
                 <p className="text-[10px] text-[var(--rogym-teal)] font-semibold uppercase tracking-widest">
-                  CinemaNest Manager
+                  CinemaNest Club
                 </p>
               </div>
             </Link>
@@ -89,12 +75,16 @@ export function AdminLayout() {
           {/* Navigation Items */}
           <nav className="p-3 space-y-1">
             <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--rogym-text-muted)]">
-              Quản trị hệ thống
+              Khu vực Thành viên
             </p>
-            {adminNavItems.map((item) => {
+            {userNavItems.map((item) => {
               const isActive =
-                item.path === '/admin'
-                  ? location.pathname === '/admin'
+                item.path === '/user'
+                  ? location.pathname === '/user'
+                  : item.path === '/user/movies'
+                  ? location.pathname.startsWith('/user/movies') ||
+                    location.pathname.startsWith('/user/booking') ||
+                    location.pathname.startsWith('/user/payment')
                   : location.pathname.startsWith(item.path)
               return (
                 <Link
@@ -142,34 +132,28 @@ export function AdminLayout() {
             </button>
             <div className="flex items-center gap-2">
               <Badge tone="accent" size="sm">
-                Admin Panel
+                Member Portal
               </Badge>
               <span className="text-xs text-[var(--rogym-text-muted)] hidden sm:inline">
-                Hệ thống Quản lý Rạp chiếu phim
+                Cổng thông tin & Bảng điều khiển cá nhân
               </span>
             </div>
           </div>
 
-          <Link
-            to="/admin/profile"
-            title="Xem hồ sơ cá nhân"
-            className="flex items-center gap-3 p-1.5 -mr-1.5 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer"
-          >
+          <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-white group-hover:text-[var(--rogym-green)] transition-colors">
-                {user?.fullName || 'Administrator'}
-              </p>
+              <p className="text-xs font-bold text-white">{user?.fullName || 'Thành viên'}</p>
               <p className="text-[10px] text-[var(--rogym-teal)] uppercase tracking-wider font-semibold">
-                {user?.role || 'ADMIN'}
+                {user?.role === 'ADMIN' ? 'Administrator' : 'CinemaNest Member'}
               </p>
             </div>
             <Avatar
-              name={user?.fullName || 'Admin'}
+              name={user?.fullName || 'User'}
               src={user?.avatar}
               size="sm"
               border
             />
-          </Link>
+          </div>
         </header>
 
         {/* Content Outlet */}
@@ -181,4 +165,4 @@ export function AdminLayout() {
   )
 }
 
-export default AdminLayout
+export default UserPortalLayout

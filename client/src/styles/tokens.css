@@ -20,6 +20,8 @@
     --rogym-bg-elevated-green: #1a3326;
     --rogym-bg-light: #ffffff;
     --rogym-bg-glass: rgba(12, 22, 17, 0.82);
+    --rogym-bg-surface: var(--rogym-bg-card);
+    --rogym-surface: var(--rogym-bg-card);
 
     /* Text */
     --rogym-text-primary: #ffffff;
@@ -40,6 +42,7 @@
     --rogym-border-teal-dim: rgba(66, 224, 158, 0.1);
     --rogym-border-teal-hover: rgba(66, 224, 158, 0.4);
     --rogym-border-teal-focus: var(--rogym-teal);
+    --rogym-border-focus: var(--rogym-border-teal-hover);
 
     /* Typography and motion */
     --rogym-font-body: 'Be Vietnam Pro', sans-serif;

@@ -4,6 +4,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MovieShowtimePage } from './MovieShowtimePage'
 import { theaterService } from '@/services/theaterService'
 import { showtimeService } from '@/services/showtimeService'
+import { movieService } from '@/services/movieService'
+
+vi.mock('@/services/movieService', () => ({
+  movieService: {
+    getMovieById: vi.fn().mockResolvedValue({
+      id: 'movie-1',
+      title: 'Movie A',
+      duration: 120,
+      status: 'NOW_SHOWING',
+      genres: [{ id: '1', name: 'Action' }],
+    }),
+  },
+}))
 
 vi.mock('@/services/theaterService', () => ({
   theaterService: {
@@ -39,10 +52,10 @@ const showtimes = [
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/booking/movie-1/showtimes']}>
+    <MemoryRouter initialEntries={['/user/booking/movie-1/showtimes']}>
       <Routes>
-        <Route path="/booking/:movieId/showtimes" element={<MovieShowtimePage />} />
-        <Route path="/booking/:showtimeId/seats" element={<div>Seat selection</div>} />
+        <Route path="/user/booking/:movieId/showtimes" element={<MovieShowtimePage />} />
+        <Route path="/user/booking/:showtimeId/seats" element={<div>Seat selection</div>} />
       </Routes>
     </MemoryRouter>,
   )

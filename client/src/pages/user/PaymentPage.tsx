@@ -96,7 +96,7 @@ export function PaymentPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link to={`/booking/${showtimeId}/checkout`} state={location.state} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
+          <Link to={`/user/booking/${showtimeId}/checkout`} state={location.state} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>

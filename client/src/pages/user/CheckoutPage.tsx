@@ -102,7 +102,7 @@ export function CheckoutPage() {
       return
     }
     
-    navigate(`/booking/${showtimeId}/payment`, {
+    navigate(`/user/booking/${showtimeId}/payment`, {
       state: {
         holdExpiration,
         selectedSeatIds,
@@ -131,7 +131,7 @@ export function CheckoutPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link to={`/booking/${showtimeId}/combos`} state={location.state} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
+          <Link to={`/user/booking/${showtimeId}/combos`} state={location.state} className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
