@@ -147,7 +147,6 @@ export function UserPortalLayout() {
               name={user?.fullName || 'User'}
               src={user?.avatar}
               size="sm"
-              status="online"
               border
             />
           </div>

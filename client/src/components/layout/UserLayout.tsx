@@ -95,7 +95,6 @@ export function UserLayout() {
                     name={user.fullName}
                     src={user.avatar}
                     size="sm"
-                    status="online"
                     border
                   />
                   <div className="text-left hidden lg:block">
@@ -127,7 +126,6 @@ export function UserLayout() {
                             name={user.fullName}
                             src={user.avatar}
                             size="xs"
-                            status="online"
                           />
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-white truncate">
@@ -260,7 +258,6 @@ export function UserLayout() {
                         name={user.fullName}
                         src={user.avatar}
                         size="sm"
-                        status="online"
                         border
                       />
                       <div className="min-w-0 flex-1">

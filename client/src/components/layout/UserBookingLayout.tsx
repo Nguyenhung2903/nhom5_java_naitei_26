@@ -50,7 +50,6 @@ export function UserBookingLayout() {
                 name={user?.fullName || 'User'}
                 src={user?.avatar}
                 size="xs"
-                status="online"
               />
               <div className="text-left hidden md:block">
                 <p className="text-xs font-bold text-white max-w-[120px] truncate">

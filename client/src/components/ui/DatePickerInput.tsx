@@ -214,16 +214,15 @@ export function DatePickerInput({
               cell: 'w-full text-center text-sm relative p-0 flex items-center justify-center',
               day: cn(
                 'h-8 w-8 p-0 font-medium rounded-xl flex items-center justify-center',
-                'rogym-text-secondary',
-                'hover:bg-[var(--rogym-green)] hover:rogym-text-green-dark',
+                'text-[var(--rogym-text-secondary)]',
+                'hover:bg-[var(--rogym-green)] hover:text-[var(--rogym-green-dark)] hover:font-bold',
                 'transition-colors'
               ),
               day_selected: cn(
-                'bg-[var(--rogym-green)] rogym-text-green-dark',
-                'font-semibold',
-                'hover:bg-[var(--rogym-green-hover)]'
+                'bg-[var(--rogym-green)] text-[var(--rogym-green-dark)] font-bold shadow-[var(--rogym-shadow-tone-sm)]',
+                'hover:bg-[var(--rogym-green-hover)] hover:text-[var(--rogym-green-dark)]'
               ),
-              day_today: 'border border-[var(--rogym-teal)] rogym-text-accent font-semibold',
+              day_today: 'border border-[var(--rogym-teal)] text-[var(--rogym-teal)] font-semibold',
               day_outside: 'text-white/20',
               day_disabled: 'text-white/15 cursor-not-allowed',
               day_hidden: 'invisible',

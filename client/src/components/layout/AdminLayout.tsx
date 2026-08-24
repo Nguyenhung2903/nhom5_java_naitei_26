@@ -159,7 +159,6 @@ export function AdminLayout() {
               name={user?.fullName || 'Admin'}
               src={user?.avatar}
               size="sm"
-              status="online"
               border
             />
           </div>

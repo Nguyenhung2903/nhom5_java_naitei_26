@@ -1,9 +1,11 @@
-/* react-day-picker override — RoGym theme */
-.rdp {
-  --rdp-accent-color: var(--rogym-green);
-  --rdp-background-color: transparent;
-  --rdp-accent-color-dark: var(--rogym-green);
-  --rdp-background-color-dark: transparent;
+/* react-day-picker override — RoGym / CinemaNest theme */
+.rdp,
+.rogym-date-picker {
+  --rdp-accent-color: var(--rogym-green) !important;
+  --rdp-background-color: var(--rogym-green) !important;
+  --rdp-accent-color-dark: var(--rogym-green) !important;
+  --rdp-background-color-dark: var(--rogym-green) !important;
+  --rdp-selected-color: var(--rogym-green-dark) !important;
   margin: 0 !important;
   padding: 0 !important;
   width: 100%;
@@ -21,9 +23,35 @@
   width: 100% !important;
 }
 
+/* High-specificity override for DayPicker button hover & focus */
+.rdp .rdp-button:hover:not([disabled]),
+.rdp .rdp-day:hover:not([disabled]),
+.rdp-button:hover:not([disabled]):not(.rdp-day_selected),
+.rdp-day:hover:not([disabled]):not(.rdp-day_outside) {
+  background-color: var(--rogym-green) !important;
+  color: var(--rogym-green-dark) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--rogym-shadow-tone-sm) !important;
+}
+
+.rdp .rdp-day_selected,
+.rdp .rdp-day_selected:hover,
+.rdp .rdp-day_selected:focus,
+.rdp .rdp-day_selected:focus-visible,
+.rdp-day_selected,
+.rdp-day_selected:hover,
+.rdp-day_selected:focus {
+  background-color: var(--rogym-green) !important;
+  color: var(--rogym-green-dark) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--rogym-shadow-tone-md) !important;
+}
+
+.rdp .rdp-button:focus-visible:not([disabled]),
 .rdp-button:focus-visible:not([disabled]) {
-  outline: 2px solid var(--rogym-teal);
-  outline-offset: 2px;
+  outline: 2px solid var(--rogym-teal) !important;
+  outline-offset: 1px !important;
+  color: var(--rogym-green-dark) !important;
 }
 
 .rogym-date-picker {
@@ -131,3 +159,44 @@
   gap: 0.35rem;
   font-size: 0.8125rem;
 }
+
+/* Day button states & high-contrast highlights */
+.rdp-day {
+  color: var(--rogym-text-secondary) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.rdp-day:hover:not([disabled]):not(.rdp-day_outside) {
+  background-color: var(--rogym-green) !important;
+  color: var(--rogym-green-dark) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--rogym-shadow-tone-sm) !important;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:hover,
+.rdp-day_selected:focus {
+  background-color: var(--rogym-green) !important;
+  color: var(--rogym-green-dark) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--rogym-shadow-tone-md) !important;
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+  border: 1px solid var(--rogym-teal) !important;
+  color: var(--rogym-teal) !important;
+  font-weight: 600 !important;
+}
+
+.rdp-day_outside {
+  opacity: 0.25 !important;
+  color: var(--rogym-text-dim) !important;
+}
+
+.rdp-day_disabled {
+  opacity: 0.15 !important;
+  cursor: not-allowed !important;
+}
+
