@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { router } from './index'
+import { getSafeRedirectUrl } from './authRedirect'
 
-describe('Router Configuration', () => {
+describe('Router Configuration & Auth Redirection', () => {
   it('defines valid routes array', () => {
     expect(router.routes).toBeDefined()
     expect(router.routes.length).toBeGreaterThan(0)
@@ -52,5 +53,32 @@ describe('Router Configuration', () => {
   it('protects admin routes with allowedRoles ADMIN', () => {
     const adminRoute = router.routes.find((r) => r.path === '/admin')
     expect(adminRoute).toBeDefined()
+  })
+
+  describe('getSafeRedirectUrl helper', () => {
+    it('redirects ADMIN to /admin when redirectUrl is /user or not starting with /admin', () => {
+      expect(getSafeRedirectUrl('ADMIN', '/user')).toBe('/admin')
+      expect(getSafeRedirectUrl('ADMIN', '/user/profile')).toBe('/admin')
+      expect(getSafeRedirectUrl('ADMIN', null)).toBe('/admin')
+      expect(getSafeRedirectUrl('ADMIN', '')).toBe('/admin')
+      expect(getSafeRedirectUrl('ADMIN', 'invalid')).toBe('/admin')
+    })
+
+    it('redirects ADMIN to requested /admin path when redirectUrl starts with /admin', () => {
+      expect(getSafeRedirectUrl('ADMIN', '/admin/movies')).toBe('/admin/movies')
+      expect(getSafeRedirectUrl('ADMIN', '/admin/theaters')).toBe('/admin/theaters')
+    })
+
+    it('redirects USER to /user when redirectUrl is /admin or not starting with /user', () => {
+      expect(getSafeRedirectUrl('USER', '/admin')).toBe('/user')
+      expect(getSafeRedirectUrl('USER', '/admin/movies')).toBe('/user')
+      expect(getSafeRedirectUrl('USER', null)).toBe('/user')
+      expect(getSafeRedirectUrl('USER', '')).toBe('/user')
+    })
+
+    it('redirects USER to requested /user path when redirectUrl starts with /user', () => {
+      expect(getSafeRedirectUrl('USER', '/user/movies')).toBe('/user/movies')
+      expect(getSafeRedirectUrl('USER', '/user/booking/123/showtimes')).toBe('/user/booking/123/showtimes')
+    })
   })
 })

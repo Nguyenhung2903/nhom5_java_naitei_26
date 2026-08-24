@@ -16,10 +16,19 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />
+    const isDefaultDashboard = location.pathname === '/user' || location.pathname === '/admin'
+    const redirectQuery = isDefaultDashboard
+      ? ''
+      : `?redirect=${encodeURIComponent(location.pathname + location.search)}`
+    return <Navigate to={`/login${redirectQuery}`} replace />
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    if (user.role === 'ADMIN') {
+      // Nếu Admin vô tình vào trang của User -> Tự động đưa về /admin
+      return <Navigate to="/admin" replace />
+    }
+    // Nếu User cố tình vào trang Admin -> Chặn với lỗi 403
     return <Navigate to="/403" replace />
   }
 

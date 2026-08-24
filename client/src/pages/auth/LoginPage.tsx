@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { getSafeRedirectUrl } from '@/routes/authRedirect'
 import {
   Card,
   CardHeader,
@@ -58,14 +59,9 @@ export function LoginPage() {
         password: formData.password,
       })
 
-      // Điều hướng sau khi đăng nhập thành công
-      if (redirectUrl) {
-        navigate(redirectUrl, { replace: true })
-      } else if (user.role === 'ADMIN') {
-        navigate('/admin', { replace: true })
-      } else {
-        navigate('/user', { replace: true })
-      }
+      // Điều hướng an toàn theo vai trò của người dùng
+      const targetUrl = getSafeRedirectUrl(user.role, redirectUrl)
+      navigate(targetUrl, { replace: true })
     } catch (err: unknown) {
       if (err instanceof Error) {
         setServerError(err.message)

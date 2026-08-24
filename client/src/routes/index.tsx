@@ -123,10 +123,10 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Nhánh 3: Phân hệ Thành viên & Đặt vé (/user/* - Yêu cầu Đăng nhập)
+  // Nhánh 3: Phân hệ Thành viên & Đặt vé (/user/* - Yêu cầu Đăng nhập & Role USER)
   {
     path: '/user',
-    element: <ProtectedRoute />,
+    element: <ProtectedRoute allowedRoles={['USER']} />,
     errorElement: <RouteErrorBoundary />,
     children: [
       // 3.1: Khu vực Bảng điều khiển & Quản lý cá nhân (Có Sidebar UserPortalLayout)
