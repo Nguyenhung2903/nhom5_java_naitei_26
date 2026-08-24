@@ -124,7 +124,7 @@ export function UserDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link to="/">
+          <Link to="/user/movies">
             <Button variant="primary" size="sm" leftIcon={<Film className="w-4 h-4" />}>
               Đặt vé ngay
             </Button>
@@ -248,7 +248,7 @@ export function UserDashboardPage() {
                   Khám phá danh sách các bộ phim bom tấn đang chiếu và đặt ngay những vị trí ngồi đẹp nhất!
                 </p>
                 <div className="pt-2">
-                  <Link to="/">
+                  <Link to="/user/movies">
                     <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
                       Khám phá phim ngay
                     </Button>
@@ -311,7 +311,7 @@ export function UserDashboardPage() {
 
             <CardContent className="p-0 space-y-2.5">
               <Link
-                to="/"
+                to="/user/movies"
                 className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-[var(--rogym-border-subtle)] text-xs font-semibold text-white transition-all"
               >
                 <span className="flex items-center gap-2">

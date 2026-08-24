@@ -22,6 +22,7 @@ const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ def
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
 
 const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage').then((m) => ({ default: m.UserDashboardPage })))
+const UserMoviesPage = lazy(() => import('@/pages/user/UserMoviesPage').then((m) => ({ default: m.UserMoviesPage })))
 const MyTicketsPage = lazy(() => import('@/pages/user/MyTicketsPage').then((m) => ({ default: m.MyTicketsPage })))
 const ProfilePage = lazy(() => import('@/pages/user/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 
@@ -54,44 +55,49 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Landing Page (Công khai cho tất cả mọi người)
+  // Nhánh 1: Phân hệ Landing Page (Chỉ dành cho khách chưa đăng nhập)
   {
-    path: '/',
-    element: <LandingLayout />,
+    element: <PublicOnlyRoute />,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        index: true,
-        element: withSuspense(HomePage),
-      },
-      {
-        path: 'movies',
-        element: withSuspense(HomePage),
-      },
-      {
-        path: 'cinemas',
-        element: withSuspense(CinemasPage),
-      },
-      {
-        path: 'promotions',
-        element: withSuspense(PromotionPage),
-      },
-      {
-        path: 'news',
-        element: withSuspense(NewsPage),
-      },
-      {
-        path: 'news/:newsId',
-        element: withSuspense(NewsDetailPage),
-      },
-      // Redirect tương thích với các link cũ
-      {
-        path: 'profile',
-        element: <Navigate to="/user/profile" replace />,
-      },
-      {
-        path: 'my-tickets',
-        element: <Navigate to="/user/tickets" replace />,
+        path: '/',
+        element: <LandingLayout />,
+        children: [
+          {
+            index: true,
+            element: withSuspense(HomePage),
+          },
+          {
+            path: 'movies',
+            element: withSuspense(HomePage),
+          },
+          {
+            path: 'cinemas',
+            element: withSuspense(CinemasPage),
+          },
+          {
+            path: 'promotions',
+            element: withSuspense(PromotionPage),
+          },
+          {
+            path: 'news',
+            element: withSuspense(NewsPage),
+          },
+          {
+            path: 'news/:newsId',
+            element: withSuspense(NewsDetailPage),
+          },
+          // Redirect tương thích với các link cũ
+          {
+            path: 'profile',
+            element: <Navigate to="/user/profile" replace />,
+          },
+          {
+            path: 'my-tickets',
+            element: <Navigate to="/user/tickets" replace />,
+          },
+        ],
       },
     ],
   },
@@ -130,6 +136,10 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: withSuspense(UserDashboardPage),
+          },
+          {
+            path: 'movies',
+            element: withSuspense(UserMoviesPage),
           },
           {
             path: 'tickets',

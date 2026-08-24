@@ -12,7 +12,6 @@ import {
   Ticket,
   Users,
   LogOut,
-  ArrowLeft,
   Shield,
   Menu,
   Newspaper,
@@ -116,13 +115,6 @@ export function AdminLayout() {
 
         {/* Bottom Actions */}
         <div className="p-3 border-t border-[var(--rogym-border-subtle)] space-y-1">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 text-[var(--rogym-teal)]" />
-            <span>Xem trang khách hàng</span>
-          </Link>
           <button
             type="button"
             onClick={handleLogout}

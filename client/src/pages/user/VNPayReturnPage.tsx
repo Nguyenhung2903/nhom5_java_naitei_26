@@ -83,8 +83,8 @@ export function VNPayReturnPage() {
             <Link to="/user/tickets">
               <Button variant="primary" className="w-full">Xem Vé Của Tôi</Button>
             </Link>
-            <Link to="/">
-              <Button variant="secondary" className="w-full">Về Trang Chủ</Button>
+            <Link to="/user">
+              <Button variant="secondary" className="w-full">Về Bảng Điều Khiển</Button>
             </Link>
           </div>
         </div>
@@ -97,8 +97,8 @@ export function VNPayReturnPage() {
           <Alert tone="error" className="mb-8 mt-4 text-left">
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
-          <Link to="/">
-            <Button variant="secondary" className="w-full">Quay Lại Trang Chủ</Button>
+          <Link to="/user">
+            <Button variant="secondary" className="w-full">Về Bảng Điều Khiển</Button>
           </Link>
         </div>
       )}

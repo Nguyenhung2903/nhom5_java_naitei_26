@@ -4,11 +4,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { Avatar, Badge } from '@/components/ui'
 import {
   LayoutDashboard,
+  Film,
   Ticket,
   User,
-  BadgePercent,
   LogOut,
-  ArrowLeft,
   UserCheck,
   Menu,
   X,
@@ -27,9 +26,9 @@ export function UserPortalLayout() {
 
   const userNavItems = [
     { label: 'Tổng quan (Dashboard)', path: '/user', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: 'Phim & Đặt vé', path: '/user/movies', icon: <Film className="w-4 h-4" /> },
     { label: 'Vé của tôi', path: '/user/tickets', icon: <Ticket className="w-4 h-4" /> },
     { label: 'Hồ sơ cá nhân', path: '/user/profile', icon: <User className="w-4 h-4" /> },
-    { label: 'Ưu đãi & Khuyến mãi', path: '/promotions', icon: <BadgePercent className="w-4 h-4" /> },
   ]
 
   return (
@@ -104,13 +103,6 @@ export function UserPortalLayout() {
 
         {/* Bottom Actions */}
         <div className="p-3 border-t border-[var(--rogym-border-subtle)] space-y-1">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 text-[var(--rogym-teal)]" />
-            <span>Xem trang đặt vé (Trang chủ)</span>
-          </Link>
           <button
             type="button"
             onClick={handleLogout}

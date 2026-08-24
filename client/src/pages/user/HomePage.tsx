@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
 import { movieService } from '@/services/movieService'
 import { newsService } from '@/services/newsService'
 import { promotionService } from '@/services/promotionService'
@@ -49,7 +48,6 @@ function formatPromotionValue(promotion: Promotion) {
 }
 
 export function HomePage() {
-  const { user, isAuthenticated } = useAuth()
   const [movies, setMovies] = useState<Movie[]>([])
   const [newsList, setNewsList] = useState<News[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
@@ -128,15 +126,9 @@ export function HomePage() {
               </Button>
             </a>
 
-            {isAuthenticated && user ? (
-              <ButtonLink to="/user" variant="outline-white" size="lg" leftIcon={<UserCheck className="w-5 h-5" />}>
-                Bảng điều khiển cá nhân
-              </ButtonLink>
-            ) : (
-              <ButtonLink to="/register" variant="outline-white" size="lg">
-                Đăng ký thành viên
-              </ButtonLink>
-            )}
+            <ButtonLink to="/register" variant="outline-white" size="lg">
+              Đăng ký thành viên
+            </ButtonLink>
           </div>
         </div>
       </section>

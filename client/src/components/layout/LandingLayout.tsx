@@ -1,34 +1,18 @@
 import { useState } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
-import { Avatar, Badge, ButtonLink } from '@/components/ui'
+import { Outlet, Link, useLocation } from 'react-router-dom'
+import { ButtonLink } from '@/components/ui'
 import {
   Clapperboard,
   Film,
   Newspaper,
   Sparkles,
-  User,
-  LogOut,
-  Shield,
   Menu,
   X,
-  ChevronDown,
-  LayoutDashboard,
 } from 'lucide-react'
 
 export function LandingLayout() {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false)
-
-  const handleLogout = () => {
-    logout()
-    setUserDropdownOpen(false)
-    setMobileMenuOpen(false)
-    navigate('/')
-  }
 
   const navLinks = [
     { label: 'Trang chủ', path: '/', icon: <Film className="w-4 h-4" /> },
@@ -78,122 +62,23 @@ export function LandingLayout() {
             })}
           </nav>
 
-          {/* Right Action / User Profile */}
-          <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated && user ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  aria-expanded={userDropdownOpen}
-                  aria-haspopup="true"
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-card)] hover:border-[var(--rogym-border-teal-hover)] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--rogym-teal)]/30"
-                >
-                  <Avatar
-                    name={user.fullName}
-                    src={user.avatar}
-                    size="sm"
-                    status="online"
-                    border
-                  />
-                  <div className="text-left hidden lg:block">
-                    <p className="text-xs font-bold text-white line-clamp-1 max-w-[120px]">
-                      {user.fullName}
-                    </p>
-                    <p className="text-[10px] text-[var(--rogym-teal)] uppercase tracking-wider font-semibold">
-                      {user.role}
-                    </p>
-                  </div>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-[var(--rogym-text-muted)] transition-transform duration-200 ${
-                      userDropdownOpen ? 'rotate-180 text-[var(--rogym-teal)]' : ''
-                    }`}
-                  />
-                </button>
-
-                {/* Dropdown Menu */}
-                {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-teal-dim)] shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-3 py-2 border-b border-[var(--rogym-border-subtle)] mb-1">
-                      <p className="text-xs font-bold text-white truncate">{user.fullName}</p>
-                      <p className="text-[11px] text-[var(--rogym-text-muted)] truncate">{user.email}</p>
-                      {isAdmin && (
-                        <Badge tone="accent" size="xs" className="mt-1">
-                          Quản trị viên (Admin)
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="space-y-0.5">
-                      <Link
-                        to="/user"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="rogym-dropdown-item rounded-lg !text-xs !py-2"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-[var(--rogym-green)] shrink-0" />
-                        <span className="font-semibold text-white">
-                          Bảng điều khiển cá nhân
-                        </span>
-                      </Link>
-
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="rogym-dropdown-item rounded-lg !text-xs !py-2"
-                        >
-                          <Shield className="w-4 h-4 text-[var(--rogym-teal)] shrink-0" />
-                          <span className="font-semibold text-[var(--rogym-teal)]">
-                            Trang Quản trị (Admin)
-                          </span>
-                        </Link>
-                      )}
-
-                      <Link
-                        to="/user/profile"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="rogym-dropdown-item rounded-lg !text-xs !py-2"
-                      >
-                        <User className="w-4 h-4 text-[var(--rogym-text-muted)] shrink-0" />
-                        <span>Hồ sơ cá nhân</span>
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="rogym-dropdown-item is-danger rounded-lg !text-xs !py-2 mt-1"
-                      >
-                        <LogOut className="w-4 h-4 shrink-0" />
-                        <span>Đăng xuất</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <ButtonLink to="/login" variant="secondary" size="sm">
-                  Đăng nhập
-                </ButtonLink>
-                <ButtonLink
-                  to="/register"
-                  variant="primary"
-                  size="sm"
-                  className="shadow-lg shadow-[var(--rogym-green)]/20"
-                >
-                  Đăng ký
-                </ButtonLink>
-              </div>
-            )}
+          {/* Right Action / Auth Buttons */}
+          <div className="hidden md:flex items-center gap-2">
+            <ButtonLink to="/login" variant="secondary" size="sm">
+              Đăng nhập
+            </ButtonLink>
+            <ButtonLink
+              to="/register"
+              variant="primary"
+              size="sm"
+              className="shadow-lg shadow-[var(--rogym-green)]/20"
+            >
+              Đăng ký
+            </ButtonLink>
           </div>
 
           {/* Mobile Menu Toggle Button */}
           <div className="flex md:hidden items-center gap-2">
-            {isAuthenticated && user && (
-              <Link to="/user">
-                <Avatar name={user.fullName} src={user.avatar} size="xs" />
-              </Link>
-            )}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -231,80 +116,26 @@ export function LandingLayout() {
 
             {/* Mobile Auth Actions */}
             <div className="pt-3 border-t border-[var(--rogym-border-subtle)]">
-              {isAuthenticated && user ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-xl">
-                    <Avatar name={user.fullName} src={user.avatar} size="sm" border />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{user.fullName}</p>
-                      <p className="text-[10px] text-[var(--rogym-text-muted)] truncate">{user.email}</p>
-                    </div>
-                    {isAdmin && (
-                      <Badge tone="accent" size="xs">
-                        Admin
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="space-y-1 pt-1">
-                    <Link
-                      to="/user"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white hover:bg-white/5 transition-colors"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-[var(--rogym-green)]" />
-                      <span>Bảng điều khiển cá nhân</span>
-                    </Link>
-                    {isAdmin && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[var(--rogym-teal)] hover:bg-white/5 transition-colors"
-                      >
-                        <Shield className="w-4 h-4" />
-                        <span>Trang Quản trị (Admin)</span>
-                      </Link>
-                    )}
-                    <Link
-                      to="/user/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors"
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Hồ sơ cá nhân</span>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Đăng xuất</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <ButtonLink
-                    to="/login"
-                    variant="secondary"
-                    size="sm"
-                    className="w-full justify-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Đăng nhập
-                  </ButtonLink>
-                  <ButtonLink
-                    to="/register"
-                    variant="primary"
-                    size="sm"
-                    className="w-full justify-center shadow-lg shadow-[var(--rogym-green)]/20"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Đăng ký
-                  </ButtonLink>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <ButtonLink
+                  to="/login"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full justify-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Đăng nhập
+                </ButtonLink>
+                <ButtonLink
+                  to="/register"
+                  variant="primary"
+                  size="sm"
+                  className="w-full justify-center shadow-lg shadow-[var(--rogym-green)]/20"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Đăng ký
+                </ButtonLink>
+              </div>
             </div>
           </div>
         )}

@@ -71,12 +71,19 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeAdminUser() {
-        if (!userRepository.existsByUsername(adminUsername) && !userRepository.existsByRole(Role.ADMIN)) {
-            log.info("DataInitializer: Initializing default ADMIN account [{}]...", adminUsername);
+        String normalizedAdminUsername = adminUsername.trim().toLowerCase();
+        String normalizedAdminEmail = adminEmail.trim().toLowerCase();
+
+        boolean adminExists = userRepository.existsByUsername(normalizedAdminUsername)
+                || userRepository.existsByEmail(normalizedAdminEmail)
+                || userRepository.existsByRole(Role.ADMIN);
+
+        if (!adminExists) {
+            log.info("DataInitializer: Initializing default ADMIN account [{}]...", normalizedAdminUsername);
             User admin = User.builder()
-                    .username(adminUsername.trim().toLowerCase())
+                    .username(normalizedAdminUsername)
                     .password(passwordEncoder.encode(adminPassword))
-                    .email(adminEmail.trim().toLowerCase())
+                    .email(normalizedAdminEmail)
                     .fullName(adminFullName)
                     .role(Role.ADMIN)
                     .status(UserStatus.ACTIVE)
@@ -84,20 +91,25 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(admin);
-            log.info("DataInitializer: Default ADMIN account created successfully! (Username: {}, Password: {})", adminUsername, adminPassword);
+            log.info("DataInitializer: Default ADMIN account created successfully! (Username: {}, Password: {})", normalizedAdminUsername, adminPassword);
         } else {
-            log.info("DataInitializer: ADMIN account already exists, skipping initialization.");
+            log.info("DataInitializer: ADMIN account already exists (by username, email, or role), skipping initialization.");
         }
     }
 
     private void initializeTestUser() {
         String testUsername = "user";
-        if (!userRepository.existsByUsername(testUsername)) {
+        String testEmail = "user@cinemanest.vn";
+
+        boolean testUserExists = userRepository.existsByUsername(testUsername)
+                || userRepository.existsByEmail(testEmail);
+
+        if (!testUserExists) {
             log.info("DataInitializer: Initializing default test USER account [{}]...", testUsername);
             User testUser = User.builder()
                     .username(testUsername)
                     .password(passwordEncoder.encode("User@123456"))
-                    .email("user@cinemanest.vn")
+                    .email(testEmail)
                     .fullName("Standard Test User")
                     .role(Role.USER)
                     .status(UserStatus.ACTIVE)
@@ -105,7 +117,9 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(testUser);
-            log.info("DataInitializer: Default test USER account created successfully! (Username: user, Password: User@123456)");
+            log.info("DataInitializer: Default test USER account created successfully! (Username: {}, Password: User@123456)");
+        } else {
+            log.info("DataInitializer: Test USER account [{}] or email [{}] already exists, skipping initialization.", testUsername, testEmail);
         }
     }
 
@@ -166,7 +180,7 @@ public class DataInitializer implements CommandLineRunner {
                         .poster(seed.poster())
                         .trailer(seed.trailer())
                         .status(seed.status())
-                        .genres(Set.of(genres.get(seed.firstGenreIndex()), genres.get(seed.secondGenreIndex())))
+                        .genres(new java.util.HashSet<>(List.of(genres.get(seed.firstGenreIndex()), genres.get(seed.secondGenreIndex()))))
                         .build())
                 .forEach(movieRepository::save);
     }

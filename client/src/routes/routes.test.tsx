@@ -7,12 +7,14 @@ describe('Router Configuration', () => {
     expect(router.routes.length).toBeGreaterThan(0)
   })
 
-  it('has public landing routes for home, movies, cinemas, promotions, news', () => {
-    const rootRoute = router.routes.find((r) => r.path === '/')
-    expect(rootRoute).toBeDefined()
-    expect(rootRoute?.children).toBeDefined()
+  it('has public landing routes wrapped in PublicOnlyRoute for home, movies, cinemas, promotions, news', () => {
+    const publicOnlyBranch = router.routes[0]
+    expect(publicOnlyBranch).toBeDefined()
+    const landingRoute = publicOnlyBranch?.children?.find((r) => r.path === '/')
+    expect(landingRoute).toBeDefined()
+    expect(landingRoute?.children).toBeDefined()
 
-    const childPaths = rootRoute?.children?.map((c) => c.path || (c.index ? 'index' : ''))
+    const childPaths = landingRoute?.children?.map((c) => c.path || (c.index ? 'index' : ''))
     expect(childPaths).toContain('index')
     expect(childPaths).toContain('movies')
     expect(childPaths).toContain('cinemas')
@@ -21,7 +23,7 @@ describe('Router Configuration', () => {
     expect(childPaths).toContain('news/:newsId')
   })
 
-  it('defines /user Member Portal and Booking branches', () => {
+  it('defines /user Member Portal with movies, tickets, profile, and Booking branches', () => {
     const userRoute = router.routes.find((r) => r.path === '/user')
     expect(userRoute).toBeDefined()
     expect(userRoute?.children).toBeDefined()
@@ -31,6 +33,7 @@ describe('Router Configuration', () => {
     expect(portalLayoutChild?.children).toBeDefined()
     const portalPaths = portalLayoutChild?.children?.map((c) => c.path || (c.index ? 'index' : ''))
     expect(portalPaths).toContain('index')
+    expect(portalPaths).toContain('movies')
     expect(portalPaths).toContain('tickets')
     expect(portalPaths).toContain('profile')
 

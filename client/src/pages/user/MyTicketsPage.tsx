@@ -69,7 +69,7 @@ export function MyTicketsPage() {
           <p className="text-[var(--rogym-text-secondary)] mb-8 max-w-sm">
             Bạn chưa thực hiện giao dịch đặt vé nào. Hãy chọn bộ phim yêu thích và tận hưởng ngay!
           </p>
-          <Link to="/">
+          <Link to="/user/movies">
             <Button variant="primary">Đặt Vé Ngay</Button>
           </Link>
         </div>
