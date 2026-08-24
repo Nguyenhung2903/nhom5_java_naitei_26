@@ -1,7 +1,8 @@
 import React, { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { UserLayout } from '@/components/layout/UserLayout'
+import { LandingLayout } from '@/components/layout/LandingLayout'
 import { UserPortalLayout } from '@/components/layout/UserPortalLayout'
+import { UserBookingLayout } from '@/components/layout/UserBookingLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { FullScreenLoader } from '@/components/ui'
@@ -13,21 +14,23 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 // Lazy loaded Pages (Code Splitting)
 const HomePage = lazy(() => import('@/pages/user/HomePage').then((m) => ({ default: m.HomePage })))
 const CinemasPage = lazy(() => import('@/pages/user/CinemasPage').then((m) => ({ default: m.CinemasPage })))
-const ProfilePage = lazy(() => import('@/pages/user/ProfilePage').then((m) => ({ default: m.ProfilePage })))
-const ShowtimeSeatPage = lazy(() => import('@/pages/user/ShowtimeSeatPage').then((m) => ({ default: m.ShowtimeSeatPage })))
-const ComboPage = lazy(() => import('@/pages/user/ComboPage').then((m) => ({ default: m.ComboPage })))
-const MovieShowtimePage = lazy(() => import('@/pages/user/MovieShowtimePage').then((m) => ({ default: m.MovieShowtimePage })))
 const PromotionPage = lazy(() => import('@/pages/user/PromotionPage').then((m) => ({ default: m.PromotionPage })))
 const NewsPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsPage })))
 const NewsDetailPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
-const CheckoutPage = lazy(() => import('@/pages/user/CheckoutPage').then((m) => ({ default: m.CheckoutPage })))
-const PaymentPage = lazy(() => import('@/pages/user/PaymentPage').then((m) => ({ default: m.PaymentPage })))
-const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((m) => ({ default: m.VNPayReturnPage })))
-const MyTicketsPage = lazy(() => import('@/pages/user/MyTicketsPage').then((m) => ({ default: m.MyTicketsPage })))
-const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage').then((m) => ({ default: m.UserDashboardPage })))
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+
+const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage').then((m) => ({ default: m.UserDashboardPage })))
+const MyTicketsPage = lazy(() => import('@/pages/user/MyTicketsPage').then((m) => ({ default: m.MyTicketsPage })))
+const ProfilePage = lazy(() => import('@/pages/user/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+
+const MovieShowtimePage = lazy(() => import('@/pages/user/MovieShowtimePage').then((m) => ({ default: m.MovieShowtimePage })))
+const ShowtimeSeatPage = lazy(() => import('@/pages/user/ShowtimeSeatPage').then((m) => ({ default: m.ShowtimeSeatPage })))
+const ComboPage = lazy(() => import('@/pages/user/ComboPage').then((m) => ({ default: m.ComboPage })))
+const CheckoutPage = lazy(() => import('@/pages/user/CheckoutPage').then((m) => ({ default: m.CheckoutPage })))
+const PaymentPage = lazy(() => import('@/pages/user/PaymentPage').then((m) => ({ default: m.PaymentPage })))
+const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((m) => ({ default: m.VNPayReturnPage })))
 
 const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
@@ -51,10 +54,10 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Khách hàng Public (User Landing / Booking Module)
+  // Nhánh 1: Phân hệ Landing Page (Công khai cho tất cả mọi người)
   {
     path: '/',
-    element: <UserLayout />,
+    element: <LandingLayout />,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
@@ -70,18 +73,6 @@ export const router = createBrowserRouter([
         element: withSuspense(CinemasPage),
       },
       {
-        path: 'booking/:movieId/showtimes',
-        element: withSuspense(MovieShowtimePage),
-      },
-      {
-        path: 'booking/:showtimeId/seats',
-        element: withSuspense(ShowtimeSeatPage),
-      },
-      {
-        path: 'booking/:showtimeId/combos',
-        element: withSuspense(ComboPage),
-      },
-      {
         path: 'promotions',
         element: withSuspense(PromotionPage),
       },
@@ -93,42 +84,46 @@ export const router = createBrowserRouter([
         path: 'news/:newsId',
         element: withSuspense(NewsDetailPage),
       },
+      // Redirect tương thích với các link cũ
       {
-        path: 'payment/vnpay-return',
-        element: withSuspense(VNPayReturnPage),
+        path: 'profile',
+        element: <Navigate to="/user/profile" replace />,
       },
-      // Các route đặt vé yêu cầu đăng nhập
       {
-        element: <ProtectedRoute />,
+        path: 'my-tickets',
+        element: <Navigate to="/user/tickets" replace />,
+      },
+    ],
+  },
+
+  // Nhánh 2: Phân hệ Xác thực (Auth Module - Chặn nếu đã đăng nhập)
+  {
+    element: <PublicOnlyRoute />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        element: <AuthLayout />,
         children: [
           {
-            path: 'booking/:showtimeId/checkout',
-            element: withSuspense(CheckoutPage),
+            path: 'login',
+            element: withSuspense(LoginPage),
           },
           {
-            path: 'booking/:showtimeId/payment',
-            element: withSuspense(PaymentPage),
-          },
-          // Redirect tương thích ngược với các link cũ
-          {
-            path: 'profile',
-            element: <Navigate to="/user/profile" replace />,
-          },
-          {
-            path: 'my-tickets',
-            element: <Navigate to="/user/tickets" replace />,
+            path: 'register',
+            element: withSuspense(RegisterPage),
           },
         ],
       },
     ],
   },
 
-  // Nhánh 2: Phân hệ Bảng điều khiển Thành viên (User Member Portal - Yêu cầu đăng nhập)
+  // Nhánh 3: Phân hệ Thành viên & Đặt vé (/user/* - Yêu cầu Đăng nhập)
   {
     path: '/user',
     element: <ProtectedRoute />,
     errorElement: <RouteErrorBoundary />,
     children: [
+      // 3.1: Khu vực Bảng điều khiển & Quản lý cá nhân (Có Sidebar UserPortalLayout)
       {
         element: <UserPortalLayout />,
         children: [
@@ -146,24 +141,33 @@ export const router = createBrowserRouter([
           },
         ],
       },
-    ],
-  },
-
-  // Nhánh 3: Phân hệ Xác thực (Auth Module - Chặn nếu đã đăng nhập)
-  {
-    element: <PublicOnlyRoute />,
-    errorElement: <RouteErrorBoundary />,
-    children: [
+      // 3.2: Khu vực Quy trình Đặt vé (Header tinh gọn toàn màn hình UserBookingLayout)
       {
-        element: <AuthLayout />,
+        element: <UserBookingLayout />,
         children: [
           {
-            path: 'login',
-            element: withSuspense(LoginPage),
+            path: 'booking/:movieId/showtimes',
+            element: withSuspense(MovieShowtimePage),
           },
           {
-            path: 'register',
-            element: withSuspense(RegisterPage),
+            path: 'booking/:showtimeId/seats',
+            element: withSuspense(ShowtimeSeatPage),
+          },
+          {
+            path: 'booking/:showtimeId/combos',
+            element: withSuspense(ComboPage),
+          },
+          {
+            path: 'booking/:showtimeId/checkout',
+            element: withSuspense(CheckoutPage),
+          },
+          {
+            path: 'booking/:showtimeId/payment',
+            element: withSuspense(PaymentPage),
+          },
+          {
+            path: 'payment/vnpay-return',
+            element: withSuspense(VNPayReturnPage),
           },
         ],
       },

@@ -99,7 +99,7 @@ export function ShowtimeSeatPage() {
         .filter(s => selectedSeatIds.includes(s.id))
         .reduce((sum, s) => sum + s.price, 0)
 
-      navigate(`/booking/${showtimeId}/combos`, {
+      navigate(`/user/booking/${showtimeId}/combos`, {
         state: { holdExpiration, selectedSeatIds, seatsTotalAmount }
       })
     } catch (err: unknown) {
@@ -139,7 +139,7 @@ export function ShowtimeSeatPage() {
       {/* Header section */}
       <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-4">
         <div className="flex items-center gap-4">
-          <Link to="/movies" className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
+          <Link to="/" className="text-[var(--rogym-text-muted)] hover:text-white transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>

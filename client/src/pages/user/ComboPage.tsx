@@ -68,7 +68,7 @@ export function ComboPage() {
         clearInterval(timer)
         // Timer expired, redirect back to seats
         showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
-        navigate(`/booking/${showtimeId}/seats`)
+        navigate(`/user/booking/${showtimeId}/seats`)
       }
     }, 1000)
 
@@ -103,7 +103,7 @@ export function ComboPage() {
       return sum + (combo.price * qty)
     }, 0)
 
-    navigate(`/booking/${showtimeId}/checkout`, {
+    navigate(`/user/booking/${showtimeId}/checkout`, {
       state: {
         holdExpiration,
         selectedSeatIds,
@@ -119,7 +119,7 @@ export function ComboPage() {
     if (showtimeId && selectedSeatIds) {
       showtimeSeatService.releaseSeats(showtimeId, selectedSeatIds).catch(console.error)
     }
-    navigate(`/booking/${showtimeId}/seats`)
+    navigate(`/user/booking/${showtimeId}/seats`)
   }
 
   if (loading) return <PageLoader ariaLabel="Đang tải danh sách combo..." />

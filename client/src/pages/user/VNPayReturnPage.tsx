@@ -77,11 +77,16 @@ export function VNPayReturnPage() {
           <CheckCircle2 className="w-16 h-16 text-[var(--rogym-primary)] mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Thanh toán thành công!</h1>
           <p className="text-[var(--rogym-text-muted)] mb-8">
-            Cảm ơn bạn đã đặt vé. Thông tin vé đã được lưu vào hệ thống.
+            Cảm ơn bạn đã đặt vé. Thông tin vé đã được lưu vào hệ thống và sẵn sàng trong mục Vé của tôi.
           </p>
-          <Link to="/">
-            <Button variant="primary" className="w-full">Về Trang Chủ</Button>
-          </Link>
+          <div className="space-y-2">
+            <Link to="/user/tickets">
+              <Button variant="primary" className="w-full">Xem Vé Của Tôi</Button>
+            </Link>
+            <Link to="/">
+              <Button variant="secondary" className="w-full">Về Trang Chủ</Button>
+            </Link>
+          </div>
         </div>
       )}
 

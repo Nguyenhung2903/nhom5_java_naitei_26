@@ -163,7 +163,7 @@ export function MovieShowtimePage() {
                         variant="secondary"
                         size="md"
                         leftIcon={<Clock3 className="h-4 w-4" />}
-                        onClick={() => navigate(`/booking/${showtime.id}/seats`)}
+                        onClick={() => navigate(`/user/booking/${showtime.id}/seats`)}
                       >
                         {formatShowtime(showtime.startTime)}
                         <span className="ml-1 text-xs text-[var(--rogym-text-muted)]">{showtime.roomName}</span>

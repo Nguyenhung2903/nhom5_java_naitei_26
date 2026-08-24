@@ -7,7 +7,7 @@ describe('Router Configuration', () => {
     expect(router.routes.length).toBeGreaterThan(0)
   })
 
-  it('has public user routes for home and movies', () => {
+  it('has public landing routes for home, movies, cinemas, promotions, news', () => {
     const rootRoute = router.routes.find((r) => r.path === '/')
     expect(rootRoute).toBeDefined()
     expect(rootRoute?.children).toBeDefined()
@@ -16,35 +16,34 @@ describe('Router Configuration', () => {
     expect(childPaths).toContain('index')
     expect(childPaths).toContain('movies')
     expect(childPaths).toContain('cinemas')
-    expect(childPaths).toContain('booking/:movieId/showtimes')
-    expect(childPaths).toContain('booking/:showtimeId/seats')
-    expect(childPaths).toContain('booking/:showtimeId/combos')
+    expect(childPaths).toContain('promotions')
+    expect(childPaths).toContain('news')
+    expect(childPaths).toContain('news/:newsId')
   })
 
-  it('protects checkout and payment routes inside ProtectedRoute child', () => {
-    const rootRoute = router.routes.find((r) => r.path === '/')
-    const protectedChild = rootRoute?.children?.find((c) => !c.path && c.children)
-    expect(protectedChild).toBeDefined()
+  it('defines /user Member Portal and Booking branches', () => {
+    const userRoute = router.routes.find((r) => r.path === '/user')
+    expect(userRoute).toBeDefined()
+    expect(userRoute?.children).toBeDefined()
 
-    const protectedPaths = protectedChild?.children?.map((c) => c.path)
-    expect(protectedPaths).toContain('booking/:showtimeId/checkout')
-    expect(protectedPaths).toContain('booking/:showtimeId/payment')
-    expect(protectedPaths).toContain('profile')
-    expect(protectedPaths).toContain('my-tickets')
-  })
+    // Sub-branch 1: Member Portal Layout
+    const portalLayoutChild = userRoute?.children?.[0]
+    expect(portalLayoutChild?.children).toBeDefined()
+    const portalPaths = portalLayoutChild?.children?.map((c) => c.path || (c.index ? 'index' : ''))
+    expect(portalPaths).toContain('index')
+    expect(portalPaths).toContain('tickets')
+    expect(portalPaths).toContain('profile')
 
-  it('defines /user Member Portal branch with subroutes', () => {
-    const userPortalRoute = router.routes.find((r) => r.path === '/user')
-    expect(userPortalRoute).toBeDefined()
-    expect(userPortalRoute?.children).toBeDefined()
-
-    const layoutChild = userPortalRoute?.children?.[0]
-    expect(layoutChild?.children).toBeDefined()
-
-    const userSubPaths = layoutChild?.children?.map((c) => c.path || (c.index ? 'index' : ''))
-    expect(userSubPaths).toContain('index')
-    expect(userSubPaths).toContain('tickets')
-    expect(userSubPaths).toContain('profile')
+    // Sub-branch 2: Booking Layout
+    const bookingLayoutChild = userRoute?.children?.[1]
+    expect(bookingLayoutChild?.children).toBeDefined()
+    const bookingPaths = bookingLayoutChild?.children?.map((c) => c.path)
+    expect(bookingPaths).toContain('booking/:movieId/showtimes')
+    expect(bookingPaths).toContain('booking/:showtimeId/seats')
+    expect(bookingPaths).toContain('booking/:showtimeId/combos')
+    expect(bookingPaths).toContain('booking/:showtimeId/checkout')
+    expect(bookingPaths).toContain('booking/:showtimeId/payment')
+    expect(bookingPaths).toContain('payment/vnpay-return')
   })
 
   it('protects admin routes with allowedRoles ADMIN', () => {

@@ -39,9 +39,10 @@ describe('HomePage', () => {
         id: 'movie-1',
         title: 'Avengers: Secret Wars',
         description: 'Epic movie',
-        duration: 180,
+        durationMinutes: 180,
         status: 'NOW_SHOWING',
-        genres: [],
+        genre: 'Hành động',
+        ageRating: 'T16',
       },
     ])
     vi.mocked(newsService.getNews).mockResolvedValue([])
@@ -51,13 +52,15 @@ describe('HomePage', () => {
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/booking/:movieId/showtimes" element={<div>Movie showtimes</div>} />
+          <Route path="/user/booking/:movieId/showtimes" element={<div>Movie showtimes</div>} />
         </Routes>
       </MemoryRouter>,
     )
 
-    const bookButtons = await screen.findAllByRole('button', { name: 'Đặt vé ngay' })
-    fireEvent.click(bookButtons[0])
+    const bookMovieLink = await screen.findByRole('link', {
+      name: (name, element) => element?.getAttribute('href') === '/user/booking/movie-1/showtimes',
+    })
+    fireEvent.click(bookMovieLink)
 
     await waitFor(() => {
       expect(screen.getByText('Movie showtimes')).toBeTruthy()

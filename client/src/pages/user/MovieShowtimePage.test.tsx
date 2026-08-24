@@ -39,10 +39,10 @@ const showtimes = [
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/booking/movie-1/showtimes']}>
+    <MemoryRouter initialEntries={['/user/booking/movie-1/showtimes']}>
       <Routes>
-        <Route path="/booking/:movieId/showtimes" element={<MovieShowtimePage />} />
-        <Route path="/booking/:showtimeId/seats" element={<div>Seat selection</div>} />
+        <Route path="/user/booking/:movieId/showtimes" element={<MovieShowtimePage />} />
+        <Route path="/user/booking/:showtimeId/seats" element={<div>Seat selection</div>} />
       </Routes>
     </MemoryRouter>,
   )
