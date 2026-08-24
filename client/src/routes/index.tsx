@@ -1,99 +1,119 @@
+import React, { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { UserLayout } from '@/components/layout/UserLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
+import { FullScreenLoader } from '@/components/ui'
+import { RouteErrorBoundary } from '@/pages/common/RouteErrorBoundary'
 
 import { ProtectedRoute } from './ProtectedRoute'
 import { PublicOnlyRoute } from './PublicOnlyRoute'
 
-// Pages
-import { HomePage } from '@/pages/user/HomePage'
-import { CinemasPage } from '@/pages/user/CinemasPage'
-import { ProfilePage } from '@/pages/user/ProfilePage'
-import { ShowtimeSeatPage } from '@/pages/user/ShowtimeSeatPage'
-import { ComboPage } from '@/pages/user/ComboPage'
-import { MovieShowtimePage } from '@/pages/user/MovieShowtimePage'
-import { PromotionPage } from '@/pages/user/PromotionPage'
-import { NewsDetailPage, NewsPage } from '@/pages/user/NewsPage'
-import { CheckoutPage } from '@/pages/user/CheckoutPage'
-import { PaymentPage } from '@/pages/user/PaymentPage'
-import { VNPayReturnPage } from '@/pages/user/VNPayReturnPage'
-import { MyTicketsPage } from '@/pages/user/MyTicketsPage'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { DashboardPage } from '@/pages/admin/DashboardPage'
-import { TheaterManagementPage } from '@/pages/admin/TheaterManagementPage'
-import { RoomManagementPage } from '@/pages/admin/RoomManagementPage'
-import { SeatManagementPage } from '@/pages/admin/SeatManagementPage'
-import { ShowtimeManagementPage } from '@/pages/admin/ShowtimeManagementPage'
-import { MovieManagementPage } from '@/pages/admin/MovieManagementPage'
-import { NewsManagementPage } from '@/pages/admin/NewsManagementPage'
-import { PromotionManagementPage } from '@/pages/admin/PromotionManagementPage'
-import { UserManagementPage } from '@/pages/admin/UserManagementPage'
-import { NotFoundPage } from '@/pages/common/NotFoundPage'
-import { ForbiddenPage } from '@/pages/common/ForbiddenPage'
+// Lazy loaded Pages (Code Splitting)
+const HomePage = lazy(() => import('@/pages/user/HomePage').then((m) => ({ default: m.HomePage })))
+const CinemasPage = lazy(() => import('@/pages/user/CinemasPage').then((m) => ({ default: m.CinemasPage })))
+const ProfilePage = lazy(() => import('@/pages/user/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const ShowtimeSeatPage = lazy(() => import('@/pages/user/ShowtimeSeatPage').then((m) => ({ default: m.ShowtimeSeatPage })))
+const ComboPage = lazy(() => import('@/pages/user/ComboPage').then((m) => ({ default: m.ComboPage })))
+const MovieShowtimePage = lazy(() => import('@/pages/user/MovieShowtimePage').then((m) => ({ default: m.MovieShowtimePage })))
+const PromotionPage = lazy(() => import('@/pages/user/PromotionPage').then((m) => ({ default: m.PromotionPage })))
+const NewsPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsPage })))
+const NewsDetailPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
+const CheckoutPage = lazy(() => import('@/pages/user/CheckoutPage').then((m) => ({ default: m.CheckoutPage })))
+const PaymentPage = lazy(() => import('@/pages/user/PaymentPage').then((m) => ({ default: m.PaymentPage })))
+const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((m) => ({ default: m.VNPayReturnPage })))
+const MyTicketsPage = lazy(() => import('@/pages/user/MyTicketsPage').then((m) => ({ default: m.MyTicketsPage })))
+
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+
+const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
+const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
+const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
+const SeatManagementPage = lazy(() => import('@/pages/admin/SeatManagementPage').then((m) => ({ default: m.SeatManagementPage })))
+const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
+const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
+const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
+const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
+const UserManagementPage = lazy(() => import('@/pages/admin/UserManagementPage').then((m) => ({ default: m.UserManagementPage })))
+
+const NotFoundPage = lazy(() => import('@/pages/common/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+const ForbiddenPage = lazy(() => import('@/pages/common/ForbiddenPage').then((m) => ({ default: m.ForbiddenPage })))
+
+function withSuspense(Component: React.ComponentType) {
+  return (
+    <Suspense fallback={<FullScreenLoader ariaLabel="Đang tải trang..." />}>
+      <Component />
+    </Suspense>
+  )
+}
 
 export const router = createBrowserRouter([
   // Nhánh 1: Phân hệ Khách hàng (User Module)
   {
     path: '/',
     element: <UserLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: withSuspense(HomePage),
+      },
+      {
+        path: 'movies',
+        element: withSuspense(HomePage),
       },
       {
         path: 'cinemas',
-        element: <CinemasPage />,
+        element: withSuspense(CinemasPage),
+      },
+      {
+        path: 'booking/:movieId/showtimes',
+        element: withSuspense(MovieShowtimePage),
       },
       {
         path: 'booking/:showtimeId/seats',
-        element: <ShowtimeSeatPage />,
+        element: withSuspense(ShowtimeSeatPage),
       },
       {
         path: 'booking/:showtimeId/combos',
-        element: <ComboPage />,
-      },
-      {
-        path: 'booking/:showtimeId/checkout',
-        element: <CheckoutPage />,
-      },
-      {
-        path: 'booking/:showtimeId/payment',
-        element: <PaymentPage />,
-      },
-      {
-        path: 'payment/vnpay-return',
-        element: <VNPayReturnPage />,
+        element: withSuspense(ComboPage),
       },
       {
         path: 'promotions',
-        element: <PromotionPage />,
+        element: withSuspense(PromotionPage),
       },
       {
         path: 'news',
-        element: <NewsPage />,
+        element: withSuspense(NewsPage),
       },
       {
         path: 'news/:newsId',
-        element: <NewsDetailPage />,
+        element: withSuspense(NewsDetailPage),
       },
-      // Các route khách hàng cần đăng nhập
+      {
+        path: 'payment/vnpay-return',
+        element: withSuspense(VNPayReturnPage),
+      },
+      // Các route khách hàng bắt buộc đăng nhập
       {
         element: <ProtectedRoute />,
         children: [
           {
-            path: 'booking/:movieId/showtimes',
-            element: <MovieShowtimePage />,
+            path: 'booking/:showtimeId/checkout',
+            element: withSuspense(CheckoutPage),
+          },
+          {
+            path: 'booking/:showtimeId/payment',
+            element: withSuspense(PaymentPage),
           },
           {
             path: 'profile',
-            element: <ProfilePage />,
+            element: withSuspense(ProfilePage),
           },
           {
             path: 'my-tickets',
-            element: <MyTicketsPage />,
+            element: withSuspense(MyTicketsPage),
           },
         ],
       },
@@ -103,17 +123,18 @@ export const router = createBrowserRouter([
   // Nhánh 2: Phân hệ Xác thực (Auth Module - Chặn nếu đã đăng nhập)
   {
     element: <PublicOnlyRoute />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         element: <AuthLayout />,
         children: [
           {
             path: 'login',
-            element: <LoginPage />,
+            element: withSuspense(LoginPage),
           },
           {
             path: 'register',
-            element: <RegisterPage />,
+            element: withSuspense(RegisterPage),
           },
         ],
       },
@@ -124,49 +145,50 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     element: <ProtectedRoute allowedRoles={['ADMIN']} />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         element: <AdminLayout />,
         children: [
           {
             index: true,
-            element: <DashboardPage />,
+            element: withSuspense(DashboardPage),
           },
           {
             path: 'movies',
-            element: <MovieManagementPage />,
+            element: withSuspense(MovieManagementPage),
           },
           {
             path: 'news',
-            element: <NewsManagementPage />,
+            element: withSuspense(NewsManagementPage),
           },
           {
             path: 'promotions',
-            element: <PromotionManagementPage />,
+            element: withSuspense(PromotionManagementPage),
           },
           {
             path: 'showtimes',
-            element: <ShowtimeManagementPage />,
+            element: withSuspense(ShowtimeManagementPage),
           },
           {
             path: 'rooms',
-            element: <RoomManagementPage />,
+            element: withSuspense(RoomManagementPage),
           },
           {
             path: 'theaters',
-            element: <TheaterManagementPage />,
+            element: withSuspense(TheaterManagementPage),
           },
           {
             path: 'seats',
-            element: <SeatManagementPage />,
+            element: withSuspense(SeatManagementPage),
           },
           {
             path: 'bookings',
-            element: <DashboardPage />, // Placeholder cho quản lý đặt vé
+            element: withSuspense(DashboardPage), // Placeholder cho quản lý đặt vé
           },
           {
             path: 'users',
-            element: <UserManagementPage />,
+            element: withSuspense(UserManagementPage),
           },
         ],
       },
@@ -176,11 +198,11 @@ export const router = createBrowserRouter([
   // Phân hệ Lỗi & Điều hướng chung
   {
     path: '/403',
-    element: <ForbiddenPage />,
+    element: withSuspense(ForbiddenPage),
   },
   {
     path: '*',
-    element: <NotFoundPage />,
+    element: withSuspense(NotFoundPage),
   },
 ])
 
