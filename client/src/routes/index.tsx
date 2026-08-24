@@ -12,11 +12,11 @@ import { ProtectedRoute } from './ProtectedRoute'
 import { PublicOnlyRoute } from './PublicOnlyRoute'
 
 // Lazy loaded Pages (Code Splitting)
-const HomePage = lazy(() => import('@/pages/user/HomePage').then((m) => ({ default: m.HomePage })))
-const CinemasPage = lazy(() => import('@/pages/user/CinemasPage').then((m) => ({ default: m.CinemasPage })))
-const PromotionPage = lazy(() => import('@/pages/user/PromotionPage').then((m) => ({ default: m.PromotionPage })))
-const NewsPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsPage })))
-const NewsDetailPage = lazy(() => import('@/pages/user/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
+const HomePage = lazy(() => import('@/pages/landing/HomePage').then((m) => ({ default: m.HomePage })))
+const CinemasPage = lazy(() => import('@/pages/landing/CinemasPage').then((m) => ({ default: m.CinemasPage })))
+const PromotionPage = lazy(() => import('@/pages/landing/PromotionPage').then((m) => ({ default: m.PromotionPage })))
+const NewsPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsPage })))
+const NewsDetailPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))

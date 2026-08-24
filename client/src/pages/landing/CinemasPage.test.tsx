@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { CinemasPage } from './CinemasPage'
-import { theaterService } from '../../services/theaterService'
+import { theaterService } from '@/services/theaterService'
 
-vi.mock('../../services/theaterService', () => ({
+vi.mock('@/services/theaterService', () => ({
   theaterService: {
     getAll: vi.fn(),
   },
