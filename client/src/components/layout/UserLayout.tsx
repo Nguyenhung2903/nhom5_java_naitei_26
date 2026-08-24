@@ -5,6 +5,7 @@ import { Avatar, Button, Badge } from '@/components/ui'
 import {
   Clapperboard,
   Film,
+  Newspaper,
   Sparkles,
   User,
   LogOut,
@@ -32,6 +33,7 @@ export function UserLayout() {
     { label: 'Trang chủ', path: '/', icon: <Film className="w-4 h-4" /> },
     { label: 'Rạp chiếu', path: '/cinemas', icon: <Clapperboard className="w-4 h-4" /> },
     { label: 'Vé của tôi', path: '/my-tickets', icon: <TicketIcon className="w-4 h-4" /> },
+    { label: 'Tin tức', path: '/news', icon: <Newspaper className="w-4 h-4" /> },
     { label: 'Khuyến mãi', path: '/promotions', icon: <Sparkles className="w-4 h-4" /> },
   ]
 
@@ -272,6 +274,8 @@ export function UserLayout() {
           <div className="flex flex-wrap gap-6 text-xs">
             <Link to="/" className="hover:text-white transition-colors">Trang chủ</Link>
             <Link to="/#movies" className="hover:text-white transition-colors">Phim đang chiếu</Link>
+            <Link to="/news" className="hover:text-white transition-colors">Tin tức</Link>
+            <Link to="/promotions" className="hover:text-white transition-colors">Khuyến mãi</Link>
             <Link to="/#terms" className="hover:text-white transition-colors">Điều khoản sử dụng</Link>
             <Link to="/#privacy" className="hover:text-white transition-colors">Chính sách bảo mật</Link>
           </div>
