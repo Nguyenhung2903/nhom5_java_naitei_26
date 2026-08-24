@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -111,6 +113,9 @@ public class AuthServiceImpl implements AuthService {
         } catch (BadCredentialsException ex) {
             log.warn("Login failed for identifier [{}]: Invalid credentials", identifier);
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        } catch (LockedException | DisabledException ex) {
+            log.warn("Login failed for identifier [{}]: Account is locked or disabled", identifier);
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
         }
     }
 

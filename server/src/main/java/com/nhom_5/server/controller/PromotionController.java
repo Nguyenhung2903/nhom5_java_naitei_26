@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Quản lý Khuyến mãi (Promotions)", description = "API tra cứu và quản trị khuyến mãi")
+@Tag(name = "promotion-controller", description = "API tra cứu và quản trị khuyến mãi")
 @RestController
 @RequestMapping("/promotions")
 @RequiredArgsConstructor

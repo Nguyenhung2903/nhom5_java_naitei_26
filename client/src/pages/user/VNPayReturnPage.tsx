@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { bookingService } from '@/services/bookingService'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
 import { PageLoader, Alert, AlertDescription, Button } from '@/components/ui'

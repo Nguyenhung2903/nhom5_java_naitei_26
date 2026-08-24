@@ -6,7 +6,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  'http://localhost:8081/api'
+  'http://localhost:8080/api'
 
 export class ApiError extends Error {
   status: number
@@ -50,7 +50,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     },
   }
 
-  const response = await fetch(url, config)
+  let response: Response
+  try {
+    response = await fetch(url, config)
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'TypeError') {
+      throw new ApiError(
+        0,
+        'Network Error',
+        null,
+        `Không thể kết nối đến máy chủ Backend (${API_BASE_URL}). Vui lòng đảm bảo Spring Boot server đã được khởi động trên cổng 8080.`
+      )
+    }
+    throw err
+  }
 
   if (!response.ok) {
     let errorData: unknown
