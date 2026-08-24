@@ -64,7 +64,7 @@ export function LoginPage() {
       } else if (user.role === 'ADMIN') {
         navigate('/admin', { replace: true })
       } else {
-        navigate('/', { replace: true })
+        navigate('/user', { replace: true })
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

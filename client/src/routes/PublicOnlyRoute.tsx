@@ -15,8 +15,8 @@ export function PublicOnlyRoute() {
     if (redirectUrl) {
       return <Navigate to={redirectUrl} replace />
     }
-    // Nếu là ADMIN -> chuyển về /admin, nếu là USER -> chuyển về /
-    return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/'} replace />
+    // Nếu là ADMIN -> chuyển về /admin, nếu là USER -> chuyển về /user
+    return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/user'} replace />
   }
 
   return <Outlet />

@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { UserLayout } from '@/components/layout/UserLayout'
+import { UserPortalLayout } from '@/components/layout/UserPortalLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { FullScreenLoader } from '@/components/ui'
@@ -23,6 +24,7 @@ const CheckoutPage = lazy(() => import('@/pages/user/CheckoutPage').then((m) => 
 const PaymentPage = lazy(() => import('@/pages/user/PaymentPage').then((m) => ({ default: m.PaymentPage })))
 const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((m) => ({ default: m.VNPayReturnPage })))
 const MyTicketsPage = lazy(() => import('@/pages/user/MyTicketsPage').then((m) => ({ default: m.MyTicketsPage })))
+const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage').then((m) => ({ default: m.UserDashboardPage })))
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
@@ -49,7 +51,7 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Khách hàng (User Module)
+  // Nhánh 1: Phân hệ Khách hàng Public (User Landing / Booking Module)
   {
     path: '/',
     element: <UserLayout />,
@@ -95,7 +97,7 @@ export const router = createBrowserRouter([
         path: 'payment/vnpay-return',
         element: withSuspense(VNPayReturnPage),
       },
-      // Các route khách hàng bắt buộc đăng nhập
+      // Các route đặt vé yêu cầu đăng nhập
       {
         element: <ProtectedRoute />,
         children: [
@@ -107,20 +109,47 @@ export const router = createBrowserRouter([
             path: 'booking/:showtimeId/payment',
             element: withSuspense(PaymentPage),
           },
+          // Redirect tương thích ngược với các link cũ
           {
             path: 'profile',
-            element: withSuspense(ProfilePage),
+            element: <Navigate to="/user/profile" replace />,
           },
           {
             path: 'my-tickets',
-            element: withSuspense(MyTicketsPage),
+            element: <Navigate to="/user/tickets" replace />,
           },
         ],
       },
     ],
   },
 
-  // Nhánh 2: Phân hệ Xác thực (Auth Module - Chặn nếu đã đăng nhập)
+  // Nhánh 2: Phân hệ Bảng điều khiển Thành viên (User Member Portal - Yêu cầu đăng nhập)
+  {
+    path: '/user',
+    element: <ProtectedRoute />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        element: <UserPortalLayout />,
+        children: [
+          {
+            index: true,
+            element: withSuspense(UserDashboardPage),
+          },
+          {
+            path: 'tickets',
+            element: withSuspense(MyTicketsPage),
+          },
+          {
+            path: 'profile',
+            element: withSuspense(ProfilePage),
+          },
+        ],
+      },
+    ],
+  },
+
+  // Nhánh 3: Phân hệ Xác thực (Auth Module - Chặn nếu đã đăng nhập)
   {
     element: <PublicOnlyRoute />,
     errorElement: <RouteErrorBoundary />,
@@ -141,7 +170,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Nhánh 3: Phân hệ Quản trị (Admin Module - Yêu cầu role ADMIN)
+  // Nhánh 4: Phân hệ Quản trị (Admin Module - Yêu cầu role ADMIN)
   {
     path: '/admin',
     element: <ProtectedRoute allowedRoles={['ADMIN']} />,

@@ -14,6 +14,7 @@ import {
   X,
   ChevronDown,
   TicketIcon,
+  LayoutDashboard,
 } from 'lucide-react'
 
 export function UserLayout() {
@@ -145,6 +146,17 @@ export function UserLayout() {
                       </div>
 
                       <div className="space-y-0.5">
+                        <Link
+                          to="/user"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="rogym-dropdown-item rounded-lg !text-xs !py-2"
+                        >
+                          <LayoutDashboard className="w-4 h-4 text-[var(--rogym-green)] shrink-0" />
+                          <span className="font-semibold text-white">
+                            Bảng điều khiển cá nhân
+                          </span>
+                        </Link>
+
                         {isAdmin && (
                           <Link
                             to="/admin"
@@ -159,7 +171,7 @@ export function UserLayout() {
                         )}
 
                         <Link
-                          to="/profile"
+                          to="/user/profile"
                           onClick={() => setUserDropdownOpen(false)}
                           className="rogym-dropdown-item rounded-lg !text-xs !py-2"
                         >
@@ -265,6 +277,14 @@ export function UserLayout() {
                     </div>
 
                     <div className="space-y-1 pt-1">
+                      <Link
+                        to="/user"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white hover:bg-white/5 transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-[var(--rogym-green)]" />
+                        <span>Bảng điều khiển cá nhân</span>
+                      </Link>
                       {isAdmin && (
                         <Link
                           to="/admin"
@@ -276,7 +296,7 @@ export function UserLayout() {
                         </Link>
                       )}
                       <Link
-                        to="/profile"
+                        to="/user/profile"
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-medium text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors"
                       >

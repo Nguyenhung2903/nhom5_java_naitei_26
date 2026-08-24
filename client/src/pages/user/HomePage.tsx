@@ -27,6 +27,7 @@ import {
   Newspaper,
   BadgePercent,
   RefreshCcw,
+  UserCheck,
 } from 'lucide-react'
 
 const movieStatusMap = {
@@ -116,14 +117,14 @@ export function HomePage() {
                 <span className="text-xs text-[var(--rogym-text-secondary)]">
                   Xin chào, <strong className="text-white">{user.fullName}</strong>!
                 </span>
+                <ButtonLink to="/user" variant="primary" size="sm" leftIcon={<UserCheck className="w-4 h-4" />}>
+                  Bảng điều khiển cá nhân
+                </ButtonLink>
                 {isAdmin && (
-                  <ButtonLink to="/admin" variant="primary" size="sm" leftIcon={<Shield className="w-4 h-4" />}>
-                    Vào trang Quản trị (Admin)
+                  <ButtonLink to="/admin" variant="secondary" size="sm" leftIcon={<Shield className="w-4 h-4" />}>
+                    Trang Quản trị (Admin)
                   </ButtonLink>
                 )}
-                <ButtonLink to="/profile" variant="secondary" size="sm">
-                  Xem hồ sơ
-                </ButtonLink>
               </div>
             ) : (
               <div className="flex flex-wrap items-center gap-3">
