@@ -194,23 +194,26 @@ export function DatePickerInput({
             toDate={calendarToDate}
             captionLayout="dropdown"
             components={{ Dropdown: CalendarDropdown }}
+            formatters={{
+              formatMonthCaption: (date: Date) => `Tháng ${date.getMonth() + 1}`,
+            }}
             showOutsideDays
             classNames={{
-              root: 'rdp rogym-date-picker',
-              months: 'flex flex-col',
-              month: 'space-y-2',
+              root: 'rdp rogym-date-picker w-full',
+              months: 'flex flex-col w-full',
+              month: 'space-y-2 w-full',
               caption: 'rogym-date-picker__caption',
               caption_dropdowns: 'rogym-date-picker__caption-dropdowns',
               caption_label: 'rogym-date-picker__caption-label',
               dropdown_month: 'rogym-date-picker__dropdown is-month',
               dropdown_year: 'rogym-date-picker__dropdown is-year',
               table: 'w-full border-collapse',
-              head_row: 'flex',
-              head_cell: 'rogym-text-muted w-8 text-center text-xs font-normal pb-1',
-              row: 'flex w-full mt-0.5',
-              cell: 'h-8 w-8 text-center text-sm relative',
+              head_row: 'grid grid-cols-7 w-full mb-1',
+              head_cell: 'rogym-text-muted w-full text-center text-xs font-semibold py-1',
+              row: 'grid grid-cols-7 w-full mt-1',
+              cell: 'w-full text-center text-sm relative p-0 flex items-center justify-center',
               day: cn(
-                'h-8 w-8 p-0 font-normal rounded-lg',
+                'h-8 w-8 p-0 font-medium rounded-xl flex items-center justify-center',
                 'rogym-text-secondary',
                 'hover:bg-[var(--rogym-green)] hover:rogym-text-green-dark',
                 'transition-colors'

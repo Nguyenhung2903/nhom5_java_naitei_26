@@ -108,10 +108,10 @@
   .rogym-select__content {
     z-index: 100;
     width: var(--radix-select-trigger-width);
-    max-height: var(--radix-select-content-available-height);
+    max-height: min(var(--radix-select-content-available-height), 180px);
     overflow: hidden;
     border: 1px solid var(--rogym-border-teal-hover);
-    border-radius: 1rem;
+    border-radius: 0.875rem;
     background-color: var(--rogym-bg-elevated);
     box-shadow:
       0 18px 48px rgba(0, 0, 0, 0.45),
@@ -125,13 +125,13 @@
   .rogym-select__item {
     position: relative;
     display: flex;
-    min-height: 40px;
+    min-height: 32px;
     align-items: center;
-    border-radius: 0.75rem;
-    padding: 0.625rem 2.25rem 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    padding: 0.35rem 1.4rem 0.35rem 0.45rem;
     margin: 2px 0;
     color: var(--rogym-text-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     line-height: 1.35;
     white-space: nowrap;
     outline: none;
@@ -164,7 +164,7 @@
 
   .rogym-select__indicator {
     position: absolute;
-    right: 0.75rem;
+    right: 0.35rem;
     display: inline-flex;
     align-items: center;
     color: var(--rogym-teal);
