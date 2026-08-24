@@ -1,11 +1,35 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { CalendarDays, Clock3, MapPin, MonitorPlay, Ticket } from 'lucide-react'
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DatePickerInput, PageLoader } from '@/components/ui'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+import {
+  CalendarDays,
+  Clock3,
+  MapPin,
+  MonitorPlay,
+  Film,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Sparkles,
+  Layers,
+} from 'lucide-react'
+import {
+  Alert,
+  AlertDescription,
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DatePickerInput,
+  PageLoader,
+} from '@/components/ui'
 import { theaterService } from '@/services/theaterService'
 import { showtimeService } from '@/services/showtimeService'
+import { movieService } from '@/services/movieService'
 import type { Theater } from '@/types/theater'
 import type { Showtime } from '@/types/showtime'
+import type { Movie } from '@/types/movie'
 
 const BUSINESS_TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
@@ -24,6 +48,7 @@ function formatShowtime(value: string): string {
 export function MovieShowtimePage() {
   const { movieId } = useParams<{ movieId: string }>()
   const navigate = useNavigate()
+  const [movie, setMovie] = useState<Movie | null>(null)
   const [theaters, setTheaters] = useState<Theater[]>([])
   const [selectedTheaterId, setSelectedTheaterId] = useState('')
   const [selectedDate, setSelectedDate] = useState(getBusinessDate)
@@ -36,7 +61,17 @@ export function MovieShowtimePage() {
     if (!movieId) return
     setLoadingTheaters(true)
     setError(null)
-    theaterService.getByMovieId(movieId)
+
+    // Fetch movie info
+    Promise.resolve(movieService.getMovieById(movieId))
+      .then((data) => setMovie(data))
+      .catch(() => {
+        setMovie(null)
+      })
+
+    // Fetch theaters showing this movie
+    theaterService
+      .getByMovieId(movieId)
       .then((data) => {
         setTheaters(data)
         setSelectedTheaterId(data[0]?.id ?? '')
@@ -52,7 +87,8 @@ export function MovieShowtimePage() {
     }
     setLoadingShowtimes(true)
     setError(null)
-    showtimeService.getByMovieAndTheaterAndDate(movieId, selectedTheaterId, selectedDate)
+    showtimeService
+      .getByMovieAndTheaterAndDate(movieId, selectedTheaterId, selectedDate)
       .then(setShowtimes)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Không thể tải suất chiếu'))
       .finally(() => setLoadingShowtimes(false))
@@ -63,19 +99,108 @@ export function MovieShowtimePage() {
   const selectedTheater = theaters.find((theater) => theater.id === selectedTheaterId)
 
   return (
-    <div className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
-      <header className="space-y-2 border-b border-[var(--rogym-border-subtle)] pb-5">
-        <div className="flex items-center gap-2 text-[var(--rogym-teal)]">
-          <Ticket className="h-5 w-5" />
-          <span className="text-xs font-semibold uppercase tracking-[0.18em]">Đặt vé</span>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Top Breadcrumb / Back Action */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/user/movies"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--rogym-text-secondary)] hover:text-[var(--rogym-green)] transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Quay lại danh sách phim</span>
+        </Link>
+
+        <Badge
+          tone="accent"
+          size="sm"
+          leftIcon={<span className="w-1.5 h-1.5 rounded-full bg-[var(--rogym-teal)] animate-pulse" />}
+        >
+          Đặt vé xem phim
+        </Badge>
+      </div>
+
+      {/* Movie Information Summary Banner */}
+      {movie && (
+        <Card variant="glass" className="overflow-hidden p-4 sm:p-6 border-[var(--rogym-border-teal-dim)]">
+          <div className="flex flex-col sm:flex-row gap-5 items-start">
+            {movie.poster ? (
+              <img
+                src={movie.poster}
+                alt={movie.title}
+                className="w-24 sm:w-28 h-36 sm:h-40 object-cover rounded-xl border border-white/10 shadow-lg shrink-0 mx-auto sm:mx-0"
+              />
+            ) : (
+              <div className="w-24 sm:w-28 h-36 sm:h-40 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--rogym-text-muted)] shrink-0 mx-auto sm:mx-0">
+                <Film className="w-8 h-8" />
+              </div>
+            )}
+
+            <div className="flex-1 space-y-2.5 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                {movie.ageRating && (
+                  <Badge tone="warning" size="xs">
+                    {movie.ageRating}
+                  </Badge>
+                )}
+                {movie.status === 'NOW_SHOWING' && (
+                  <Badge tone="success" size="xs">
+                    Đang chiếu
+                  </Badge>
+                )}
+                {movie.status === 'COMING_SOON' && (
+                  <Badge tone="info" size="xs">
+                    Sắp chiếu
+                  </Badge>
+                )}
+              </div>
+
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold uppercase tracking-wide text-white">
+                {movie.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-[var(--rogym-text-secondary)]">
+                {movie.duration > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                    {movie.duration} phút
+                  </span>
+                )}
+                {movie.genres && movie.genres.length > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                    {movie.genres.map((g) => g.name).join(', ')}
+                  </span>
+                )}
+                {movie.releaseDate && (
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                    Khởi chiếu: {movie.releaseDate}
+                  </span>
+                )}
+              </div>
+
+              {movie.description && (
+                <p className="text-xs text-[var(--rogym-text-muted)] line-clamp-2 leading-relaxed pt-1">
+                  {movie.description}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Page Header (if no movie loaded) */}
+      {!movie && (
+        <div className="space-y-1">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-wide text-white flex items-center gap-2.5">
+            <Film className="w-7 h-7 text-[var(--rogym-green)]" />
+            <span>Chọn Rạp & Suất Chiếu</span>
+          </h1>
+          <p className="text-xs text-[var(--rogym-text-secondary)]">
+            Vui lòng chọn rạp chiếu, ngày và khung giờ thuận tiện nhất cho bạn
+          </p>
         </div>
-        <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-white sm:text-3xl">
-          Chọn rạp và suất chiếu
-        </h1>
-        <p className="text-sm text-[var(--rogym-text-secondary)]">
-          Chọn rạp, ngày chiếu và khung giờ phù hợp với bạn.
-        </p>
-      </header>
+      )}
 
       {error && (
         <Alert tone="error">
@@ -84,21 +209,25 @@ export function MovieShowtimePage() {
       )}
 
       {theaters.length === 0 ? (
-        <Card variant="compact" className="p-8 text-center">
-          <MapPin className="mx-auto mb-3 h-8 w-8 text-[var(--rogym-text-muted)]" />
-          <p className="text-sm text-[var(--rogym-text-secondary)]">Không có rạp nào có suất chiếu cho phim này.</p>
+        <Card variant="compact" className="p-12 text-center">
+          <MapPin className="mx-auto mb-3 h-10 w-10 text-[var(--rogym-text-muted)]" />
+          <p className="text-sm font-medium text-white">Không có rạp nào có suất chiếu</p>
+          <p className="text-xs text-[var(--rogym-text-secondary)] mt-1">
+            Hiện tại phim này chưa có lịch chiếu tại các cụm rạp của chúng tôi.
+          </p>
         </Card>
       ) : (
         <>
+          {/* Section 1: Choose Theater */}
           <section className="space-y-3" aria-labelledby="theater-selection-title">
             <div className="flex items-center justify-between gap-3">
-              <h2 id="theater-selection-title" className="flex items-center gap-2 text-lg font-semibold text-white">
+              <h2 id="theater-selection-title" className="flex items-center gap-2 text-base sm:text-lg font-bold font-display uppercase tracking-wide text-white">
                 <MapPin className="h-5 w-5 text-[var(--rogym-green)]" />
-                Chọn rạp
+                <span>1. Chọn cụm rạp</span>
               </h2>
-              <Badge tone="primary">{theaters.length} rạp</Badge>
+              <Badge tone="primary">{theaters.length} rạp có sẵn</Badge>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {theaters.map((theater) => (
                 <Card
                   key={theater.id}
@@ -106,12 +235,18 @@ export function MovieShowtimePage() {
                   selected={theater.id === selectedTheaterId}
                   onClick={() => setSelectedTheaterId(theater.id)}
                   aria-label={`Chọn rạp ${theater.name}`}
+                  className="p-4"
                 >
-                  <CardHeader className="p-0">
-                    <CardTitle className="text-base text-white">{theater.name}</CardTitle>
-                    <CardDescription className="flex items-start gap-2 text-xs">
-                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      {theater.address}
+                  <CardHeader className="p-0 space-y-1">
+                    <CardTitle className="text-sm sm:text-base font-bold text-white flex items-center justify-between">
+                      <span>{theater.name}</span>
+                      {theater.id === selectedTheaterId && (
+                        <span className="w-2 h-2 rounded-full bg-[var(--rogym-green)] animate-pulse" />
+                      )}
+                    </CardTitle>
+                    <CardDescription className="flex items-start gap-1.5 text-xs text-[var(--rogym-text-secondary)]">
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--rogym-teal)]" />
+                      <span className="line-clamp-2">{theater.address}</span>
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -119,63 +254,84 @@ export function MovieShowtimePage() {
             </div>
           </section>
 
-          <section className="grid gap-5 md:grid-cols-[minmax(220px,280px)_1fr]" aria-labelledby="showtime-selection-title">
-            <Card variant="glass" className="h-fit">
-              <CardHeader className="p-0">
-                <CardTitle className="flex items-center gap-2 text-base text-white">
-                  <CalendarDays className="h-4 w-4 text-[var(--rogym-teal)]" />
-                  Chọn ngày
-                </CardTitle>
-                <CardDescription className="text-xs">Ngày được quy đổi theo giờ Việt Nam.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0 pt-4">
-                <DatePickerInput
-                  value={selectedDate}
-                  onChange={setSelectedDate}
-                  aria-label="Ngày chiếu"
-                  buttonAriaLabel="Mở lịch chọn ngày chiếu"
-                  min={getBusinessDate()}
-                />
-              </CardContent>
-            </Card>
+          {/* Section 2: Choose Date & Showtimes */}
+          <section className="space-y-3" aria-labelledby="showtime-selection-title">
+            <h2 id="showtime-selection-title" className="flex items-center gap-2 text-base sm:text-lg font-bold font-display uppercase tracking-wide text-white">
+              <Sparkles className="h-5 w-5 text-[var(--rogym-green)]" />
+              <span>2. Chọn ngày & giờ chiếu</span>
+            </h2>
 
-            <Card variant="elevated" className="min-h-56">
-              <CardHeader className="p-0">
-                <CardTitle id="showtime-selection-title" className="flex items-center gap-2 text-base text-white">
-                  <Clock3 className="h-4 w-4 text-[var(--rogym-green)]" />
-                  Suất chiếu{selectedTheater ? ` tại ${selectedTheater.name}` : ''}
-                </CardTitle>
-                <CardDescription className="text-xs">Các suất chiếu trong ngày đã chọn.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0 pt-5">
-                {loadingShowtimes ? (
-                  <PageLoader ariaLabel="Đang tải suất chiếu..." minHeight="20vh" />
-                ) : showtimes.length === 0 ? (
-                  <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-[var(--rogym-text-muted)]">
-                    <MonitorPlay className="h-7 w-7" />
-                    <p>Không có suất chiếu phù hợp trong ngày đã chọn.</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-3">
-                    {showtimes.map((showtime) => (
-                      <Button
-                        key={showtime.id}
-                        variant="secondary"
-                        size="md"
-                        leftIcon={<Clock3 className="h-4 w-4" />}
-                        onClick={() => navigate(`/user/booking/${showtime.id}/seats`)}
-                      >
-                        {formatShowtime(showtime.startTime)}
-                        <span className="ml-1 text-xs text-[var(--rogym-text-muted)]">{showtime.roomName}</span>
-                      </Button>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+              {/* Date Picker Column */}
+              <Card variant="glass" className="h-fit p-5 space-y-3">
+                <CardHeader className="p-0 space-y-1">
+                  <CardTitle className="flex items-center gap-2 text-sm font-bold text-white">
+                    <CalendarDays className="h-4 w-4 text-[var(--rogym-teal)]" />
+                    <span>Chọn ngày xem</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs">Giờ chiếu chuẩn Việt Nam (GMT+7)</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 pt-2">
+                  <DatePickerInput
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    aria-label="Ngày chiếu"
+                    buttonAriaLabel="Mở lịch chọn ngày chiếu"
+                    min={getBusinessDate()}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Showtimes Column */}
+              <Card variant="elevated" className="min-h-56 p-5 sm:p-6 space-y-4">
+                <CardHeader className="p-0 space-y-1">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base font-bold text-white">
+                    <Clock3 className="h-4 w-4 text-[var(--rogym-green)]" />
+                    <span>Suất chiếu có sẵn {selectedTheater ? `tại ${selectedTheater.name}` : ''}</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Vui lòng chọn khung giờ để chuyển sang bước chọn vị trí ghế ngồi
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="p-0 pt-2">
+                  {loadingShowtimes ? (
+                    <PageLoader ariaLabel="Đang tải suất chiếu..." minHeight="18vh" />
+                  ) : showtimes.length === 0 ? (
+                    <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-[var(--rogym-text-muted)] py-8">
+                      <MonitorPlay className="h-8 w-8 text-[var(--rogym-text-muted)]" />
+                      <p className="font-medium text-white">Không có suất chiếu phù hợp</p>
+                      <p className="text-xs text-[var(--rogym-text-secondary)] max-w-sm">
+                        Rạp này hiện chưa có lịch chiếu vào ngày đã chọn. Vui lòng chọn ngày hoặc rạp khác.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {showtimes.map((showtime) => (
+                        <button
+                          key={showtime.id}
+                          type="button"
+                          onClick={() => navigate(`/user/booking/${showtime.id}/seats`)}
+                          className="flex flex-col items-center justify-center p-3.5 rounded-xl border border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-surface)] hover:border-[var(--rogym-green)] hover:bg-[var(--rogym-green)]/10 hover:shadow-lg hover:shadow-[var(--rogym-green)]/10 transition-all cursor-pointer group text-center"
+                        >
+                          <span className="font-display text-base font-bold text-white group-hover:text-[var(--rogym-green)] transition-colors">
+                            {formatShowtime(showtime.startTime)}
+                          </span>
+                          <span className="text-[11px] text-[var(--rogym-text-muted)] group-hover:text-white/80 transition-colors mt-0.5">
+                            {showtime.roomName}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </section>
         </>
       )}
     </div>
   )
 }
+
+export default MovieShowtimePage

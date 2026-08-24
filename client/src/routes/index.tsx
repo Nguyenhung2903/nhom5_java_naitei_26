@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { LandingLayout } from '@/components/layout/LandingLayout'
 import { UserPortalLayout } from '@/components/layout/UserPortalLayout'
-import { UserBookingLayout } from '@/components/layout/UserBookingLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { FullScreenLoader } from '@/components/ui'
@@ -130,7 +129,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={['USER']} />,
     errorElement: <RouteErrorBoundary />,
     children: [
-      // 3.1: Khu vực Bảng điều khiển & Quản lý cá nhân (Có Sidebar UserPortalLayout)
+      // 3.1: Khu vực Cổng thông tin & Đặt vé thành viên (Có Sidebar UserPortalLayout)
       {
         element: <UserPortalLayout />,
         children: [
@@ -150,12 +149,6 @@ export const router = createBrowserRouter([
             path: 'profile',
             element: withSuspense(ProfilePage),
           },
-        ],
-      },
-      // 3.2: Khu vực Quy trình Đặt vé (Header tinh gọn toàn màn hình UserBookingLayout)
-      {
-        element: <UserBookingLayout />,
-        children: [
           {
             path: 'booking/:movieId/showtimes',
             element: withSuspense(MovieShowtimePage),

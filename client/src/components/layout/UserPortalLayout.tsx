@@ -81,6 +81,10 @@ export function UserPortalLayout() {
               const isActive =
                 item.path === '/user'
                   ? location.pathname === '/user'
+                  : item.path === '/user/movies'
+                  ? location.pathname.startsWith('/user/movies') ||
+                    location.pathname.startsWith('/user/booking') ||
+                    location.pathname.startsWith('/user/payment')
                   : location.pathname.startsWith(item.path)
               return (
                 <Link

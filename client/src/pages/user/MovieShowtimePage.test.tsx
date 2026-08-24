@@ -4,6 +4,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MovieShowtimePage } from './MovieShowtimePage'
 import { theaterService } from '@/services/theaterService'
 import { showtimeService } from '@/services/showtimeService'
+import { movieService } from '@/services/movieService'
+
+vi.mock('@/services/movieService', () => ({
+  movieService: {
+    getMovieById: vi.fn().mockResolvedValue({
+      id: 'movie-1',
+      title: 'Movie A',
+      duration: 120,
+      status: 'NOW_SHOWING',
+      genres: [{ id: '1', name: 'Action' }],
+    }),
+  },
+}))
 
 vi.mock('@/services/theaterService', () => ({
   theaterService: {

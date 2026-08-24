@@ -24,12 +24,12 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(childPaths).toContain('news/:newsId')
   })
 
-  it('defines /user Member Portal with movies, tickets, profile, and Booking branches', () => {
+  it('defines /user Member Portal with movies, tickets, profile, and Booking routes', () => {
     const userRoute = router.routes.find((r) => r.path === '/user')
     expect(userRoute).toBeDefined()
     expect(userRoute?.children).toBeDefined()
 
-    // Sub-branch 1: Member Portal Layout
+    // Member Portal Layout (all routes integrated with UserPortalLayout)
     const portalLayoutChild = userRoute?.children?.[0]
     expect(portalLayoutChild?.children).toBeDefined()
     const portalPaths = portalLayoutChild?.children?.map((c) => c.path || (c.index ? 'index' : ''))
@@ -37,17 +37,12 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(portalPaths).toContain('movies')
     expect(portalPaths).toContain('tickets')
     expect(portalPaths).toContain('profile')
-
-    // Sub-branch 2: Booking Layout
-    const bookingLayoutChild = userRoute?.children?.[1]
-    expect(bookingLayoutChild?.children).toBeDefined()
-    const bookingPaths = bookingLayoutChild?.children?.map((c) => c.path)
-    expect(bookingPaths).toContain('booking/:movieId/showtimes')
-    expect(bookingPaths).toContain('booking/:showtimeId/seats')
-    expect(bookingPaths).toContain('booking/:showtimeId/combos')
-    expect(bookingPaths).toContain('booking/:showtimeId/checkout')
-    expect(bookingPaths).toContain('booking/:showtimeId/payment')
-    expect(bookingPaths).toContain('payment/vnpay-return')
+    expect(portalPaths).toContain('booking/:movieId/showtimes')
+    expect(portalPaths).toContain('booking/:showtimeId/seats')
+    expect(portalPaths).toContain('booking/:showtimeId/combos')
+    expect(portalPaths).toContain('booking/:showtimeId/checkout')
+    expect(portalPaths).toContain('booking/:showtimeId/payment')
+    expect(portalPaths).toContain('payment/vnpay-return')
   })
 
   it('protects admin routes with allowedRoles ADMIN and contains profile route', () => {
