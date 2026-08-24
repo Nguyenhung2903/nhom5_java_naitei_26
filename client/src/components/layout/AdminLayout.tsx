@@ -17,6 +17,7 @@ import {
   Newspaper,
   BadgePercent,
   X,
+  User,
 } from 'lucide-react'
 
 export function AdminLayout() {
@@ -41,6 +42,7 @@ export function AdminLayout() {
     { label: 'Quản lý Ghế', path: '/admin/seats', icon: <Armchair className="w-4 h-4" /> },
     { label: 'Quản lý Đặt vé', path: '/admin/bookings', icon: <Ticket className="w-4 h-4" /> },
     { label: 'Quản lý Người dùng', path: '/admin/users', icon: <Users className="w-4 h-4" /> },
+    { label: 'Hồ sơ cá nhân', path: '/admin/profile', icon: <User className="w-4 h-4" /> },
   ]
 
   return (
@@ -148,9 +150,15 @@ export function AdminLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <Link
+            to="/admin/profile"
+            title="Xem hồ sơ cá nhân"
+            className="flex items-center gap-3 p-1.5 -mr-1.5 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer"
+          >
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-white">{user?.fullName || 'Administrator'}</p>
+              <p className="text-xs font-bold text-white group-hover:text-[var(--rogym-green)] transition-colors">
+                {user?.fullName || 'Administrator'}
+              </p>
               <p className="text-[10px] text-[var(--rogym-teal)] uppercase tracking-wider font-semibold">
                 {user?.role || 'ADMIN'}
               </p>
@@ -161,7 +169,7 @@ export function AdminLayout() {
               size="sm"
               border
             />
-          </div>
+          </Link>
         </header>
 
         {/* Content Outlet */}

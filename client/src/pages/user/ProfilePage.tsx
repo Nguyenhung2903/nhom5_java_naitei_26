@@ -71,8 +71,14 @@ function formatDisplayDate(dateStr?: string): string {
   return dateStr
 }
 
-export function ProfilePage() {
+export interface ProfilePageProps {
+  showMemberStats?: boolean
+}
+
+export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
   const { user, refreshProfile } = useAuth()
+
+  const shouldShowMemberStats = showMemberStats ?? (user?.role !== 'ADMIN')
 
   // Active tab state
   const [activeTab, setActiveTab] = useState('personal')
@@ -106,8 +112,10 @@ export function ProfilePage() {
   const [passwordErrorMsg, setPasswordErrorMsg] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
-  // Fetch bookings for membership calculations
+  // Fetch bookings for membership calculations only when needed
   useEffect(() => {
+    if (!shouldShowMemberStats) return
+
     const fetchBookings = async () => {
       try {
         const data = await bookingService.getMyBookings()
@@ -117,7 +125,7 @@ export function ProfilePage() {
       }
     }
     fetchBookings()
-  }, [])
+  }, [shouldShowMemberStats])
 
   useEffect(() => {
     if (user) {
@@ -330,25 +338,27 @@ export function ProfilePage() {
             </div>
 
             {/* Quick Member Stats */}
-            <div className="w-full grid grid-cols-2 gap-2.5 mt-6 pt-4 border-t border-white/10">
-              <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
-                <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
-                  <Ticket className="w-3.5 h-3.5 text-[var(--rogym-green)]" />
-                  <span>Vé đã xem</span>
-                </div>
-                <p className="text-base font-bold text-white mt-1">{bookings.length}</p>
-              </Card>
+            {shouldShowMemberStats && (
+              <div className="w-full grid grid-cols-2 gap-2.5 mt-6 pt-4 border-t border-white/10">
+                <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
+                    <Ticket className="w-3.5 h-3.5 text-[var(--rogym-green)]" />
+                    <span>Vé đã xem</span>
+                  </div>
+                  <p className="text-base font-bold text-white mt-1">{bookings.length}</p>
+                </Card>
 
-              <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
-                <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
-                  <Award className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
-                  <span>Điểm thưởng</span>
-                </div>
-                <p className="text-base font-bold text-[var(--rogym-green)] mt-1">
-                  {membershipPoints} pts
-                </p>
-              </Card>
-            </div>
+                <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
+                    <Award className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                    <span>Điểm thưởng</span>
+                  </div>
+                  <p className="text-base font-bold text-[var(--rogym-green)] mt-1">
+                    {membershipPoints} pts
+                  </p>
+                </Card>
+              </div>
+            )}
           </Card>
 
           {/* Account Security Tip Alert */}
@@ -376,13 +386,15 @@ export function ProfilePage() {
                 <div>
                   <CardTitle className="text-base font-bold text-white flex items-center gap-2">
                     <UserIcon className="w-4 h-4 text-[var(--rogym-green)]" />
-                    <span>Hồ Sơ Thành Viên</span>
+                    <span>{user?.role === 'ADMIN' ? 'Hồ Sơ Quản Trị Viên' : 'Hồ Sơ Thành Viên'}</span>
                   </CardTitle>
                   <CardDescription className="text-xs text-[var(--rogym-text-secondary)] mt-0.5">
                     {activeTab === 'personal'
                       ? isEditing
                         ? 'Chỉnh sửa thông tin cá nhân và ảnh đại diện của bạn'
-                        : 'Chi tiết thông tin đăng ký thành viên CinemaNest'
+                        : user?.role === 'ADMIN'
+                          ? 'Chi tiết thông tin tài khoản quản trị CinemaNest'
+                          : 'Chi tiết thông tin đăng ký thành viên CinemaNest'
                       : 'Thiết lập và đổi mật khẩu bảo mật tài khoản'}
                   </CardDescription>
                 </div>

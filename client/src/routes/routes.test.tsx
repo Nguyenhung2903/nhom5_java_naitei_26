@@ -50,9 +50,23 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(bookingPaths).toContain('payment/vnpay-return')
   })
 
-  it('protects admin routes with allowedRoles ADMIN', () => {
+  it('protects admin routes with allowedRoles ADMIN and contains profile route', () => {
     const adminRoute = router.routes.find((r) => r.path === '/admin')
     expect(adminRoute).toBeDefined()
+    const adminLayoutChild = adminRoute?.children?.[0]
+    expect(adminLayoutChild?.children).toBeDefined()
+    const adminPaths = adminLayoutChild?.children?.map((c) => c.path || (c.index ? 'index' : ''))
+    expect(adminPaths).toContain('index')
+    expect(adminPaths).toContain('movies')
+    expect(adminPaths).toContain('news')
+    expect(adminPaths).toContain('promotions')
+    expect(adminPaths).toContain('showtimes')
+    expect(adminPaths).toContain('theaters')
+    expect(adminPaths).toContain('rooms')
+    expect(adminPaths).toContain('seats')
+    expect(adminPaths).toContain('bookings')
+    expect(adminPaths).toContain('users')
+    expect(adminPaths).toContain('profile')
   })
 
   describe('getSafeRedirectUrl helper', () => {

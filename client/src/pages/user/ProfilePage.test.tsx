@@ -107,4 +107,57 @@ describe('ProfilePage', () => {
       expect(refreshProfile).toHaveBeenCalledOnce()
     })
   })
+
+  it('hides member stats and displays admin title when user has role ADMIN', () => {
+    const adminUser = {
+      ...mockUser,
+      role: 'ADMIN' as const,
+      fullName: 'Super Admin',
+    }
+
+    vi.mocked(useAuth).mockReturnValue({
+      user: adminUser,
+      refreshProfile: vi.fn(),
+      isAuthenticated: true,
+      isAdmin: true,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Hồ Sơ Quản Trị Viên')).toBeTruthy()
+    expect(screen.queryByText('Vé đã xem')).toBeNull()
+    expect(screen.queryByText('Điểm thưởng')).toBeNull()
+  })
+
+  it('hides member stats explicitly when showMemberStats={false}', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      refreshProfile: vi.fn(),
+      isAuthenticated: true,
+      isAdmin: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+
+    render(
+      <MemoryRouter>
+        <ProfilePage showMemberStats={false} />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByText('Vé đã xem')).toBeNull()
+    expect(screen.queryByText('Điểm thưởng')).toBeNull()
+  })
 })
