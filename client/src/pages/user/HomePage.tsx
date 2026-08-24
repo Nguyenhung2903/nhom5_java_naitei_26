@@ -2,31 +2,32 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { movieService } from '@/services/movieService'
-import type { Movie, MovieStatus } from '@/types/movie'
+import { newsService } from '@/services/newsService'
+import { promotionService } from '@/services/promotionService'
+import type { Movie } from '@/types/movie'
+import type { News } from '@/types/news'
+import type { Promotion } from '@/types/promotion'
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardMedia,
   Badge,
+  Button,
   ButtonLink,
-  Skeleton,
-  PageEmptyState,
-  Alert,
-  AlertDescription,
-  Tabs,
-  TabsList,
-  TabsTrigger,
+  StatusBadge,
 } from '@/components/ui'
-import { Film, Ticket, Sparkles, Clock, Shield, Newspaper, BadgePercent, RefreshCcw } from 'lucide-react'
-import { movieService } from '@/services/movieService'
-import { newsService } from '@/services/newsService'
-import { promotionService } from '@/services/promotionService'
-import type { Movie } from '@/types/movie'
-import type { News } from '@/types/news'
-import type { Promotion } from '@/types/promotion'
+import {
+  Film,
+  Ticket,
+  Sparkles,
+  Clock,
+  Shield,
+  Newspaper,
+  BadgePercent,
+  RefreshCcw,
+} from 'lucide-react'
 
 const movieStatusMap = {
   NOW_SHOWING: { tone: 'success' as const, label: 'Đang chiếu' },
@@ -38,42 +39,10 @@ function formatPromotionValue(promotion: Promotion) {
   if (promotion.discountType === 'PERCENT') return `${promotion.discountValue}%`
   return `${promotion.discountValue.toLocaleString('vi-VN')} đ`
 }
+
 export function HomePage() {
   const { user, isAuthenticated, isAdmin } = useAuth()
   const [movies, setMovies] = useState<Movie[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [activeStatusTab, setActiveStatusTab] = useState<MovieStatus>('NOW_SHOWING')
-
-  useEffect(() => {
-    let isMounted = true
-    setLoading(true)
-    setError(null)
-
-    movieService
-      .getMovies()
-      .then((data) => {
-        if (isMounted) {
-          setMovies(data)
-        }
-      })
-      .catch((err: unknown) => {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Không thể tải danh sách phim từ hệ thống')
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  const filteredMovies = movies.filter((m) => m.status === activeStatusTab)
   const [newsList, setNewsList] = useState<News[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
@@ -111,9 +80,9 @@ export function HomePage() {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadHomeData()
   }, [])
+
   return (
     <div className="space-y-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Welcome Banner */}
@@ -229,7 +198,7 @@ export function HomePage() {
 
                 <CardContent className="space-y-4 pt-2">
                   <div className="flex items-center justify-between text-xs text-[var(--rogym-text-muted)] border-t border-[var(--rogym-border-subtle)] pt-3">
-                    <span>{movie.genres.map((genre) => genre.name).join(', ') || movie.language || 'Điện ảnh'}</span>
+                    <span>{movie.genres?.map((genre) => genre.name).join(', ') || movie.language || 'Điện ảnh'}</span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
                       {movie.duration} phút
@@ -331,5 +300,3 @@ export function HomePage() {
 }
 
 export default HomePage
-
-
