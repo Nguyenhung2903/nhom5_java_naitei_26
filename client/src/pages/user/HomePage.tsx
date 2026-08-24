@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import { Link, useNavigate } from 'react-router-dom'
-=======
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
->>>>>>> upstream/master
 import { useAuth } from '@/hooks/useAuth'
 import {
   Card,
@@ -36,15 +32,11 @@ function formatPromotionValue(promotion: Promotion) {
 
 export function HomePage() {
   const { user, isAuthenticated, isAdmin } = useAuth()
-<<<<<<< HEAD
-  const navigate = useNavigate()
-=======
   const [movies, setMovies] = useState<Movie[]>([])
   const [newsList, setNewsList] = useState<News[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
->>>>>>> upstream/master
 
   const featuredMovies = useMemo(
     () => movies.filter((movie) => movie.status !== 'ENDED').slice(0, 6),
