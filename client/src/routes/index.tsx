@@ -29,6 +29,7 @@ import { ShowtimeManagementPage } from '@/pages/admin/ShowtimeManagementPage'
 import { MovieManagementPage } from '@/pages/admin/MovieManagementPage'
 import { NewsManagementPage } from '@/pages/admin/NewsManagementPage'
 import { PromotionManagementPage } from '@/pages/admin/PromotionManagementPage'
+import { UserManagementPage } from '@/pages/admin/UserManagementPage'
 import { NotFoundPage } from '@/pages/common/NotFoundPage'
 import { ForbiddenPage } from '@/pages/common/ForbiddenPage'
 
@@ -165,7 +166,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'users',
-            element: <DashboardPage />, // Placeholder cho quản lý người dùng
+            element: <UserManagementPage />,
           },
         ],
       },
