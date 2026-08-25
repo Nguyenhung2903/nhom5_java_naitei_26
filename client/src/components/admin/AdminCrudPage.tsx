@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchToolbar, type ButtonVariant } from '@/components/ui'
+import { Alert, AlertDescription, Badge, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchInput, type ButtonVariant } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { CheckCircle2, Edit, Plus, Trash2 } from 'lucide-react'
 
@@ -23,6 +23,7 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   toForm: (item: T) => TForm
   getSearchText: (item: T) => string
   toolbar?: ReactNode
+  searchPlaceholder?: string
   onEdit?: (item: T) => void
   onCreated?: (item: T) => void
   onRowClick?: (item: T) => void
@@ -44,6 +45,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   toForm,
   getSearchText,
   toolbar,
+  searchPlaceholder,
   onEdit,
   onCreated,
   onRowClick,
@@ -184,9 +186,23 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       {feedback && <Alert tone="success" icon={<CheckCircle2 className="h-4 w-4" />}><AlertDescription>{feedback}</AlertDescription></Alert>}
       {error && <Alert tone="error"><AlertDescription>{error}</AlertDescription></Alert>}
 
-      <Card variant="elevated" className="p-4">
-        {toolbar}
-        <SearchToolbar value={searchQuery} onChange={setSearchQuery} placeholder="Tìm kiếm..." />
+      <Card variant="glass" className="p-3.5 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="w-full sm:max-w-md">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={searchPlaceholder || 'Tìm kiếm...'}
+              inputSize="sm"
+            />
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-secondary)]">
+            <span>Hiển thị:</span>
+            <Badge tone={filteredItems.length > 0 ? 'accent' : 'muted'} size="sm">
+              {filteredItems.length} / {items.length} bản ghi
+            </Badge>
+          </div>
+        </div>
       </Card>
       <Card variant="elevated" className="overflow-hidden">
         <ResponsiveTable
