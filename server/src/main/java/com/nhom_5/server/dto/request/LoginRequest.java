@@ -17,7 +17,7 @@ import lombok.Setter;
 public class LoginRequest {
 
     @NotBlank(message = "Tên đăng nhập hoặc email không được để trống")
-    @Schema(description = "Tên đăng nhập hoặc Email", example = "admin hoặc admin@cinemanest.vn")
+    @Schema(description = "Tên đăng nhập hoặc Email", example = "admin")
     private String usernameOrEmail;
 
     @NotBlank(message = "Mật khẩu không được để trống")

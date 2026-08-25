@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Xác thực & Tài khoản (Auth)", description = "Các API đăng ký, đăng nhập, đổi mật khẩu và lấy thông tin tài khoản")
+@Tag(name = "01. Xác thực & Tài khoản (Auth)", description = "Các API đăng ký, đăng nhập, đổi mật khẩu và lấy thông tin tài khoản hiện tại")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(
-            summary = "Đăng ký tài khoản người dùng mới",
+            summary = "[PUBLIC] Đăng ký tài khoản người dùng mới",
             description = "Tạo tài khoản mới cho khách hàng với vai trò mặc định là USER và trạng thái ACTIVE."
     )
     @ApiResponses(value = {
@@ -46,8 +46,8 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Đăng nhập hệ thống",
-            description = "Xác thực bằng Username hoặc Email kèm Mật khẩu để nhận JWT Access Token."
+            summary = "[PUBLIC] Đăng nhập hệ thống",
+            description = "Xác thực bằng Username hoặc Email kèm Mật khẩu để nhận JWT Access Token. Mặc định có thể đăng nhập bằng tài khoản admin (Username: admin / Password: Admin@123456)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Đăng nhập thành công"),
@@ -62,7 +62,7 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Lấy thông tin hồ sơ tài khoản hiện tại",
+            summary = "[USER] Lấy thông tin hồ sơ tài khoản hiện tại",
             description = "Yêu cầu đính kèm Header 'Authorization: Bearer <token>' để lấy thông tin cá nhân của người dùng đang đăng nhập.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -77,7 +77,7 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Đổi mật khẩu",
+            summary = "[USER] Đổi mật khẩu",
             description = "Cho phép người dùng hiện tại đổi mật khẩu sau khi nhập đúng mật khẩu hiện tại.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
