@@ -39,6 +39,7 @@ const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailMana
 
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
+const MovieDetailManagementPage = lazy(() => import('@/pages/admin/MovieDetailManagementPage').then((m) => ({ default: m.MovieDetailManagementPage })))
 const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
 const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
 const UserManagementPage = lazy(() => import('@/pages/admin/UserManagementPage').then((m) => ({ default: m.UserManagementPage })))
@@ -197,6 +198,10 @@ export const router = createBrowserRouter([
             element: withSuspense(MovieManagementPage),
           },
           {
+            path: 'movies/:movieId',
+            element: withSuspense(MovieDetailManagementPage),
+          },
+          {
             path: 'news',
             element: withSuspense(NewsManagementPage),
           },
@@ -220,10 +225,6 @@ export const router = createBrowserRouter([
           {
             path: 'theaters',
             element: withSuspense(TheaterManagementPage),
-          },
-          {
-            path: 'bookings',
-            element: withSuspense(DashboardPage), // Placeholder cho quản lý đặt vé
           },
           {
             path: 'users',

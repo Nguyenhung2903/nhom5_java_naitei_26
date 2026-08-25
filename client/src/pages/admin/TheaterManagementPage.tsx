@@ -26,6 +26,7 @@ export function TheaterManagementPage() {
       initialForm={initialForm}
       toForm={(item) => ({ name: item.name, address: item.address, phone: item.phone || '', latitude: item.latitude || undefined, longitude: item.longitude || undefined })}
       getSearchText={(item) => `${item.name} ${item.address} ${item.phone || ''}`}
+      searchPlaceholder="Tìm kiếm theo tên rạp, địa chỉ, số điện thoại..."
       renderForm={(form, update) => (
         <>
           <FormField label="Tên rạp" htmlFor="theater-name" required>

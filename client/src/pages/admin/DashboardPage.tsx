@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Plus,
   Shield,
+  MapPin,
 } from 'lucide-react'
 
 export function DashboardPage() {
@@ -164,12 +165,12 @@ export function DashboardPage() {
             </Link>
 
             <Link
-              to="/admin/bookings"
+              to="/admin/theaters"
               className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-[var(--rogym-border-subtle)] text-xs font-semibold text-white transition-all"
             >
               <span className="flex items-center gap-2">
-                <Ticket className="w-4 h-4 text-amber-400" />
-                Danh sách Đặt vé
+                <MapPin className="w-4 h-4 text-amber-400" />
+                Quản lý Cụm Rạp
               </span>
               <span className="text-[var(--rogym-teal)]">→</span>
             </Link>
