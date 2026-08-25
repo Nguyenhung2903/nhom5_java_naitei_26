@@ -8,7 +8,7 @@ import {
   Button,
   PageLoader
 } from '@/components/ui'
-import { AlertCircle, ArrowLeft, Clock, CreditCard } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, Clock, CreditCard } from 'lucide-react'
 
 export function PaymentPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
@@ -26,9 +26,12 @@ export function PaymentPage() {
   const [paymentMethod, setPaymentMethod] = useState<'VNPAY'>('VNPAY')
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isSuccess) return
+
     if (!holdExpiration || finalTotalAmount === undefined) {
       navigate(`/booking/${showtimeId}/seats`)
       return
@@ -53,7 +56,7 @@ export function PaymentPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [holdExpiration, navigate, showtimeId, finalTotalAmount, selectedSeatIds])
+  }, [holdExpiration, navigate, showtimeId, finalTotalAmount, selectedSeatIds, isSuccess])
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -69,27 +72,49 @@ export function PaymentPage() {
         ? selectedCombos.map((item: any) => ({ comboId: item.id, quantity: item.quantity }))
         : []
 
-      // Save pending booking info to localStorage so we can retrieve it after VNPay redirects back
-      const pendingBooking = {
+      const transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+
+      // Bỏ qua cổng thanh toán VNPay, xác nhận đơn vé trực tiếp
+      await bookingService.createBooking({
         showtimeId: showtimeId!,
         seatIds: selectedSeatIds || [],
         combos: combosList,
-        discountCode: discountCode
-      }
-      localStorage.setItem('pending_vnpay_booking', JSON.stringify(pendingBooking))
+        discountCode: discountCode || undefined,
+        paymentMethod: 'VNPAY',
+        paymentTransactionId: transactionId,
+      })
 
-      // Get VNPay URL
-      const url = await bookingService.createVNPayUrl(finalTotalAmount)
-      
-      // Redirect to VNPay
-      window.location.href = url
+      setIsSuccess(true)
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo URL thanh toán VNPay.")
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn đặt vé. Vui lòng thử lại.")
+    } finally {
       setIsProcessing(false)
     }
   }
 
-  if (finalTotalAmount === undefined) return null
+  if (finalTotalAmount === undefined && !isSuccess) return null
+
+  if (isSuccess) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+        <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-primary)]/50 rounded-xl p-8 max-w-md mx-auto shadow-2xl">
+          <CheckCircle2 className="w-16 h-16 text-[var(--rogym-primary)] mx-auto mb-4 animate-bounce" />
+          <h1 className="text-2xl font-bold text-white mb-2">Thanh toán thành công!</h1>
+          <p className="text-[var(--rogym-text-muted)] mb-8">
+            Cảm ơn bạn đã đặt vé. Thông tin vé đã được lưu vào hệ thống và sẵn sàng trong mục Vé của tôi.
+          </p>
+          <div className="space-y-3">
+            <Link to="/user/tickets">
+              <Button variant="primary" className="w-full font-bold">Xem Vé Của Tôi</Button>
+            </Link>
+            <Link to="/user">
+              <Button variant="secondary" className="w-full">Về Bảng Điều Khiển</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -163,11 +188,11 @@ export function PaymentPage() {
               <Button 
                 variant="primary" 
                 size="lg"
-                className="w-full mt-4"
+                className="w-full mt-4 font-bold"
                 onClick={handleVNPayPayment}
                 disabled={isProcessing}
               >
-                {isProcessing ? <PageLoader ariaLabel="Đang tạo mã thanh toán..." className="scale-75" /> : 'Thanh Toán Ngay'}
+                {isProcessing ? <PageLoader ariaLabel="Đang xử lý đặt vé..." className="scale-75" /> : 'Thanh Toán Ngay'}
               </Button>
             )}
           </div>
