@@ -170,7 +170,7 @@ export function DashboardPage() {
             >
               <span className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-amber-400" />
-                Quản lý Cụm Rạp
+                Quản lý Cụm Rạp & Phòng Chiếu
               </span>
               <span className="text-[var(--rogym-teal)]">→</span>
             </Link>

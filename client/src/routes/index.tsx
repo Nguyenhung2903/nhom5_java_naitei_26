@@ -31,8 +31,9 @@ const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((
 
 const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
-const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
+const TheaterDetailManagementPage = lazy(() => import('@/pages/admin/TheaterDetailManagementPage').then((m) => ({ default: m.TheaterDetailManagementPage })))
 const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailManagementPage').then((m) => ({ default: m.RoomDetailManagementPage })))
+const RoomRedirectPage = lazy(() => import('@/pages/admin/RoomRedirectPage').then((m) => ({ default: m.RoomRedirectPage })))
 
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
@@ -211,17 +212,31 @@ export const router = createBrowserRouter([
             element: withSuspense(ShowtimeManagementPage),
           },
           {
+            path: 'theaters',
+            children: [
+              {
+                index: true,
+                element: withSuspense(TheaterManagementPage),
+              },
+              {
+                path: ':theaterId',
+                element: withSuspense(TheaterDetailManagementPage),
+              },
+              {
+                path: ':theaterId/rooms/:roomId',
+                element: withSuspense(RoomDetailManagementPage),
+              },
+            ],
+          },
+
+          // Tương thích ngược: Redirect các route cũ
+          {
             path: 'rooms',
-            element: withSuspense(RoomManagementPage),
+            element: <Navigate to="/admin/theaters" replace />,
           },
           {
             path: 'rooms/:roomId',
-            element: withSuspense(RoomDetailManagementPage),
-          },
-
-          {
-            path: 'theaters',
-            element: withSuspense(TheaterManagementPage),
+            element: withSuspense(RoomRedirectPage),
           },
           {
             path: 'users',

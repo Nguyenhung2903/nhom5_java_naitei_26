@@ -62,6 +62,14 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(adminPaths).not.toContain('bookings')
     expect(adminPaths).toContain('users')
     expect(adminPaths).toContain('profile')
+
+    // Kiểm tra cấu trúc phân cấp Theaters -> :theaterId -> :theaterId/rooms/:roomId
+    const theaterBranch = adminLayoutChild?.children?.find((c) => c.path === 'theaters')
+    expect(theaterBranch?.children).toBeDefined()
+    const theaterPaths = theaterBranch?.children?.map((c) => c.path || (c.index ? 'index' : ''))
+    expect(theaterPaths).toContain('index')
+    expect(theaterPaths).toContain(':theaterId')
+    expect(theaterPaths).toContain(':theaterId/rooms/:roomId')
   })
 
   describe('getSafeRedirectUrl helper', () => {
