@@ -418,15 +418,15 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
                         {rowKey}
                       </button>
 
-                      <div className="flex items-center gap-2">{renderCouplePair(pair1_2)}</div>
+                      <div className="flex items-center gap-1.5 sm:gap-2">{renderCouplePair(pair1_2)}</div>
                       <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-l border-dashed border-[var(--rogym-border-white-dim)]" />
-                      <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         {renderCouplePair(pair3_4)}
                         {renderCouplePair(pair5_6)}
                         {renderCouplePair(pair7_8)}
                       </div>
                       <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-r border-dashed border-[var(--rogym-border-white-dim)]" />
-                      <div className="flex items-center gap-2">{renderCouplePair(pair9_10)}</div>
+                      <div className="flex items-center gap-1.5 sm:gap-2">{renderCouplePair(pair9_10)}</div>
 
                       <button
                         type="button"
@@ -434,8 +434,8 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
                         title={`Chọn toàn bộ hàng ${rowKey}`}
                         className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
                           isAllRowSelected
-                            ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
-                            : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
+                            ? 'border-cyan-400 bg-cyan-400 text-black'
+                            : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
                         }`}
                       >
                         {rowKey}
@@ -469,8 +469,8 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
                       title={`Chọn toàn bộ hàng ${rowKey}`}
                       className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
                         isAllRowSelected
-                          ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
-                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
+                          ? 'border-cyan-400 bg-cyan-400 text-black'
+                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
                       }`}
                     >
                       {rowKey}
@@ -488,8 +488,8 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
                       title={`Chọn toàn bộ hàng ${rowKey}`}
                       className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
                         isAllRowSelected
-                          ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
-                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
+                          ? 'border-cyan-400 bg-cyan-400 text-black'
+                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
                       }`}
                     >
                       {rowKey}
@@ -504,20 +504,20 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
         {/* Chú thích loại ghế */}
         <div className="flex flex-wrap items-center justify-center gap-4 mt-6 py-3 px-6 rounded-xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-subtle)] text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-[var(--rogym-border-white-button)]/40 bg-[var(--rogym-bg-card)]" />
-            <span className="text-[var(--rogym-text-secondary)]">Thường (A-B)</span>
+            <div className="w-4 h-4 rounded-sm border border-emerald-500/60 bg-emerald-950/40" />
+            <span className="text-emerald-400 font-medium">Thường (A-B)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-[var(--rogym-teal)] bg-[var(--rogym-bg-elevated-green)]" />
-            <span className="text-[var(--rogym-teal)] font-medium">VIP (C-D)</span>
+            <div className="w-4 h-4 rounded-sm border border-amber-500/60 bg-amber-950/40" />
+            <span className="text-amber-400 font-medium">VIP (C-D)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-4 rounded-sm border border-rose-500/60 bg-rose-500/20" />
+            <div className="w-7 h-4 rounded-sm border border-rose-500/60 bg-rose-950/40" />
             <span className="text-rose-300 font-medium">Ghế Đôi (E)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-[var(--rogym-green)] bg-[var(--rogym-green)]/25 shadow-[var(--rogym-shadow-tone-sm)]" />
-            <span className="text-[var(--rogym-green)] font-medium">Đang chọn</span>
+            <div className="w-4 h-4 rounded-sm border border-cyan-400 bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+            <span className="text-cyan-300 font-medium">Đang chọn</span>
           </div>
         </div>
       </div>

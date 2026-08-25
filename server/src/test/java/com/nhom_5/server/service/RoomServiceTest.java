@@ -75,4 +75,30 @@ class RoomServiceTest {
 
         assertEquals(saved.getId(), roomService.create(request).getId());
     }
+
+    @Test
+    void resetSeatsRejectsRoomWithShowtimes() {
+        UUID roomId = UUID.randomUUID();
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(Room.builder().id(roomId).build()));
+        when(showtimeRepository.existsByRoomId(roomId)).thenReturn(true);
+
+        AppException exception = assertThrows(AppException.class, () -> roomService.resetSeats(roomId));
+
+        assertEquals(ErrorCode.BAD_REQUEST, exception.getErrorCode());
+    }
+
+    @Test
+    void resetSeatsSuccessfullyDeletesFlushesAndGeneratesSeats() {
+        UUID roomId = UUID.randomUUID();
+        Room room = Room.builder().id(roomId).name("Phòng 1").build();
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+        when(showtimeRepository.existsByRoomId(roomId)).thenReturn(false);
+
+        roomService.resetSeats(roomId);
+
+        org.mockito.Mockito.verify(seatRepository).deleteByRoomId(roomId);
+        org.mockito.Mockito.verify(seatRepository).flush();
+        org.mockito.Mockito.verify(seatRepository).saveAll(any());
+    }
 }
+

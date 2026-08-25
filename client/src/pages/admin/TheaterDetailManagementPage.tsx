@@ -362,14 +362,14 @@ export function TheaterDetailManagementPage() {
         </div>
 
         <div className="p-5 rounded-2xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-4 shadow-md">
-          <div className="p-3.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20">
+          <div className="p-3.5 rounded-xl bg-[var(--rogym-green)]/15 text-[var(--rogym-green)] border border-[var(--rogym-green)]/20">
             <Armchair className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-[var(--rogym-text-muted)] uppercase tracking-wider font-semibold">
               Tổng Số Ghế Toàn Rạp
             </p>
-            <p className="text-2xl font-bold text-purple-300">{totalSeats} ghế</p>
+            <p className="text-2xl font-bold text-[var(--rogym-green)]">{totalSeats} ghế</p>
           </div>
         </div>
       </div>

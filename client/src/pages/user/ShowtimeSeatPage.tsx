@@ -171,7 +171,7 @@ export function ShowtimeSeatPage() {
                 {selectedSeats.map((s) => (
                   <span
                     key={s.id}
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-[var(--rogym-green)]/15 text-[var(--rogym-green)] border border-[var(--rogym-green)]/30"
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
                   >
                     {s.seatRow}{s.seatNumber}
                   </span>

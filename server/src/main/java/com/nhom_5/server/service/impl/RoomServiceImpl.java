@@ -122,10 +122,8 @@ public class RoomServiceImpl implements RoomService {
         if (showtimeRepository.existsByRoomId(id)) {
             throw new AppException(ErrorCode.BAD_REQUEST, "Không thể thiết lập lại sơ đồ ghế cho phòng đã có suất chiếu");
         }
-        List<Seat> existingSeats = seatRepository.findByRoomIdOrderBySeatRowAscSeatNumberAsc(id);
-        if (!existingSeats.isEmpty()) {
-            seatRepository.deleteAll(existingSeats);
-        }
+        seatRepository.deleteByRoomId(id);
+        seatRepository.flush();
         List<Seat> standardSeats = generateStandardSeats(room);
         seatRepository.saveAll(standardSeats);
     }

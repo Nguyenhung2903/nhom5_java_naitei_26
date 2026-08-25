@@ -123,7 +123,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   </span>
 
                   {/* Cụm trái (1 cặp: E1-E2) */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     {renderCouplePair(pair1_2)}
                   </div>
 
@@ -131,7 +131,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-l border-dashed border-[var(--rogym-border-white-dim)]" />
 
                   {/* Cụm giữa (3 cặp: E3-E4, E5-E6, E7-E8) */}
-                  <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     {renderCouplePair(pair3_4)}
                     {renderCouplePair(pair5_6)}
                     {renderCouplePair(pair7_8)}
@@ -141,7 +141,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-r border-dashed border-[var(--rogym-border-white-dim)]" />
 
                   {/* Cụm phải (1 cặp: E9-E10) */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     {renderCouplePair(pair9_10)}
                   </div>
 
@@ -222,19 +222,19 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-6 py-3 px-4 sm:px-6 rounded-xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-subtle)] text-xs sm:text-sm">
           {/* Ghế thường */}
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-[var(--rogym-border-white-button)]/40 bg-[var(--rogym-bg-card)]" />
-            <span className="text-[var(--rogym-text-secondary)]">Ghế Thường</span>
+            <div className="w-4 h-4 rounded-sm border border-emerald-500/60 bg-emerald-950/40" />
+            <span className="text-emerald-400 font-medium">Ghế Thường</span>
           </div>
 
           {/* Ghế VIP */}
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-[var(--rogym-teal)] bg-[var(--rogym-bg-elevated-green)]" />
-            <span className="text-[var(--rogym-teal)] font-medium">Ghế VIP</span>
+            <div className="w-4 h-4 rounded-sm border border-amber-500/60 bg-amber-950/40" />
+            <span className="text-amber-400 font-medium">Ghế VIP</span>
           </div>
 
           {/* Ghế Đôi */}
           <div className="flex items-center gap-2">
-            <div className="w-7 h-4 rounded-sm border border-rose-500/60 bg-rose-500/20" />
+            <div className="w-7 h-4 rounded-sm border border-rose-500/60 bg-rose-950/40" />
             <span className="text-rose-300 font-medium">Ghế Đôi</span>
           </div>
 
@@ -242,14 +242,14 @@ export const SeatMap: React.FC<SeatMapProps> = ({
             <>
               {/* Đang chọn */}
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm border border-[var(--rogym-green)] bg-[var(--rogym-green)]/25 shadow-[var(--rogym-shadow-tone-sm)]" />
-                <span className="text-[var(--rogym-green)] font-medium">Đang chọn</span>
+                <div className="w-4 h-4 rounded-sm border border-cyan-400 bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                <span className="text-cyan-300 font-medium">Đang chọn</span>
               </div>
 
               {/* Đang giữ */}
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-sm border border-amber-500/50 bg-amber-500/15 animate-pulse" />
-                <span className="text-amber-400">Đang giữ</span>
+                <span className="text-amber-400 font-medium">Đang giữ</span>
               </div>
 
               {/* Đã bán */}

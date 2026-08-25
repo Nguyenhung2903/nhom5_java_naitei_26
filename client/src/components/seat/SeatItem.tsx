@@ -39,7 +39,7 @@ export const SeatItem: React.FC<SeatItemProps> = ({
     ? `${seatRow}${Math.min(seatNumber, couplePartnerNumber)}-${seatRow}${Math.max(seatNumber, couplePartnerNumber)}`
     : `${seatRow}${seatNumber}`
 
-  // Xác định style theo design system token (--rogym-...)
+  // Xác định style theo design system token & bảng màu mới
   let colorClasses = ''
   let labelColor = 'text-[var(--rogym-text-primary)]'
   let topBarColor = 'border-[var(--rogym-border-white-dim)] bg-[var(--rogym-border-white-dim)]'
@@ -49,9 +49,9 @@ export const SeatItem: React.FC<SeatItemProps> = ({
     labelColor = 'text-[var(--rogym-text-faint)]'
     topBarColor = 'border-[var(--rogym-border-subtle)] bg-[var(--rogym-border-subtle)]'
   } else if (isSelected) {
-    colorClasses = 'bg-[var(--rogym-green)]/20 border-[var(--rogym-green)] text-[var(--rogym-green)] shadow-[var(--rogym-shadow-tone-sm)] scale-[1.04]'
-    labelColor = 'text-[var(--rogym-green)] font-bold'
-    topBarColor = 'border-[var(--rogym-green)] bg-[var(--rogym-green)]'
+    colorClasses = 'bg-cyan-500/25 border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.6)] scale-[1.04]'
+    labelColor = 'text-cyan-200 font-bold'
+    topBarColor = 'border-cyan-400 bg-cyan-400'
   } else if (isHeld) {
     colorClasses = 'bg-amber-500/15 border-amber-500/50 text-amber-400 cursor-not-allowed opacity-75 animate-pulse'
     labelColor = 'text-amber-400'
@@ -60,20 +60,20 @@ export const SeatItem: React.FC<SeatItemProps> = ({
     // Trạng thái khả dụng (AVAILABLE / Preview)
     switch (seatType) {
       case 'VIP':
-        colorClasses = 'bg-[var(--rogym-bg-elevated-green)] border-[var(--rogym-teal)] text-[var(--rogym-teal)] hover:bg-[var(--rogym-green-dark)] hover:shadow-[var(--rogym-shadow-tone-sm)]'
-        labelColor = 'text-[var(--rogym-teal)] font-medium'
-        topBarColor = 'border-[var(--rogym-teal)] bg-[var(--rogym-teal)]'
+        colorClasses = 'bg-amber-950/40 border-amber-500/60 text-amber-300 hover:border-amber-400 hover:bg-amber-900/50 hover:text-amber-100 hover:shadow-[0_0_8px_rgba(245,158,11,0.35)]'
+        labelColor = 'text-amber-300 font-semibold'
+        topBarColor = 'border-amber-400 bg-amber-400'
         break
       case 'COUPLE':
-        colorClasses = 'bg-rose-500/15 border-rose-500/60 text-rose-300 hover:bg-rose-500/25 hover:border-rose-400 hover:shadow-[0_0_8px_rgba(244,63,94,0.35)]'
-        labelColor = 'text-rose-300 font-medium'
+        colorClasses = 'bg-rose-950/40 border-rose-500/60 text-rose-300 hover:bg-rose-900/50 hover:border-rose-400 hover:shadow-[0_0_8px_rgba(244,63,94,0.35)]'
+        labelColor = 'text-rose-300 font-semibold'
         topBarColor = 'border-rose-400 bg-rose-400'
         break
       case 'NORMAL':
       default:
-        colorClasses = 'bg-[var(--rogym-bg-card)] border-[var(--rogym-border-white-button)]/40 text-[var(--rogym-text-secondary)] hover:border-[var(--rogym-border-teal-hover)] hover:bg-[var(--rogym-bg-card-hover)] hover:text-white'
-        labelColor = 'text-[var(--rogym-text-secondary)]'
-        topBarColor = 'border-[var(--rogym-border-white-dim)] bg-[var(--rogym-border-white-dim)]'
+        colorClasses = 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-100 hover:shadow-[0_0_8px_rgba(16,185,129,0.25)]'
+        labelColor = 'text-emerald-300 font-medium'
+        topBarColor = 'border-emerald-500/60 bg-emerald-500/60'
         break
     }
   }
@@ -82,7 +82,7 @@ export const SeatItem: React.FC<SeatItemProps> = ({
     ? `Ghế ${code} (${seatType === 'VIP' ? 'VIP' : seatType === 'COUPLE' ? 'Ghế đôi' : 'Thường'}) - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}`
     : `Ghế ${code} (${seatType === 'VIP' ? 'VIP' : seatType === 'COUPLE' ? 'Ghế đôi' : 'Thường'})`
 
-  const widthClass = isCouple ? 'w-16 sm:w-20' : 'w-7 sm:w-8 md:w-9'
+  const widthClass = isCouple ? 'w-[62px] sm:w-[72px] md:w-[80px]' : 'w-7 sm:w-8 md:w-9'
   const heightClass = 'h-7 sm:h-8 md:h-9'
 
   return (
@@ -98,9 +98,9 @@ export const SeatItem: React.FC<SeatItemProps> = ({
         className={`absolute -top-1 inset-x-1 h-1 rounded-t-sm opacity-60 border-t ${topBarColor}`}
       />
 
-      {/* Số ghế */}
-      <span className={`text-[10px] sm:text-xs tracking-tight ${labelColor}`}>
-        {isCouple ? code : seatNumber}
+      {/* Tên / Số ghế (A1, A2... E1-E2) */}
+      <span className={`text-[9px] sm:text-[11px] md:text-xs tracking-tighter sm:tracking-tight ${labelColor}`}>
+        {code}
       </span>
     </button>
   )

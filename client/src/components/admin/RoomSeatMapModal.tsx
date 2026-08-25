@@ -71,12 +71,12 @@ export const RoomSeatMapModal: React.FC<RoomSeatMapModalProps> = ({
           </div>
 
           <div className="p-3 rounded-xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/15 text-purple-400">
+            <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-400">
               <Armchair className="w-5 h-5" />
             </div>
             <div>
               <p className="text-xs text-[var(--rogym-text-muted)]">Ghế thường (A-B)</p>
-              <p className="text-lg font-bold text-purple-300">{normalSeats.length}</p>
+              <p className="text-lg font-bold text-emerald-300">{normalSeats.length}</p>
             </div>
           </div>
 

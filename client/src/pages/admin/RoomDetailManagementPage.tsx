@@ -228,22 +228,22 @@ export function RoomDetailManagementPage() {
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-3.5 shadow-md">
-          <div className="p-3 rounded-xl bg-purple-500/15 text-purple-400">
+          <div className="p-3 rounded-xl bg-emerald-500/15 text-emerald-400">
             <Armchair className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-[var(--rogym-text-muted)]">Ghế thường (A-B)</p>
-            <p className="text-xl font-bold text-purple-300">{normalSeats.length}</p>
+            <p className="text-xl font-bold text-emerald-300">{normalSeats.length}</p>
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-3.5 shadow-md">
-          <div className="p-3 rounded-xl bg-[var(--rogym-teal)]/15 text-[var(--rogym-teal)]">
+          <div className="p-3 rounded-xl bg-amber-500/15 text-amber-400">
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-[var(--rogym-text-muted)]">Ghế VIP (C-D)</p>
-            <p className="text-xl font-bold text-[var(--rogym-teal)]">{vipSeats.length}</p>
+            <p className="text-xl font-bold text-amber-300">{vipSeats.length}</p>
           </div>
         </div>
 
