@@ -1,8 +1,15 @@
 package com.nhom_5.server.controller;
 
 import com.nhom_5.server.config.VNPayConfig;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,10 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import org.springframework.jdbc.core.JdbcTemplate;
-import jakarta.annotation.PostConstruct;
 import java.util.*;
 
+@Tag(name = "11. Thanh toán (Payments)", description = "Các API tích hợp cổng thanh toán trực tuyến VNPay, khởi tạo URL thanh toán và xử lý đơn hàng")
 @RestController
 @RequestMapping("/payment/vnpay")
 @RequiredArgsConstructor
@@ -33,8 +39,17 @@ public class PaymentController {
         }
     }
 
+    @Operation(
+            summary = "[PUBLIC] Tạo URL thanh toán VNPay Sandbox",
+            description = "Khởi tạo URL điều hướng sang cổng thanh toán VNPay với số tiền và mã hóa checksum sha512."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Khởi tạo URL thanh toán thành công")
+    })
     @GetMapping("/create-url")
-    public ResponseEntity<?> createPaymentUrl(@RequestParam("amount") long amount) {
+    public ResponseEntity<?> createPaymentUrl(
+            @Parameter(description = "Số tiền thanh toán (VNĐ)", example = "100000")
+            @RequestParam("amount") long amount) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String orderType = "other";

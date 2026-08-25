@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.util.Map;
 
-@Tag(name = "Kiểm thử & Phân quyền (Test RBAC)", description = "Các API mẫu để kiểm tra kết nối và cơ chế phân quyền RBAC (Role-Based Access Control)")
+@Tag(name = "14. Kiểm thử & Phân quyền (Test RBAC)", description = "Các API mẫu để kiểm tra kết nối và cơ chế phân quyền RBAC (Role-Based Access Control)")
 @RestController
 @RequestMapping("/test")
 public class TestController {
 
     @Operation(
-            summary = "Kiểm tra kết nối Backend & CORS (Công khai)",
+            summary = "[PUBLIC] Kiểm tra kết nối Backend & CORS",
             description = "Endpoint công khai, không cần đăng nhập."
     )
     @GetMapping("/ping")
@@ -34,7 +34,7 @@ public class TestController {
     }
 
     @Operation(
-            summary = "Endpoint công khai (Public)",
+            summary = "[PUBLIC] Endpoint công khai",
             description = "Bất kỳ ai (chưa đăng nhập hoặc đã đăng nhập) đều có thể gọi endpoint này."
     )
     @GetMapping("/public")
@@ -43,7 +43,7 @@ public class TestController {
     }
 
     @Operation(
-            summary = "Endpoint yêu cầu Đăng nhập (USER hoặc ADMIN)",
+            summary = "[USER] Endpoint yêu cầu Đăng nhập (USER hoặc ADMIN)",
             description = "Yêu cầu Bearer Token hợp lệ. Cả vai trò USER và ADMIN đều có thể truy cập.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -66,7 +66,7 @@ public class TestController {
     }
 
     @Operation(
-            summary = "Endpoint bảo mật chỉ dành cho Quản trị viên (ADMIN ONLY)",
+            summary = "[ADMIN] Endpoint bảo mật chỉ dành cho Quản trị viên",
             description = "Yêu cầu Bearer Token có vai trò là ADMIN. Nếu tài khoản USER gọi vào sẽ trả về 403 Forbidden.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )

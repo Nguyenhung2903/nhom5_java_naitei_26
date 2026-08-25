@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-@Tag(name = "Quản lý Người dùng & Hồ sơ (User)", description = "Các API xem/cập nhật hồ sơ cá nhân và CRUD người dùng dành cho Quản trị viên")
+@Tag(name = "02. Quản lý Người dùng (Users)", description = "Các API xem/cập nhật hồ sơ cá nhân và quản trị người dùng (Admin)")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
-            summary = "Lấy thông tin hồ sơ của người dùng hiện tại",
+            summary = "[USER] Lấy thông tin hồ sơ của người dùng hiện tại",
             description = "Yêu cầu đính kèm Bearer Token của người dùng đang đăng nhập.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -58,7 +58,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Cập nhật thông tin hồ sơ của người dùng hiện tại",
+            summary = "[USER] Cập nhật thông tin hồ sơ của người dùng hiện tại",
             description = "Cho phép người dùng hiện tại tự cập nhật username, họ tên, số điện thoại, ngày sinh, giới tính và avatar.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -74,7 +74,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Lấy danh sách người dùng (Dành cho Quản trị viên)",
+            summary = "[ADMIN] Lấy danh sách người dùng",
             description = "Hỗ trợ phân trang, sắp xếp và tìm kiếm theo từ khóa (username, họ tên, email, sđt) kết hợp bộ lọc vai trò, trạng thái.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -86,19 +86,19 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<UserProfileDto>>> getUsers(
-            @Parameter(description = "Từ khóa tìm kiếm (username, họ tên, email, sđt)")
+            @Parameter(description = "Từ khóa tìm kiếm (username, họ tên, email, sđt)", example = "admin")
             @RequestParam(required = false) String keyword,
-            @Parameter(description = "Lọc theo vai trò người dùng")
+            @Parameter(description = "Lọc theo vai trò người dùng (USER, ADMIN, STAFF)")
             @RequestParam(required = false) Role role,
-            @Parameter(description = "Lọc theo trạng thái tài khoản")
+            @Parameter(description = "Lọc theo trạng thái tài khoản (ACTIVE, INACTIVE, BANNED)")
             @RequestParam(required = false) UserStatus status,
-            @Parameter(description = "Số trang (bắt đầu từ 0)")
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Số bản ghi trên mỗi trang")
+            @Parameter(description = "Số bản ghi trên mỗi trang", example = "10")
             @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Trường sắp xếp")
+            @Parameter(description = "Trường sắp xếp", example = "createdAt")
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Chiều sắp xếp (asc hoặc desc)")
+            @Parameter(description = "Chiều sắp xếp (asc hoặc desc)", example = "desc")
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
@@ -108,7 +108,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Lấy thông tin chi tiết một người dùng theo ID (Admin)",
+            summary = "[ADMIN] Lấy thông tin chi tiết một người dùng theo ID",
             description = "Tra cứu thông tin người dùng dựa trên UUID.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -119,14 +119,17 @@ public class UserController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserProfileDto>> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<UserProfileDto>> getUserById(
+            @Parameter(description = "ID của người dùng (UUID)", example = "00000000-0000-0000-0000-000000000001")
+            @PathVariable UUID id
+    ) {
         UserProfileDto profile = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success("Lấy thông tin người dùng thành công", profile));
     }
 
     @Operation(
-            summary = "Tạo mới tài khoản người dùng từ trang Quản trị (Admin)",
-            description = "Admin tạo tài khoản với vai trò (USER, ADMIN) và trạng thái chỉ định.",
+            summary = "[ADMIN] Tạo mới tài khoản người dùng từ trang Quản trị",
+            description = "Admin tạo tài khoản với vai trò (USER, ADMIN, STAFF) và trạng thái chỉ định.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
@@ -144,7 +147,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Cập nhật thông tin người dùng (Admin)",
+            summary = "[ADMIN] Cập nhật thông tin người dùng",
             description = "Admin cập nhật thông tin, vai trò, trạng thái hoặc đặt lại mật khẩu cho người dùng.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
@@ -157,6 +160,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserProfileDto>> updateUser(
+            @Parameter(description = "ID của người dùng cần cập nhật (UUID)", example = "00000000-0000-0000-0000-000000000001")
             @PathVariable UUID id,
             @Valid @RequestBody AdminUpdateUserRequest request
     ) {
@@ -165,8 +169,8 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Xóa mềm / Khóa tài khoản người dùng (Admin)",
-            description = "Chuyển trạng thái người dùng thành LOCKED để vô hiệu hóa tài khoản và bảo toàn toàn vẹn dữ liệu.",
+            summary = "[ADMIN] Xóa mềm / Khóa tài khoản người dùng",
+            description = "Chuyển trạng thái người dùng thành BANNED để vô hiệu hóa tài khoản và bảo toàn toàn vẹn dữ liệu.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
@@ -176,7 +180,10 @@ public class UserController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @Parameter(description = "ID của người dùng cần khóa (UUID)", example = "00000000-0000-0000-0000-000000000001")
+            @PathVariable UUID id
+    ) {
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success("Xóa người dùng thành công", null));
     }
