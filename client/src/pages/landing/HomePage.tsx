@@ -11,6 +11,7 @@ import {
   Badge,
   Button,
   ButtonLink,
+  Input,
   Accordion,
   AccordionItem,
   AccordionTrigger,
@@ -34,12 +35,18 @@ import {
   ArrowRight,
   MapPin,
   Flame,
+  Search,
 } from 'lucide-react'
 
 const movieStatusMap = {
   NOW_SHOWING: { tone: 'success' as const, label: 'Đang chiếu' },
   COMING_SOON: { tone: 'info' as const, label: 'Sắp chiếu' },
   ENDED: { tone: 'muted' as const, label: 'Ngừng chiếu' },
+}
+
+function formatDate(value?: string) {
+  if (!value) return 'Đang cập nhật'
+  return new Date(value).toLocaleDateString('vi-VN')
 }
 
 function formatPromotionValue(promotion: Promotion) {
@@ -53,6 +60,7 @@ export function HomePage() {
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
   const [movieFilter, setMovieFilter] = useState<'ALL' | 'NOW_SHOWING' | 'COMING_SOON'>('ALL')
+  const [newsKeyword, setNewsKeyword] = useState('')
 
   const filteredMovies = useMemo(() => {
     let list = movies.filter((m) => m.status !== 'ENDED')
@@ -64,12 +72,18 @@ export function HomePage() {
     return list
   }, [movies, movieFilter])
 
+  const filteredNews = useMemo(() => {
+    if (!newsKeyword.trim()) return newsList
+    const kw = newsKeyword.toLowerCase()
+    return newsList.filter(
+      (n) => n.title.toLowerCase().includes(kw) || (n.content && n.content.toLowerCase().includes(kw))
+    )
+  }, [newsList, newsKeyword])
+
   const activePromotions = useMemo(
     () => promotions.filter((promotion) => promotion.status === 'ACTIVE').slice(0, 3),
     [promotions]
   )
-
-  const latestNews = useMemo(() => newsList.slice(0, 3), [newsList])
 
   const loadHomeData = async () => {
     setLoading(true)
@@ -421,21 +435,16 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* 6. Active Promotions & Latest News */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Promotions */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-3">
+      {/* 6. Active Promotions (Optional Highlight) & Full News Section */}
+      {activePromotions.length > 0 && (
+        <section className="space-y-4">
+          <div className="border-b border-[var(--rogym-border-subtle)] pb-3">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <BadgePercent className="w-4 h-4 text-[var(--rogym-teal)]" />
-              <span>Khuyến Mãi Đang Diễn Ra</span>
+              <BadgePercent className="w-5 h-5 text-[var(--rogym-teal)]" />
+              <span>Ưu Đãi & Khuyến Mãi Nổi Bật</span>
             </h3>
-            <Link to="/promotions" className="text-xs font-semibold text-[var(--rogym-teal)] hover:text-white">
-              Xem tất cả →
-            </Link>
           </div>
-
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {activePromotions.map((promo) => (
               <div
                 key={promo.id}
@@ -454,45 +463,76 @@ export function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* Latest News */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[var(--rogym-border-subtle)] pb-3">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Newspaper className="w-4 h-4 text-[var(--rogym-green)]" />
+      {/* 7. Comprehensive News Section */}
+      <section id="news" className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--rogym-border-subtle)] pb-4">
+          <div className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold font-display text-white uppercase tracking-wide flex items-center gap-2">
+              <Newspaper className="w-6 h-6 text-[var(--rogym-green)]" />
               <span>Tin Tức & Sự Kiện Điện Ảnh</span>
-            </h3>
-            <Link to="/news" className="text-xs font-semibold text-[var(--rogym-teal)] hover:text-white">
-              Xem tất cả →
-            </Link>
+            </h2>
+            <p className="text-xs text-[var(--rogym-text-muted)]">
+              Cập nhật những thông tin mới nhất về phim chiếu rạp, bài phê bình và sự kiện điện ảnh đặc sắc
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {latestNews.map((news) => (
-              <Link
+          <div className="w-full sm:w-72">
+            <Input
+              value={newsKeyword}
+              onChange={(e) => setNewsKeyword(e.target.value)}
+              placeholder="Tìm kiếm tin tức..."
+              leftIcon={<Search className="w-4 h-4" />}
+            />
+          </div>
+        </div>
+
+        {filteredNews.length === 0 ? (
+          <Card variant="glass" className="p-12 text-center">
+            <Newspaper className="w-12 h-12 text-[var(--rogym-text-muted)] mx-auto mb-3" />
+            <p className="text-sm text-[var(--rogym-text-secondary)]">Không tìm thấy bài viết tin tức phù hợp.</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredNews.map((news) => (
+              <Card
                 key={news.id}
                 to={`/news/${news.id}`}
-                className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 transition-colors hover:border-[var(--rogym-border-focus)]"
+                variant="interactive"
+                className="flex flex-col overflow-hidden border-[var(--rogym-border-subtle)] hover:border-[var(--rogym-border-teal-hover)]"
+                padding="none"
               >
-                <div className="aspect-[4/3] rounded-lg bg-[var(--rogym-bg-surface)] overflow-hidden">
+                <div className="flex aspect-[16/9] items-center justify-center bg-[var(--rogym-bg-surface)] overflow-hidden">
                   {news.thumbnail ? (
-                    <img src={news.thumbnail} alt={news.title} className="w-full h-full object-cover" />
+                    <img
+                      src={news.thumbnail}
+                      alt={news.title}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[var(--rogym-text-muted)]">
-                      <Newspaper className="w-4 h-4" />
-                    </div>
+                    <Newspaper className="h-10 w-10 text-[var(--rogym-text-muted)]" />
                   )}
                 </div>
-                <div className="flex flex-col justify-center">
-                  <h4 className="text-xs font-bold text-white line-clamp-1 hover:text-[var(--rogym-teal)]">{news.title}</h4>
-                  <p className="text-[11px] text-[var(--rogym-text-secondary)] line-clamp-2 mt-1">{news.content}</p>
+                <div className="flex flex-1 flex-col gap-2.5 p-5">
+                  <p className="text-xs text-[var(--rogym-text-muted)]">{formatDate(news.createdAt)}</p>
+                  <h3 className="line-clamp-2 text-base font-bold text-white group-hover:text-[var(--rogym-teal)] transition-colors">
+                    {news.title}
+                  </h3>
+                  <p className="line-clamp-3 text-xs text-[var(--rogym-text-secondary)] leading-relaxed">
+                    {news.content}
+                  </p>
+                  <span className="mt-auto pt-2 text-xs font-semibold text-[var(--rogym-teal)]">
+                    Đọc chi tiết →
+                  </span>
                 </div>
-              </Link>
+              </Card>
             ))}
           </div>
-        </div>
-      </div>
+        )}
+      </section>
 
       {/* 7. FAQ Interactive Accordion */}
       <section id="faq" className="space-y-6 max-w-3xl mx-auto">

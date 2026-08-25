@@ -8,7 +8,7 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(router.routes.length).toBeGreaterThan(0)
   })
 
-  it('has public landing routes accessible for all users (home, movies, cinemas, promotions, news)', () => {
+  it('has public landing routes accessible for all users (home, movies, news detail)', () => {
     const landingRoute = router.routes.find((r) => r.path === '/')
     expect(landingRoute).toBeDefined()
     expect(landingRoute?.children).toBeDefined()
@@ -16,9 +16,6 @@ describe('Router Configuration & Auth Redirection', () => {
     const childPaths = landingRoute?.children?.map((c) => c.path || (c.index ? 'index' : ''))
     expect(childPaths).toContain('index')
     expect(childPaths).toContain('movies')
-    expect(childPaths).toContain('cinemas')
-    expect(childPaths).toContain('promotions')
-    expect(childPaths).toContain('news')
     expect(childPaths).toContain('news/:newsId')
   })
 

@@ -12,9 +12,6 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 
 // Lazy loaded Pages (Code Splitting)
 const HomePage = lazy(() => import('@/pages/landing/HomePage').then((m) => ({ default: m.HomePage })))
-const CinemasPage = lazy(() => import('@/pages/landing/CinemasPage').then((m) => ({ default: m.CinemasPage })))
-const PromotionPage = lazy(() => import('@/pages/landing/PromotionPage').then((m) => ({ default: m.PromotionPage })))
-const NewsPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsPage })))
 const NewsDetailPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
@@ -58,7 +55,7 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Landing Page (Công khai cho tất cả người dùng và khách vãng lai)
+  // Nhánh 1: Phân hệ Landing Page (Chỉ hiển thị HomePage tích hợp Tin tức trên 1 trang duy nhất)
   {
     path: '/',
     element: <LandingLayout />,
@@ -73,22 +70,22 @@ export const router = createBrowserRouter([
         element: withSuspense(HomePage),
       },
       {
-        path: 'cinemas',
-        element: withSuspense(CinemasPage),
-      },
-      {
-        path: 'promotions',
-        element: withSuspense(PromotionPage),
-      },
-      {
-        path: 'news',
-        element: withSuspense(NewsPage),
-      },
-      {
         path: 'news/:newsId',
         element: withSuspense(NewsDetailPage),
       },
-      // Redirect tương thích với các link cũ
+      // Redirect tương thích với các liên kết cũ về trang chủ
+      {
+        path: 'cinemas',
+        element: <Navigate to="/" replace />,
+      },
+      {
+        path: 'promotions',
+        element: <Navigate to="/" replace />,
+      },
+      {
+        path: 'news',
+        element: <Navigate to="/#news" replace />,
+      },
       {
         path: 'profile',
         element: <Navigate to="/user/profile" replace />,

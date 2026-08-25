@@ -134,8 +134,8 @@ export function NewsDetailPage() {
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <Card variant="danger" className="space-y-4">
           <p className="text-sm text-red-200">{error || 'Không tìm thấy tin tức'}</p>
-          <Link to="/news">
-            <Button variant="secondary">Quay lại tin tức</Button>
+          <Link to="/#news">
+            <Button variant="secondary">Quay lại trang chủ</Button>
           </Link>
         </Card>
       </div>
@@ -144,8 +144,8 @@ export function NewsDetailPage() {
 
   return (
     <article className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <Link to="/news" className="text-sm font-semibold text-[var(--rogym-teal)] hover:text-white">
-        Quay lại tin tức
+      <Link to="/#news" className="text-sm font-semibold text-[var(--rogym-teal)] hover:text-white">
+        ← Quay lại trang chủ
       </Link>
       <div className="space-y-3">
         <p className="text-xs text-[var(--rogym-text-muted)]">{formatDate(news.createdAt)}</p>
