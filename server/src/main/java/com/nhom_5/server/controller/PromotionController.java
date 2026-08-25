@@ -75,6 +75,12 @@ public class PromotionController {
         ));
     }
 
+        @GetMapping("/validate")
+        public ResponseEntity<ApiResponse<PromotionResponse>> validateCode(@RequestParam String code) {
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Mã giảm giá hợp lệ", promotionService.validateCode(code)));
+        }
+
     @Operation(
             summary = "[ADMIN] Tạo chương trình khuyến mãi mới",
             description = "Thêm mã voucher / khuyến mãi mới vào hệ thống.",

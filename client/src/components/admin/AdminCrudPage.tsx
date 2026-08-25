@@ -22,6 +22,7 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   renderForm: (form: TForm, update: <K extends keyof TForm>(field: K, value: TForm[K]) => void) => ReactNode
   toForm: (item: T) => TForm
   getSearchText: (item: T) => string
+  toolbar?: ReactNode
   onEdit?: (item: T) => void
   onCreated?: (item: T) => void
   onRowClick?: (item: T) => void
@@ -42,6 +43,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   renderForm,
   toForm,
   getSearchText,
+  toolbar,
   onEdit,
   onCreated,
   onRowClick,
@@ -183,6 +185,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       {error && <Alert tone="error"><AlertDescription>{error}</AlertDescription></Alert>}
 
       <Card variant="elevated" className="p-4">
+        {toolbar}
         <SearchToolbar value={searchQuery} onChange={setSearchQuery} placeholder="Tìm kiếm..." />
       </Card>
       <Card variant="elevated" className="overflow-hidden">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
+import { promotionService } from '@/services/promotionService'
 import {
   PageLoader,
   Alert,
@@ -86,13 +87,18 @@ export function CheckoutPage() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
-  const handleApplyDiscount = () => {
-    if (discountCode.trim() === 'SUNASTERISK') {
+  const handleApplyDiscount = async () => {
+    setError(null)
+    try {
+      const promotion = await promotionService.validateCode(discountCode)
       const subTotal = (seatsTotalAmount || 0) + (combosTotalAmount || 0)
-      setDiscountAmount(subTotal * 0.1) // Giảm 10%
-    } else {
+      const amount = promotion.discountType === 'PERCENT'
+        ? subTotal * promotion.discountValue / 100
+        : promotion.discountValue
+      setDiscountAmount(Math.min(subTotal, amount))
+    } catch (caught: unknown) {
       setDiscountAmount(0)
-      setError("Mã giảm giá không hợp lệ hoặc đã hết hạn")
+      setError(caught instanceof Error ? caught.message : 'Mã giảm giá không hợp lệ hoặc đã hết hạn')
     }
   }
 

@@ -24,10 +24,6 @@ public class ShowtimeRequest {
     @Schema(description = "Thời gian bắt đầu suất chiếu (UTC)", example = "2026-09-01T19:00:00Z")
     private Instant startTime;
 
-    @NotNull(message = "Thời gian kết thúc không được để trống")
-    @Schema(description = "Thời gian kết thúc suất chiếu (UTC)", example = "2026-09-01T21:15:00Z")
-    private Instant endTime;
-
     @NotNull(message = "Trạng thái suất chiếu không được để trống")
     @Schema(description = "Trạng thái suất chiếu: SCHEDULED (Đã lên lịch), CANCELLED (Hủy)", example = "SCHEDULED")
     private ShowtimeStatus status;

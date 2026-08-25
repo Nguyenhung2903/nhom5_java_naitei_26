@@ -1,5 +1,6 @@
 package com.nhom_5.server.dto.response;
 
+import com.nhom_5.server.entity.enums.ComboStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,5 @@ public class ComboResponse {
     private String description;
     private BigDecimal price;
     private String image;
+    private ComboStatus status;
 }

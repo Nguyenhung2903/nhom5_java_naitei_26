@@ -2,6 +2,7 @@ package com.nhom_5.server.repository;
 
 import com.nhom_5.server.entity.Showtime;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,8 +10,22 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public interface ShowtimeRepository extends JpaRepository<Showtime, UUID> {
+public interface ShowtimeRepository extends JpaRepository<Showtime, UUID>, JpaSpecificationExecutor<Showtime> {
     boolean existsByRoomId(UUID roomId);
+
+    @Query("""
+            select count(showtime) > 0
+            from Showtime showtime
+            where showtime.room.id = :roomId
+                and (:excludedId is null or showtime.id <> :excludedId)
+                and showtime.startTime < :newEndTime
+                and showtime.endTime > :newStartTime
+            """)
+    boolean existsOverlappingShowtime(
+            @Param("roomId") UUID roomId,
+            @Param("newStartTime") Instant newStartTime,
+            @Param("newEndTime") Instant newEndTime,
+            @Param("excludedId") UUID excludedId);
 
         @Query("""
                         select showtime

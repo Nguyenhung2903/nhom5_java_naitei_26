@@ -1,6 +1,6 @@
 import { api } from '@/lib/api'
 import type { ApiResponse } from '@/types/api'
-import type { Showtime, ShowtimeRequest } from '@/types/showtime'
+import type { Showtime, ShowtimeFilters, ShowtimeRequest } from '@/types/showtime'
 
 const toInstant = (val?: string) => {
   if (!val) return ''
@@ -11,12 +11,16 @@ const toInstant = (val?: string) => {
 const normalizePayload = (payload: ShowtimeRequest): ShowtimeRequest => ({
   ...payload,
   startTime: toInstant(payload.startTime),
-  endTime: toInstant(payload.endTime),
 })
 
 export const showtimeService = {
-  getAll: async (): Promise<Showtime[]> => {
-    const response = await api.get<ApiResponse<Showtime[]>>('/showtimes')
+  getAll: async (filters: ShowtimeFilters = {}): Promise<Showtime[]> => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.set(key, value)
+    })
+    const query = params.toString()
+    const response = await api.get<ApiResponse<Showtime[]>>(`/showtimes${query ? `?${query}` : ''}`)
     return response.data || []
   },
   getByMovieAndTheaterAndDate: async (

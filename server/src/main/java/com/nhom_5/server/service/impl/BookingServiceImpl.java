@@ -98,9 +98,16 @@ public class BookingServiceImpl implements BookingService {
 
         // 1. Process Promotion
         Promotion promotion = null;
-        if (request.getDiscountCode() != null && !request.getDiscountCode().isEmpty()) {
-            promotion = promotionRepository.findByCode(request.getDiscountCode())
-                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        if (request.getDiscountCode() != null && !request.getDiscountCode().trim().isEmpty()) {
+            String normalizedCode = request.getDiscountCode().trim();
+            promotion = promotionRepository.findByCodeIgnoreCase(normalizedCode)
+                    .orElseThrow(() -> new AppException(ErrorCode.BAD_REQUEST, "Mã giảm giá không hợp lệ hoặc đã hết hạn"));
+            Instant now = Instant.now();
+            if (promotion.getStatus() != com.nhom_5.server.entity.enums.PromotionStatus.ACTIVE
+                    || now.isBefore(promotion.getStartDate())
+                    || !now.isBefore(promotion.getEndDate())) {
+                throw new AppException(ErrorCode.BAD_REQUEST, "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+            }
         }
 
         // 2. Fetch Showtime Seats & calculate total seats price

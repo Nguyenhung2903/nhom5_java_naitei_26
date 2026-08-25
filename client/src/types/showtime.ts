@@ -17,6 +17,13 @@ export interface ShowtimeRequest {
   movieId: string
   roomId: string
   startTime: string
-  endTime: string
   status: ShowtimeStatus
+}
+
+export interface ShowtimeFilters {
+  movieId?: string
+  theaterId?: string
+  roomId?: string
+  date?: string
+  status?: ShowtimeStatus
 }

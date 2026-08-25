@@ -6,6 +6,7 @@ import com.nhom_5.server.dto.response.ShowtimeResponse;
 import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.service.ShowtimeService;
+import com.nhom_5.server.entity.enums.ShowtimeStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -53,18 +54,11 @@ public class ShowtimeController {
             @Parameter(description = "ID rạp (UUID)", example = "11111111-1111-1111-1111-111111111111")
             @RequestParam(required = false) UUID theaterId,
             @Parameter(description = "Ngày xem (YYYY-MM-DD)", example = "2026-09-01")
-            @RequestParam(required = false) LocalDate date
+                        @RequestParam(required = false) LocalDate date,
+                        @RequestParam(required = false) UUID roomId,
+                        @RequestParam(required = false) ShowtimeStatus status
     ) {
-        boolean hasAnyFilter = movieId != null || theaterId != null || date != null;
-        boolean hasAllFilters = movieId != null && theaterId != null && date != null;
-        if (hasAnyFilter && !hasAllFilters) {
-            throw new AppException(
-                    ErrorCode.BAD_REQUEST,
-                    "movieId, theaterId và date phải cùng được cung cấp");
-        }
-        List<ShowtimeResponse> showtimes = hasAllFilters
-                ? showtimeService.getByMovieAndTheaterAndDate(movieId, theaterId, date)
-                : showtimeService.getAll();
+                List<ShowtimeResponse> showtimes = showtimeService.getAll(movieId, theaterId, roomId, date, status);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách suất chiếu thành công", showtimes));
     }
 

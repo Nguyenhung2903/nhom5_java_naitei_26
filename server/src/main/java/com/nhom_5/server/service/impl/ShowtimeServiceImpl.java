@@ -19,6 +19,7 @@ import com.nhom_5.server.entity.Seat;
 import com.nhom_5.server.entity.ShowtimeSeat;
 import com.nhom_5.server.entity.enums.SeatType;
 import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
+import com.nhom_5.server.entity.enums.ShowtimeStatus;
 import com.nhom_5.server.repository.SeatRepository;
 
 import java.math.BigDecimal;
@@ -26,7 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.Duration;
 import java.util.UUID;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +46,22 @@ public class ShowtimeServiceImpl implements ShowtimeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ShowtimeResponse> getAll() {
-        return showtimeRepository.findAll().stream().map(ShowtimeResponse::fromEntity).toList();
+    public List<ShowtimeResponse> getAll(UUID movieId, UUID theaterId, UUID roomId, LocalDate date, ShowtimeStatus status) {
+        var startOfDay = date == null ? null : date.atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
+        var startOfNextDay = date == null ? null : date.plusDays(1).atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
+        Specification<Showtime> specification = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (movieId != null) predicates.add(criteriaBuilder.equal(root.get("movie").get("id"), movieId));
+            if (theaterId != null) predicates.add(criteriaBuilder.equal(root.get("room").get("theater").get("id"), theaterId));
+            if (roomId != null) predicates.add(criteriaBuilder.equal(root.get("room").get("id"), roomId));
+            if (startOfDay != null) predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startOfDay));
+            if (startOfNextDay != null) predicates.add(criteriaBuilder.lessThan(root.get("startTime"), startOfNextDay));
+            if (status != null) predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            query.orderBy(criteriaBuilder.asc(root.get("startTime")));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+        return showtimeRepository.findAll(specification)
+                .stream().map(ShowtimeResponse::fromEntity).toList();
     }
 
     @Override
@@ -74,16 +92,17 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional
     public ShowtimeResponse create(ShowtimeRequest request) {
-        validateTime(request);
         var movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phim với ID: " + request.getMovieId()));
         var room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phòng với ID: " + request.getRoomId()));
+        var endTime = calculateEndTime(request.getStartTime(), movie.getDuration());
+        validateNoOverlap(room.getId(), request.getStartTime(), endTime, null);
         Showtime showtime = Showtime.builder()
                 .movie(movie)
                 .room(room)
                 .startTime(request.getStartTime())
-                .endTime(request.getEndTime())
+            .endTime(endTime)
                 .status(request.getStatus())
                 .build();
         Showtime savedShowtime = showtimeRepository.save(showtime);
@@ -122,16 +141,17 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional
     public ShowtimeResponse update(UUID id, ShowtimeRequest request) {
-        validateTime(request);
         Showtime showtime = findShowtime(id);
         var movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phim với ID: " + request.getMovieId()));
         var room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phòng với ID: " + request.getRoomId()));
+        var endTime = calculateEndTime(request.getStartTime(), movie.getDuration());
+        validateNoOverlap(room.getId(), request.getStartTime(), endTime, id);
         showtime.setMovie(movie);
         showtime.setRoom(room);
         showtime.setStartTime(request.getStartTime());
-        showtime.setEndTime(request.getEndTime());
+        showtime.setEndTime(endTime);
         showtime.setStatus(request.getStatus());
         return ShowtimeResponse.fromEntity(showtimeRepository.save(showtime));
     }
@@ -140,9 +160,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Transactional
     public void delete(UUID id) {
         findShowtime(id);
-        if (showtimeSeatRepository.existsByShowtimeId(id)) {
-            throw new AppException(ErrorCode.BAD_REQUEST, "Không thể xóa suất chiếu đã có dữ liệu ghế");
+        if (showtimeSeatRepository.existsByShowtimeIdAndStatusIn(id,
+                List.of(ShowtimeSeatStatus.BOOKED, ShowtimeSeatStatus.HELD))) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Không thể xóa suất chiếu đang có ghế được đặt hoặc giữ chỗ");
         }
+        showtimeSeatRepository.deleteByShowtimeId(id);
         showtimeRepository.deleteById(id);
     }
 
@@ -151,9 +173,16 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy suất chiếu với ID: " + id));
     }
 
-    private void validateTime(ShowtimeRequest request) {
-        if (!request.getStartTime().isBefore(request.getEndTime())) {
-            throw new AppException(ErrorCode.BAD_REQUEST, "Thời gian bắt đầu phải trước thời gian kết thúc");
+    private java.time.Instant calculateEndTime(java.time.Instant startTime, Integer durationMinutes) {
+        if (durationMinutes == null || durationMinutes <= 0) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Thời lượng phim phải lớn hơn 0 phút");
+        }
+        return startTime.plus(Duration.ofMinutes(durationMinutes));
+    }
+
+    private void validateNoOverlap(UUID roomId, java.time.Instant startTime, java.time.Instant endTime, UUID excludedId) {
+        if (showtimeRepository.existsOverlappingShowtime(roomId, startTime, endTime, excludedId)) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Phòng chiếu đã có suất chiếu trong khoảng thời gian này");
         }
     }
 }

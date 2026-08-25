@@ -23,7 +23,7 @@ public class DataSeederConfig {
     public CommandLineRunner seedData() {
         return args -> {
             // Khởi tạo mã giảm giá SUNASTERISK nếu chưa có
-            if (promotionRepository.findByCode("SUNASTERISK").isEmpty()) {
+            if (promotionRepository.findByCodeIgnoreCase("SUNASTERISK").isEmpty()) {
                 Promotion promotion = Promotion.builder()
                         .code("SUNASTERISK")
                         .title("Khuyến mãi Sun*")

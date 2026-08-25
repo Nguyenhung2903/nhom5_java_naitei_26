@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,6 +54,12 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public PromotionResponse validateCode(String code) {
+        return PromotionResponse.fromEntity(findValidPromotion(code));
+    }
+
+    @Override
     @Transactional
     public PromotionResponse createPromotion(PromotionRequest request) {
         validateRequest(request, null);
@@ -80,6 +87,19 @@ public class PromotionServiceImpl implements PromotionService {
     private Promotion findPromotion(UUID id) {
         return promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy khuyến mãi với ID: " + id));
+    }
+
+    private Promotion findValidPromotion(String code) {
+        String normalizedCode = StringUtils.hasText(code) ? code.trim() : "";
+        Promotion promotion = promotionRepository.findByCodeIgnoreCase(normalizedCode)
+                .orElseThrow(() -> new AppException(ErrorCode.BAD_REQUEST, "Mã giảm giá không hợp lệ hoặc đã hết hạn"));
+        Instant now = Instant.now();
+        if (promotion.getStatus() != PromotionStatus.ACTIVE
+                || now.isBefore(promotion.getStartDate())
+                || !now.isBefore(promotion.getEndDate())) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+        }
+        return promotion;
     }
 
     private void validateRequest(PromotionRequest request, UUID currentId) {

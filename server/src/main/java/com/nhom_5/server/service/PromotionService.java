@@ -13,6 +13,8 @@ public interface PromotionService {
 
     PromotionResponse getPromotionById(UUID id);
 
+    PromotionResponse validateCode(String code);
+
     PromotionResponse createPromotion(PromotionRequest request);
 
     PromotionResponse updatePromotion(UUID id, PromotionRequest request);
