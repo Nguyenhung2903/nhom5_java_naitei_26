@@ -58,7 +58,7 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(adminPaths).toContain('showtimes')
     expect(adminPaths).toContain('theaters')
     expect(adminPaths).toContain('rooms')
-    expect(adminPaths).toContain('seats')
+    expect(adminPaths).not.toContain('seats')
     expect(adminPaths).toContain('bookings')
     expect(adminPaths).toContain('users')
     expect(adminPaths).toContain('profile')

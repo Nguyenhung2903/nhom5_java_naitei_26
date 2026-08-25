@@ -37,7 +37,6 @@ const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagement
 const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
 const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailManagementPage').then((m) => ({ default: m.RoomDetailManagementPage })))
 
-const SeatManagementPage = lazy(() => import('@/pages/admin/SeatManagementPage').then((m) => ({ default: m.SeatManagementPage })))
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
 const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
@@ -221,10 +220,6 @@ export const router = createBrowserRouter([
           {
             path: 'theaters',
             element: withSuspense(TheaterManagementPage),
-          },
-          {
-            path: 'seats',
-            element: withSuspense(SeatManagementPage),
           },
           {
             path: 'bookings',
