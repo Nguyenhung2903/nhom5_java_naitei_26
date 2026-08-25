@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchToolbar } from '@/components/ui'
+import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchToolbar, type ButtonVariant } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { CheckCircle2, Edit, Plus, Trash2 } from 'lucide-react'
 
@@ -25,6 +25,9 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   onEdit?: (item: T) => void
   onCreated?: (item: T) => void
   onRowClick?: (item: T) => void
+  editButtonText?: string
+  editButtonIcon?: ReactNode
+  editButtonVariant?: ButtonVariant
 }
 
 export function AdminCrudPage<T extends { id: string }, TForm>({
@@ -42,6 +45,9 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   onEdit,
   onCreated,
   onRowClick,
+  editButtonText = 'Sửa',
+  editButtonIcon = <Edit className="h-3.5 w-3.5" />,
+  editButtonVariant = 'secondary',
 }: AdminCrudPageProps<T, TForm>) {
 
   const [items, setItems] = useState<T[]>([])
@@ -138,12 +144,12 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       render: (item) => (
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <Button
-            variant="secondary"
+            variant={editButtonVariant}
             size="xs"
-            leftIcon={<Edit className="h-3.5 w-3.5" />}
+            leftIcon={editButtonIcon}
             onClick={() => (onEdit ? onEdit(item) : openEdit(item))}
           >
-            Sửa
+            {editButtonText}
           </Button>
           <Button
             variant="danger"
