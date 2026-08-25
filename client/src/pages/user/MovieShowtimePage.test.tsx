@@ -35,20 +35,33 @@ const theaters = [
   { id: 'theater-2', name: 'Cinema B', address: 'Address B', phone: null, latitude: null, longitude: null },
 ]
 
-const showtimes = [
-  {
-    id: 'showtime-1',
-    movieId: 'movie-1',
-    movieTitle: 'Movie A',
-    roomId: 'room-1',
-    roomName: 'Room 1',
-    theaterId: 'theater-1',
-    theaterName: 'Cinema A',
-    startTime: '2026-08-21T03:00:00Z',
-    endTime: '2026-08-21T05:00:00Z',
-    status: 'OPEN' as const,
-  },
-]
+// Future showtime
+const futureShowtime = {
+  id: 'showtime-1',
+  movieId: 'movie-1',
+  movieTitle: 'Movie A',
+  roomId: 'room-1',
+  roomName: 'Room 1',
+  theaterId: 'theater-1',
+  theaterName: 'Cinema A',
+  startTime: '2099-08-21T03:00:00Z',
+  endTime: '2099-08-21T05:00:00Z',
+  status: 'OPEN' as const,
+}
+
+// Past showtime
+const pastShowtime = {
+  id: 'showtime-past',
+  movieId: 'movie-1',
+  movieTitle: 'Movie A',
+  roomId: 'room-1',
+  roomName: 'Room 1',
+  theaterId: 'theater-1',
+  theaterName: 'Cinema A',
+  startTime: '2020-01-01T03:00:00Z',
+  endTime: '2020-01-01T05:00:00Z',
+  status: 'OPEN' as const,
+}
 
 function renderPage() {
   return render(
@@ -68,7 +81,7 @@ afterEach(() => {
 describe('MovieShowtimePage', () => {
   it('renders theaters returned for the selected movie', async () => {
     vi.mocked(theaterService.getByMovieId).mockResolvedValue(theaters)
-    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue(showtimes)
+    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue([futureShowtime])
 
     renderPage()
 
@@ -94,15 +107,42 @@ describe('MovieShowtimePage', () => {
     })
   })
 
-  it('navigates to the existing seat flow after selecting a showtime', async () => {
+  it('navigates to the existing seat flow after selecting a future showtime', async () => {
     vi.mocked(theaterService.getByMovieId).mockResolvedValue(theaters)
-    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue(showtimes)
+    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue([futureShowtime])
 
     renderPage()
 
     const showtimeButton = await screen.findByRole('button', { name: /10:00.*Room 1/ })
+    expect(showtimeButton).not.toBeDisabled()
     fireEvent.click(showtimeButton)
 
     expect(await screen.findByText('Seat selection')).toBeInTheDocument()
+  })
+
+  it('disables past showtimes and shows passed badge', async () => {
+    vi.mocked(theaterService.getByMovieId).mockResolvedValue(theaters)
+    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue([pastShowtime])
+
+    renderPage()
+
+    const showtimeButton = await screen.findByRole('button', { name: /10:00.*Room 1/ })
+    expect(showtimeButton).toBeDisabled()
+    expect(screen.getByText('Đã qua giờ')).toBeInTheDocument()
+  })
+
+  it('renders quick date selector and updates selected date on click', async () => {
+    vi.mocked(theaterService.getByMovieId).mockResolvedValue(theaters)
+    vi.mocked(showtimeService.getByMovieAndTheaterAndDate).mockResolvedValue([futureShowtime])
+
+    renderPage()
+
+    const tomorrowButton = await screen.findByRole('button', { name: /Ngày mai/ })
+    expect(tomorrowButton).toBeInTheDocument()
+    fireEvent.click(tomorrowButton)
+
+    await waitFor(() => {
+      expect(showtimeService.getByMovieAndTheaterAndDate).toHaveBeenCalledTimes(2)
+    })
   })
 })
