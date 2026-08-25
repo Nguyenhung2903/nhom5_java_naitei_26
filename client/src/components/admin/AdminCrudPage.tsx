@@ -188,13 +188,16 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
 
       <Card variant="glass" className="p-3.5 sm:p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="w-full sm:max-w-md">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder={searchPlaceholder || 'Tìm kiếm...'}
-              inputSize="sm"
-            />
+          <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="w-full sm:max-w-md">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={searchPlaceholder || 'Tìm kiếm...'}
+                inputSize="sm"
+              />
+            </div>
+            {toolbar}
           </div>
           <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-secondary)]">
             <span>Hiển thị:</span>

@@ -35,26 +35,32 @@ public class RoomController {
     private final RoomService roomService;
 
     @Operation(
-            summary = "[PUBLIC] Lấy danh sách toàn bộ phòng chiếu",
-            description = "Tra cứu danh sách các phòng chiếu trong hệ thống."
+            summary = "[ADMIN] Lấy danh sách toàn bộ phòng chiếu",
+            description = "Tra cứu danh sách các phòng chiếu trong hệ thống.",
+            security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy danh sách phòng thành công")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy danh sách phòng thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Không có quyền ADMIN")
     })
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<RoomResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách phòng thành công", roomService.getAll()));
     }
 
     @Operation(
-            summary = "[PUBLIC] Lấy chi tiết phòng chiếu theo ID",
-            description = "Tra cứu thông tin chi tiết một phòng chiếu và rạp tương ứng."
+            summary = "[ADMIN] Lấy chi tiết phòng chiếu theo ID",
+            description = "Tra cứu thông tin chi tiết một phòng chiếu và rạp tương ứng.",
+            security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy thông tin phòng thành công"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Không tìm thấy phòng chiếu")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Không tìm thấy phòng chiếu"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Không có quyền ADMIN")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RoomResponse>> getById(
             @Parameter(description = "ID của phòng chiếu (UUID)", example = "22222222-2222-2222-2222-222222222222")
             @PathVariable UUID id

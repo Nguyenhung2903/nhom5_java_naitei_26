@@ -117,11 +117,21 @@ public class BookingServiceImpl implements BookingService {
         for (UUID seatId : request.getSeatIds()) {
             ShowtimeSeat seat = showtimeSeatRepository.findById(seatId)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy thông tin ghế"));
+
+            if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
+                throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đã được đặt và thanh toán trước đó");
+            }
+
+            Instant now = Instant.now();
+            if (seat.getStatus() == ShowtimeSeatStatus.HELD) {
+                if (seat.getHeldUntil() != null && seat.getHeldUntil().isAfter(now)) {
+                    if (seat.getHeldBy() != null && !seat.getHeldBy().getId().equals(currentUser.getId())) {
+                        throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đang được giữ bởi người khác");
+                    }
+                }
+            }
             
             if (isPaymentSuccess) {
-                if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
-                    throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đã được đặt và thanh toán trước đó");
-                }
                 seat.setStatus(ShowtimeSeatStatus.BOOKED);
                 seat.setHeldBy(null);
                 seat.setHeldUntil(null);

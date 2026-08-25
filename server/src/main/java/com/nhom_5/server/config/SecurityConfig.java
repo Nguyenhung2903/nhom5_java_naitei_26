@@ -54,12 +54,24 @@ public class SecurityConfig {
                 )
                 // Cấu hình phân quyền endpoint
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập công khai không cần token
-                        .requestMatchers(HttpMethod.GET, "/movies/**", "/news/**", "/promotions/**").permitAll()
+                        // 1. Cho phép truy cập công khai các API xem thông tin (GET)
                         .requestMatchers(
-                                "/auth/**",
+                                HttpMethod.GET,
+                                "/movies/**",
+                                "/news/**",
+                                "/promotions/**",
+                                "/theaters/**",
                                 "/showtimes/**",
-                                "/combos/**",
+                                "/combos/active"
+                        ).permitAll()
+                        // 2. Cho phép đăng ký và đăng nhập công khai
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/auth/register",
+                                "/auth/login"
+                        ).permitAll()
+                        // 3. Cho phép truy cập Swagger UI, OpenAPI Docs và Health Check công khai
+                        .requestMatchers(
                                 "/test/public",
                                 "/test/ping",
                                 "/health/**",
@@ -70,7 +82,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // Tất cả các request khác đều bắt buộc phải có JWT Token hợp lệ
+                        // 4. Tất cả các request khác (bao gồm /auth/me, /auth/change-password, /rooms/**, /seats/**, /bookings/**, POST/PUT/DELETE) bắt buộc có JWT hợp lệ
                         .anyRequest().authenticated()
                 )
                 // Đăng ký Authentication Provider

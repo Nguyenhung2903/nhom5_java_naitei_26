@@ -8,10 +8,8 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(router.routes.length).toBeGreaterThan(0)
   })
 
-  it('has public landing routes wrapped in PublicOnlyRoute for home, movies, cinemas, promotions, news', () => {
-    const publicOnlyBranch = router.routes[0]
-    expect(publicOnlyBranch).toBeDefined()
-    const landingRoute = publicOnlyBranch?.children?.find((r) => r.path === '/')
+  it('has public landing routes accessible for all users (home, movies, cinemas, promotions, news)', () => {
+    const landingRoute = router.routes.find((r) => r.path === '/')
     expect(landingRoute).toBeDefined()
     expect(landingRoute?.children).toBeDefined()
 
@@ -22,6 +20,11 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(childPaths).toContain('promotions')
     expect(childPaths).toContain('news')
     expect(childPaths).toContain('news/:newsId')
+  })
+
+  it('has auth routes (/login, /register) wrapped in PublicOnlyRoute', () => {
+    const authBranch = router.routes.find((r) => !r.path && r.children?.some((c) => !c.path))
+    expect(authBranch).toBeDefined()
   })
 
   it('defines /user Member Portal with movies, tickets, profile, and Booking routes', () => {

@@ -58,49 +58,44 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Landing Page (Chỉ dành cho khách chưa đăng nhập)
+  // Nhánh 1: Phân hệ Landing Page (Công khai cho tất cả người dùng và khách vãng lai)
   {
-    element: <PublicOnlyRoute />,
+    path: '/',
+    element: <LandingLayout />,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        path: '/',
-        element: <LandingLayout />,
-        children: [
-          {
-            index: true,
-            element: withSuspense(HomePage),
-          },
-          {
-            path: 'movies',
-            element: withSuspense(HomePage),
-          },
-          {
-            path: 'cinemas',
-            element: withSuspense(CinemasPage),
-          },
-          {
-            path: 'promotions',
-            element: withSuspense(PromotionPage),
-          },
-          {
-            path: 'news',
-            element: withSuspense(NewsPage),
-          },
-          {
-            path: 'news/:newsId',
-            element: withSuspense(NewsDetailPage),
-          },
-          // Redirect tương thích với các link cũ
-          {
-            path: 'profile',
-            element: <Navigate to="/user/profile" replace />,
-          },
-          {
-            path: 'my-tickets',
-            element: <Navigate to="/user/tickets" replace />,
-          },
-        ],
+        index: true,
+        element: withSuspense(HomePage),
+      },
+      {
+        path: 'movies',
+        element: withSuspense(HomePage),
+      },
+      {
+        path: 'cinemas',
+        element: withSuspense(CinemasPage),
+      },
+      {
+        path: 'promotions',
+        element: withSuspense(PromotionPage),
+      },
+      {
+        path: 'news',
+        element: withSuspense(NewsPage),
+      },
+      {
+        path: 'news/:newsId',
+        element: withSuspense(NewsDetailPage),
+      },
+      // Redirect tương thích với các link cũ
+      {
+        path: 'profile',
+        element: <Navigate to="/user/profile" replace />,
+      },
+      {
+        path: 'my-tickets',
+        element: <Navigate to="/user/tickets" replace />,
       },
     ],
   },
