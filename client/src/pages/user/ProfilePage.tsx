@@ -149,13 +149,8 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
 
   const membershipPoints = Math.floor(totalSpent / 10000)
 
-  const memberTier = useMemo(() => {
-    if (membershipPoints >= 1000) return { label: 'Kim Cương (Diamond)', tone: 'accent' as const }
-    if (membershipPoints >= 500) return { label: 'Vàng (Gold)', tone: 'primary' as const }
-    return { label: 'Bạc (Silver)', tone: 'info' as const }
-  }, [membershipPoints])
-
   const handleStartEdit = () => {
+
     if (user) {
       setProfileForm({
         username: user.username || '',

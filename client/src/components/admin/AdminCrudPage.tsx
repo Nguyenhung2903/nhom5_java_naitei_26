@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchToolbar } from '@/components/ui'
+import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchToolbar, type ButtonVariant } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { CheckCircle2, Edit, Plus, Trash2 } from 'lucide-react'
 
@@ -22,6 +22,12 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   renderForm: (form: TForm, update: <K extends keyof TForm>(field: K, value: TForm[K]) => void) => ReactNode
   toForm: (item: T) => TForm
   getSearchText: (item: T) => string
+  onEdit?: (item: T) => void
+  onCreated?: (item: T) => void
+  onRowClick?: (item: T) => void
+  editButtonText?: string
+  editButtonIcon?: ReactNode
+  editButtonVariant?: ButtonVariant
 }
 
 export function AdminCrudPage<T extends { id: string }, TForm>({
@@ -36,7 +42,14 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   renderForm,
   toForm,
   getSearchText,
+  onEdit,
+  onCreated,
+  onRowClick,
+  editButtonText = 'Sửa',
+  editButtonIcon = <Edit className="h-3.5 w-3.5" />,
+  editButtonVariant = 'secondary',
 }: AdminCrudPageProps<T, TForm>) {
+
   const [items, setItems] = useState<T[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -90,8 +103,12 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
         await service.update(editing.id, form)
         setFeedback('Cập nhật thành công')
       } else {
-        await service.create(form)
+        const created = await service.create(form)
         setFeedback('Tạo mới thành công')
+        if (onCreated && created) {
+          onCreated(created)
+          return
+        }
       }
       setModalOpen(false)
       await loadItems()
@@ -125,11 +142,21 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       key: 'actions',
       header: 'Hành động',
       render: (item) => (
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="secondary" size="xs" leftIcon={<Edit className="h-3.5 w-3.5" />} onClick={() => openEdit(item)}>
-            Sửa
+        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant={editButtonVariant}
+            size="xs"
+            leftIcon={editButtonIcon}
+            onClick={() => (onEdit ? onEdit(item) : openEdit(item))}
+          >
+            {editButtonText}
           </Button>
-          <Button variant="danger" size="xs" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => setDeleteTarget(item)}>
+          <Button
+            variant="danger"
+            size="xs"
+            leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+            onClick={() => setDeleteTarget(item)}
+          >
             Xóa
           </Button>
         </div>
@@ -159,8 +186,18 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
         <SearchToolbar value={searchQuery} onChange={setSearchQuery} placeholder="Tìm kiếm..." />
       </Card>
       <Card variant="elevated" className="overflow-hidden">
-        <ResponsiveTable data={filteredItems} columns={actionColumns} keyExtractor={(item) => item.id} loading={loading} error={error} onRetry={() => void loadItems()} emptyTitle="Không có dữ liệu phù hợp" />
+        <ResponsiveTable
+          data={filteredItems}
+          columns={actionColumns}
+          keyExtractor={(item) => item.id}
+          loading={loading}
+          error={error}
+          onRetry={() => void loadItems()}
+          emptyTitle="Không có dữ liệu phù hợp"
+          onRowClick={onRowClick}
+        />
       </Card>
+
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? editLabel : addLabel} size="md">
         <form onSubmit={handleSubmit} className="space-y-4">

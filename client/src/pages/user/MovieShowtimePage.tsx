@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
   CalendarDays,
@@ -11,6 +11,8 @@ import {
   Clock,
   Sparkles,
   Layers,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react'
 import {
   Alert,
@@ -45,6 +47,49 @@ function formatShowtime(value: string): string {
   }).format(new Date(value))
 }
 
+interface QuickDateOption {
+  dateStr: string
+  label: string
+  subLabel: string
+}
+
+function getUpcomingDays(count = 7): QuickDateOption[] {
+  const days: QuickDateOption[] = []
+  const today = new Date()
+
+  for (let i = 0; i < count; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() + i)
+    const dateStr = new Intl.DateTimeFormat('en-CA', { timeZone: BUSINESS_TIME_ZONE }).format(d)
+
+    let label = ''
+    if (i === 0) {
+      label = 'Hôm nay'
+    } else if (i === 1) {
+      label = 'Ngày mai'
+    } else {
+      const weekday = new Intl.DateTimeFormat('vi-VN', { timeZone: BUSINESS_TIME_ZONE, weekday: 'short' }).format(d)
+      label = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+    }
+
+    const subLabel = new Intl.DateTimeFormat('vi-VN', {
+      timeZone: BUSINESS_TIME_ZONE,
+      day: '2-digit',
+      month: '2-digit',
+    }).format(d)
+
+    days.push({ dateStr, label, subLabel })
+  }
+
+  return days
+}
+
+function isShowtimePassed(startTimeStr: string, status: string): boolean {
+  if (status !== 'OPEN') return true
+  const showtimeDate = new Date(startTimeStr)
+  return showtimeDate.getTime() <= Date.now()
+}
+
 export function MovieShowtimePage() {
   const { movieId } = useParams<{ movieId: string }>()
   const navigate = useNavigate()
@@ -56,11 +101,15 @@ export function MovieShowtimePage() {
   const [loadingTheaters, setLoadingTheaters] = useState(true)
   const [loadingShowtimes, setLoadingShowtimes] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [posterError, setPosterError] = useState(false)
+
+  const quickDates = useMemo(() => getUpcomingDays(7), [])
 
   useEffect(() => {
     if (!movieId) return
     setLoadingTheaters(true)
     setError(null)
+    setPosterError(false)
 
     // Fetch movie info
     Promise.resolve(movieService.getMovieById(movieId))
@@ -123,10 +172,11 @@ export function MovieShowtimePage() {
       {movie && (
         <Card variant="glass" className="overflow-hidden p-4 sm:p-6 border-[var(--rogym-border-teal-dim)]">
           <div className="flex flex-col sm:flex-row gap-5 items-start">
-            {movie.poster ? (
+            {movie.poster && !posterError ? (
               <img
                 src={movie.poster}
                 alt={movie.title}
+                onError={() => setPosterError(true)}
                 className="w-24 sm:w-28 h-36 sm:h-40 object-cover rounded-xl border border-white/10 shadow-lg shrink-0 mx-auto sm:mx-0"
               />
             ) : (
@@ -261,13 +311,39 @@ export function MovieShowtimePage() {
               <span>2. Chọn ngày & giờ chiếu</span>
             </h2>
 
+            {/* Quick Date Selector Bar */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+              {quickDates.map((item) => {
+                const isSelected = selectedDate === item.dateStr
+                return (
+                  <button
+                    key={item.dateStr}
+                    type="button"
+                    onClick={() => setSelectedDate(item.dateStr)}
+                    className={`flex flex-col items-center justify-center min-w-[100px] px-3 py-2.5 rounded-xl border text-center transition-all cursor-pointer shrink-0 ${
+                      isSelected
+                        ? 'bg-[var(--rogym-green)]/15 border-[var(--rogym-green)] shadow-md shadow-[var(--rogym-green)]/10 text-white'
+                        : 'bg-white/5 border-white/10 text-[var(--rogym-text-secondary)] hover:border-white/25 hover:text-white'
+                    }`}
+                  >
+                    <span className={`text-xs font-semibold ${isSelected ? 'text-[var(--rogym-green)]' : ''}`}>
+                      {item.label}
+                    </span>
+                    <span className="text-xs text-[var(--rogym-text-muted)] mt-0.5">
+                      {item.subLabel}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
             <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
               {/* Date Picker Column */}
               <Card variant="glass" className="h-fit p-5 space-y-3">
                 <CardHeader className="p-0 space-y-1">
                   <CardTitle className="flex items-center gap-2 text-sm font-bold text-white">
                     <CalendarDays className="h-4 w-4 text-[var(--rogym-teal)]" />
-                    <span>Chọn ngày xem</span>
+                    <span>Lịch chọn ngày xem</span>
                   </CardTitle>
                   <CardDescription className="text-xs">Giờ chiếu chuẩn Việt Nam (GMT+7)</CardDescription>
                 </CardHeader>
@@ -307,21 +383,58 @@ export function MovieShowtimePage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {showtimes.map((showtime) => (
-                        <button
-                          key={showtime.id}
-                          type="button"
-                          onClick={() => navigate(`/user/booking/${showtime.id}/seats`)}
-                          className="flex flex-col items-center justify-center p-3.5 rounded-xl border border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-surface)] hover:border-[var(--rogym-green)] hover:bg-[var(--rogym-green)]/10 hover:shadow-lg hover:shadow-[var(--rogym-green)]/10 transition-all cursor-pointer group text-center"
-                        >
-                          <span className="font-display text-base font-bold text-white group-hover:text-[var(--rogym-green)] transition-colors">
-                            {formatShowtime(showtime.startTime)}
-                          </span>
-                          <span className="text-[11px] text-[var(--rogym-text-muted)] group-hover:text-white/80 transition-colors mt-0.5">
-                            {showtime.roomName}
-                          </span>
-                        </button>
-                      ))}
+                      {showtimes.map((showtime) => {
+                        const isPassed = isShowtimePassed(showtime.startTime, showtime.status)
+                        const isCancelled = showtime.status === 'CANCELLED'
+
+                        return (
+                          <button
+                            key={showtime.id}
+                            type="button"
+                            disabled={isPassed}
+                            onClick={() => !isPassed && navigate(`/user/booking/${showtime.id}/seats`)}
+                            className={`flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all text-center relative overflow-hidden group ${
+                              isPassed
+                                ? 'opacity-40 cursor-not-allowed bg-white/[0.02] border-white/5 text-[var(--rogym-text-muted)]'
+                                : 'bg-[var(--rogym-bg-surface)] border-[var(--rogym-border-subtle)] hover:border-[var(--rogym-green)] hover:bg-[var(--rogym-green)]/10 hover:shadow-lg hover:shadow-[var(--rogym-green)]/10 cursor-pointer'
+                            }`}
+                          >
+                            <span
+                              className={`font-display text-base font-bold transition-colors ${
+                                isPassed
+                                  ? 'text-[var(--rogym-text-muted)] line-through decoration-rose-500/50'
+                                  : 'text-white group-hover:text-[var(--rogym-green)]'
+                              }`}
+                            >
+                              {formatShowtime(showtime.startTime)}
+                            </span>
+
+                            <span
+                              className={`text-[11px] transition-colors mt-0.5 ${
+                                isPassed
+                                  ? 'text-[var(--rogym-text-muted)]'
+                                  : 'text-[var(--rogym-text-muted)] group-hover:text-white/90'
+                              }`}
+                            >
+                              {showtime.roomName}
+                            </span>
+
+                            {isPassed && (
+                              <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400">
+                                <AlertCircle className="w-3 h-3" />
+                                {isCancelled ? 'Đã hủy' : 'Đã qua giờ'}
+                              </span>
+                            )}
+
+                            {!isPassed && (
+                              <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-[var(--rogym-green)]/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Đặt vé
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>

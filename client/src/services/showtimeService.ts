@@ -2,6 +2,18 @@ import { api } from '@/lib/api'
 import type { ApiResponse } from '@/types/api'
 import type { Showtime, ShowtimeRequest } from '@/types/showtime'
 
+const toInstant = (val?: string) => {
+  if (!val) return ''
+  const date = new Date(val)
+  return Number.isNaN(date.getTime()) ? val : date.toISOString()
+}
+
+const normalizePayload = (payload: ShowtimeRequest): ShowtimeRequest => ({
+  ...payload,
+  startTime: toInstant(payload.startTime),
+  endTime: toInstant(payload.endTime),
+})
+
 export const showtimeService = {
   getAll: async (): Promise<Showtime[]> => {
     const response = await api.get<ApiResponse<Showtime[]>>('/showtimes')
@@ -17,12 +29,12 @@ export const showtimeService = {
     return response.data || []
   },
   create: async (payload: ShowtimeRequest): Promise<Showtime> => {
-    const response = await api.post<ApiResponse<Showtime>>('/showtimes', payload)
+    const response = await api.post<ApiResponse<Showtime>>('/showtimes', normalizePayload(payload))
     if (!response.data) throw new Error(response.message || 'Tạo suất chiếu thất bại')
     return response.data
   },
   update: async (id: string, payload: ShowtimeRequest): Promise<Showtime> => {
-    const response = await api.put<ApiResponse<Showtime>>(`/showtimes/${id}`, payload)
+    const response = await api.put<ApiResponse<Showtime>>(`/showtimes/${id}`, normalizePayload(payload))
     if (!response.data) throw new Error(response.message || 'Cập nhật suất chiếu thất bại')
     return response.data
   },

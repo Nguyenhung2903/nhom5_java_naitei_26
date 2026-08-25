@@ -35,7 +35,8 @@ const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((
 const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
 const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
-const SeatManagementPage = lazy(() => import('@/pages/admin/SeatManagementPage').then((m) => ({ default: m.SeatManagementPage })))
+const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailManagementPage').then((m) => ({ default: m.RoomDetailManagementPage })))
+
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
 const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
@@ -212,12 +213,13 @@ export const router = createBrowserRouter([
             element: withSuspense(RoomManagementPage),
           },
           {
+            path: 'rooms/:roomId',
+            element: withSuspense(RoomDetailManagementPage),
+          },
+
+          {
             path: 'theaters',
             element: withSuspense(TheaterManagementPage),
-          },
-          {
-            path: 'seats',
-            element: withSuspense(SeatManagementPage),
           },
           {
             path: 'bookings',

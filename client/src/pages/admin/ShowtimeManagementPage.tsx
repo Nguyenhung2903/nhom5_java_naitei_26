@@ -19,8 +19,25 @@ const columns: ColumnDef<Showtime>[] = [
   { key: 'status', header: 'Trạng thái' },
 ]
 
-const toInputDateTime = (value: string) => value ? value.slice(0, 16) : ''
-const toInstant = (value: string) => new Date(value).toISOString()
+const toInputDateTime = (value?: string) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const toInstant = (value?: string) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toISOString()
+}
 
 export function ShowtimeManagementPage() {
   const [movies, setMovies] = useState<MovieOption[]>([])
@@ -41,7 +58,13 @@ export function ShowtimeManagementPage() {
       columns={columns}
       service={showtimeService}
       initialForm={initialForm}
-      toForm={(item) => ({ movieId: item.movieId, roomId: item.roomId, startTime: toInputDateTime(item.startTime), endTime: toInputDateTime(item.endTime), status: item.status })}
+      toForm={(item) => ({
+        movieId: item.movieId,
+        roomId: item.roomId,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        status: item.status,
+      })}
       getSearchText={(item) => `${item.movieTitle} ${item.theaterName} ${item.roomName} ${item.status}`}
       renderForm={(form, update) => (
         <>

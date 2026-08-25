@@ -1,9 +1,14 @@
+import type { SeatType } from './seat'
+
+export type ShowtimeSeatStatus = 'AVAILABLE' | 'BOOKED' | 'HELD'
+
 export interface ShowtimeSeat {
   id: string
   seatRow: string
   seatNumber: number
-  seatType: string
+  seatType: SeatType
   price: number
-  status: 'AVAILABLE' | 'BOOKED' | 'HELD'
+  status: ShowtimeSeatStatus
   heldUntil: string | null
 }
+
