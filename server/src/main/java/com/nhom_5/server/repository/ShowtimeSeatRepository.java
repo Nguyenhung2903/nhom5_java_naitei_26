@@ -19,6 +19,11 @@ public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID
 
     boolean existsByShowtimeId(UUID showtimeId);
 
+    boolean existsByShowtimeIdAndStatusIn(UUID showtimeId,
+            List<com.nhom_5.server.entity.enums.ShowtimeSeatStatus> statuses);
+
+    void deleteByShowtimeId(UUID showtimeId);
+
     // Lấy các ghế của 1 suất chiếu
     List<ShowtimeSeat> findByShowtimeId(UUID showtimeId);
 

@@ -42,6 +42,7 @@ const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage
 const MovieDetailManagementPage = lazy(() => import('@/pages/admin/MovieDetailManagementPage').then((m) => ({ default: m.MovieDetailManagementPage })))
 const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
 const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
+const ComboManagementPage = lazy(() => import('@/pages/admin/ComboManagementPage').then((m) => ({ default: m.ComboManagementPage })))
 const UserManagementPage = lazy(() => import('@/pages/admin/UserManagementPage').then((m) => ({ default: m.UserManagementPage })))
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })))
 
@@ -208,6 +209,10 @@ export const router = createBrowserRouter([
           {
             path: 'promotions',
             element: withSuspense(PromotionManagementPage),
+          },
+          {
+            path: 'combos',
+            element: withSuspense(ComboManagementPage),
           },
           {
             path: 'showtimes',

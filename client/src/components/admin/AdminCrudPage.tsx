@@ -22,6 +22,7 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   renderForm: (form: TForm, update: <K extends keyof TForm>(field: K, value: TForm[K]) => void) => ReactNode
   toForm: (item: T) => TForm
   getSearchText: (item: T) => string
+  toolbar?: ReactNode
   searchPlaceholder?: string
   onEdit?: (item: T) => void
   onCreated?: (item: T) => void
@@ -43,6 +44,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   renderForm,
   toForm,
   getSearchText,
+  toolbar,
   searchPlaceholder,
   onEdit,
   onCreated,

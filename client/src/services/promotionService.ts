@@ -21,6 +21,9 @@ export const promotionService = {
   getPromotionById: async (id: string): Promise<Promotion> =>
     unwrap(await api.get<ApiResponse<Promotion>>(`/promotions/${id}`)),
 
+  validateCode: async (code: string): Promise<Promotion> =>
+    unwrap(await api.get<ApiResponse<Promotion>>(`/promotions/validate?code=${encodeURIComponent(code)}`)),
+
   createPromotion: async (payload: PromotionPayload): Promise<Promotion> =>
     unwrap(await api.post<ApiResponse<Promotion>>('/promotions', payload)),
 

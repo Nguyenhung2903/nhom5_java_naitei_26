@@ -14,6 +14,7 @@ import {
   Menu,
   Newspaper,
   BadgePercent,
+  Utensils,
   X,
   User,
 } from 'lucide-react'
@@ -34,6 +35,7 @@ export function AdminLayout() {
     { label: 'Quản lý Phim', path: '/admin/movies', icon: <Film className="w-4 h-4" /> },
     { label: 'Quản lý Tin tức', path: '/admin/news', icon: <Newspaper className="w-4 h-4" /> },
     { label: 'Quản lý Khuyến mãi', path: '/admin/promotions', icon: <BadgePercent className="w-4 h-4" /> },
+    { label: 'Quản lý Combo', path: '/admin/combos', icon: <Utensils className="w-4 h-4" /> },
     { label: 'Quản lý Suất chiếu', path: '/admin/showtimes', icon: <CalendarDays className="w-4 h-4" /> },
     { label: 'Quản lý Rạp', path: '/admin/theaters', icon: <MapPin className="w-4 h-4" /> },
     { label: 'Quản lý Phòng chiếu', path: '/admin/rooms', icon: <DoorOpen className="w-4 h-4" /> },
