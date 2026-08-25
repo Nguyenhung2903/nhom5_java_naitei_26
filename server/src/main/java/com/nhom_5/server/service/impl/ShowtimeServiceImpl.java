@@ -15,6 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nhom_5.server.entity.Seat;
+import com.nhom_5.server.entity.ShowtimeSeat;
+import com.nhom_5.server.entity.enums.SeatType;
+import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
+import com.nhom_5.server.repository.SeatRepository;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -28,6 +36,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     private final ShowtimeRepository showtimeRepository;
     private final MovieRepository movieRepository;
     private final RoomRepository roomRepository;
+    private final SeatRepository seatRepository;
     private final ShowtimeSeatRepository showtimeSeatRepository;
     private final TheaterRepository theaterRepository;
 
@@ -77,8 +86,38 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                 .endTime(request.getEndTime())
                 .status(request.getStatus())
                 .build();
-        return ShowtimeResponse.fromEntity(showtimeRepository.save(showtime));
+        Showtime savedShowtime = showtimeRepository.save(showtime);
+
+        // Tự động khởi tạo dữ liệu ghế cho suất chiếu (ShowtimeSeat) dựa trên danh sách ghế của phòng
+        List<Seat> roomSeats = seatRepository.findByRoomIdOrderBySeatRowAscSeatNumberAsc(room.getId());
+        if (!roomSeats.isEmpty()) {
+            List<ShowtimeSeat> showtimeSeats = new ArrayList<>();
+            for (Seat seat : roomSeats) {
+                BigDecimal price = calculateSeatPrice(seat.getSeatType());
+                showtimeSeats.add(ShowtimeSeat.builder()
+                        .showtime(savedShowtime)
+                        .seat(seat)
+                        .price(price)
+                        .status(ShowtimeSeatStatus.AVAILABLE)
+                        .build());
+            }
+            showtimeSeatRepository.saveAll(showtimeSeats);
+        }
+
+        return ShowtimeResponse.fromEntity(savedShowtime);
     }
+
+    private BigDecimal calculateSeatPrice(SeatType seatType) {
+        if (seatType == null) {
+            return BigDecimal.valueOf(75000);
+        }
+        return switch (seatType) {
+            case VIP -> BigDecimal.valueOf(95000);
+            case COUPLE -> BigDecimal.valueOf(160000);
+            case NORMAL -> BigDecimal.valueOf(75000);
+        };
+    }
+
 
     @Override
     @Transactional

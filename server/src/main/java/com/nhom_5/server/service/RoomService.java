@@ -11,5 +11,7 @@ public interface RoomService {
     RoomResponse getById(UUID id);
     RoomResponse create(RoomRequest request);
     RoomResponse update(UUID id, RoomRequest request);
+    void resetSeats(UUID id);
     void delete(UUID id);
 }
+

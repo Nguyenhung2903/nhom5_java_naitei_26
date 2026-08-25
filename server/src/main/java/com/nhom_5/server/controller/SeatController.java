@@ -16,12 +16,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +47,23 @@ public class SeatController {
     public ResponseEntity<ApiResponse<List<SeatResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách ghế thành công", seatService.getAll()));
     }
+
+    @Operation(
+            summary = "[PUBLIC] Lấy danh sách ghế theo phòng chiếu",
+            description = "Tra cứu danh sách tất cả các ghế ngồi thuộc một phòng chiếu cụ thể theo thứ tự hàng và cột."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy danh sách ghế theo phòng thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Không tìm thấy phòng chiếu")
+    })
+    @GetMapping("/room/{roomId}")
+    public ResponseEntity<ApiResponse<List<SeatResponse>>> getByRoomId(
+            @Parameter(description = "ID của phòng chiếu (UUID)", example = "22222222-2222-2222-2222-222222222222")
+            @PathVariable UUID roomId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách ghế theo phòng thành công", seatService.getByRoomId(roomId)));
+    }
+
 
     @Operation(
             summary = "[PUBLIC] Lấy chi tiết ghế theo ID",
@@ -100,6 +119,25 @@ public class SeatController {
     }
 
     @Operation(
+            summary = "[ADMIN] Cập nhật loại ghế hàng loạt",
+            description = "Cập nhật loại ghế (NORMAL, VIP, COUPLE) cho danh sách ghế được chọn.",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Cập nhật loại ghế hàng loạt thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Không có quyền ADMIN")
+    })
+    @PatchMapping("/batch-type")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> updateBatchType(
+            @Valid @RequestBody com.nhom_5.server.dto.request.BatchSeatTypeRequest request
+    ) {
+        seatService.updateBatchType(request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật loại ghế hàng loạt thành công", null));
+    }
+
+    @Operation(
             summary = "[ADMIN] Xóa ghế",
             description = "Xóa ghế khỏi sơ đồ phòng chiếu.",
             security = {@SecurityRequirement(name = "bearerAuth")}
@@ -119,3 +157,4 @@ public class SeatController {
         return ResponseEntity.ok(ApiResponse.success("Xóa ghế thành công", null));
     }
 }
+

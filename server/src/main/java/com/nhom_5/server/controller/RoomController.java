@@ -100,6 +100,27 @@ public class RoomController {
     }
 
     @Operation(
+            summary = "[ADMIN] Khôi phục sơ đồ 50 ghế chuẩn cho phòng",
+            description = "Xóa toàn bộ ghế cũ và sinh lại 50 ghế chuẩn theo ma trận (A-B: NORMAL, C-D: VIP, E: COUPLE).",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Khôi phục sơ đồ ghế chuẩn thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Không thể khôi phục ghế khi phòng đã có suất chiếu"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Không tìm thấy phòng chiếu"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Không có quyền ADMIN")
+    })
+    @PostMapping("/{id}/reset-seats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> resetSeats(
+            @Parameter(description = "ID phòng chiếu cần khôi phục ghế (UUID)", example = "22222222-2222-2222-2222-222222222222")
+            @PathVariable UUID id
+    ) {
+        roomService.resetSeats(id);
+        return ResponseEntity.ok(ApiResponse.success("Khôi phục sơ đồ ghế chuẩn 50 ghế thành công", null));
+    }
+
+    @Operation(
             summary = "[ADMIN] Xóa phòng chiếu",
             description = "Xóa phòng chiếu khỏi hệ thống.",
             security = {@SecurityRequirement(name = "bearerAuth")}
@@ -119,3 +140,4 @@ public class RoomController {
         return ResponseEntity.ok(ApiResponse.success("Xóa phòng thành công", null));
     }
 }
+

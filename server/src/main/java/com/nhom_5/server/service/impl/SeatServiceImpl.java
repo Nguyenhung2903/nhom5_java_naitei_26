@@ -31,9 +31,22 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SeatResponse> getByRoomId(UUID roomId) {
+        if (!roomRepository.existsById(roomId)) {
+            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phòng với ID: " + roomId);
+        }
+        return seatRepository.findByRoomIdOrderBySeatRowAscSeatNumberAsc(roomId)
+                .stream()
+                .map(SeatResponse::fromEntity)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public SeatResponse getById(UUID id) {
         return SeatResponse.fromEntity(findSeat(id));
     }
+
 
     @Override
     @Transactional
@@ -66,11 +79,28 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     @Transactional
+    public void updateBatchType(com.nhom_5.server.dto.request.BatchSeatTypeRequest request) {
+        if (request.getSeatIds() == null || request.getSeatIds().isEmpty()) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Danh sách ID ghế không được để trống");
+        }
+        List<Seat> seats = seatRepository.findAllById(request.getSeatIds());
+        if (seats.isEmpty()) {
+            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy ghế nào phù hợp với danh sách ID");
+        }
+        for (Seat seat : seats) {
+            seat.setSeatType(request.getSeatType());
+        }
+        seatRepository.saveAll(seats);
+    }
+
+    @Override
+    @Transactional
     public void delete(UUID id) {
         findSeat(id);
         if (showtimeSeatRepository.existsBySeatId(id)) {
             throw new AppException(ErrorCode.BAD_REQUEST, "Không thể xóa ghế đã được gán cho suất chiếu");
         }
+
         seatRepository.deleteById(id);
     }
 

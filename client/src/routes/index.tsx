@@ -35,6 +35,8 @@ const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((
 const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
 const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
+const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailManagementPage').then((m) => ({ default: m.RoomDetailManagementPage })))
+
 const SeatManagementPage = lazy(() => import('@/pages/admin/SeatManagementPage').then((m) => ({ default: m.SeatManagementPage })))
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
@@ -211,6 +213,11 @@ export const router = createBrowserRouter([
             path: 'rooms',
             element: withSuspense(RoomManagementPage),
           },
+          {
+            path: 'rooms/:roomId',
+            element: withSuspense(RoomDetailManagementPage),
+          },
+
           {
             path: 'theaters',
             element: withSuspense(TheaterManagementPage),
