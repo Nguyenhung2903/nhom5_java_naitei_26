@@ -48,6 +48,7 @@ export function RoomManagementPage() {
       initialForm={initialForm}
       toForm={(item) => ({ theaterId: item.theaterId, name: item.name })}
       getSearchText={(item) => `${item.name} ${item.theaterName}`}
+      searchPlaceholder="Tìm kiếm theo tên phòng, cụm rạp..."
       editButtonText="Quản lý ghế & Sơ đồ"
       editButtonIcon={<Settings className="h-3.5 w-3.5" />}
       editButtonVariant="primary"

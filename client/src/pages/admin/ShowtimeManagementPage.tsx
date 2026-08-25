@@ -66,6 +66,7 @@ export function ShowtimeManagementPage() {
         status: item.status,
       })}
       getSearchText={(item) => `${item.movieTitle} ${item.theaterName} ${item.roomName} ${item.status}`}
+      searchPlaceholder="Tìm kiếm theo tên phim, phòng, rạp, trạng thái..."
       renderForm={(form, update) => (
         <>
           <FormField label="Phim" htmlFor="showtime-movie" required>
