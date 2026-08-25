@@ -222,10 +222,6 @@ export const router = createBrowserRouter([
             element: withSuspense(TheaterManagementPage),
           },
           {
-            path: 'bookings',
-            element: withSuspense(DashboardPage), // Placeholder cho quản lý đặt vé
-          },
-          {
             path: 'users',
             element: withSuspense(UserManagementPage),
           },
