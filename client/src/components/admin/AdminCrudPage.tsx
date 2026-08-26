@@ -19,7 +19,7 @@ interface AdminCrudPageProps<T extends { id: string }, TForm> {
   columns: ColumnDef<T>[]
   service: CrudService<T, TForm>
   initialForm: TForm
-  renderForm: (form: TForm, update: <K extends keyof TForm>(field: K, value: TForm[K]) => void) => ReactNode
+  renderForm: (form: TForm, update: <K extends keyof TForm>(field: K, value: TForm[K]) => void, isEditing: boolean) => ReactNode
   toForm: (item: T) => TForm
   getSearchText: (item: T) => string
   toolbar?: ReactNode
@@ -228,7 +228,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? editLabel : addLabel} size="md">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {renderForm(form, updateForm)}
+          {renderForm(form, updateForm, editing !== null)}
           <ModalFooter>
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Hủy</Button>
             <Button variant="primary" type="submit" loading={submitting}>Lưu</Button>

@@ -139,7 +139,7 @@ export function ShowtimeManagementPage() {
         </SearchToolbar>
       )}
       getSearchText={(item) => `${item.movieTitle} ${item.theaterName} ${item.roomName} ${item.status}`}
-      renderForm={(form, update) => (
+      renderForm={(form, update, isEditing) => (
         <>
           <FormField label="Phim" htmlFor="showtime-movie" required>
             <Select value={form.movieId} onValueChange={(value) => update('movieId', value)} required>
@@ -163,13 +163,15 @@ export function ShowtimeManagementPage() {
               aria-label="Thời gian bắt đầu"
             />
           </FormField>
-          <FormField label="Trạng thái" htmlFor="showtime-status" required>
-            <Select value={form.status} onValueChange={(value) => update('status', value as ShowtimeStatus)} required>
-              <option value="OPEN">Mở bán</option>
-              <option value="CANCELLED">Đã hủy</option>
-              <option value="FINISHED">Đã kết thúc</option>
-            </Select>
-          </FormField>
+          {isEditing && (
+            <FormField label="Trạng thái" htmlFor="showtime-status" required>
+              <Select value={form.status} onValueChange={(value) => update('status', value as ShowtimeStatus)} required>
+                <option value="OPEN">Mở bán</option>
+                <option value="CANCELLED">Đã hủy</option>
+                <option value="FINISHED">Đã kết thúc</option>
+              </Select>
+            </FormField>
+          )}
         </>
       )}
     />
