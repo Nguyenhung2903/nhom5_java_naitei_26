@@ -4,6 +4,7 @@ import com.nhom_5.server.dto.request.AdminUpdateUserRequest;
 import com.nhom_5.server.dto.request.CreateUserRequest;
 import com.nhom_5.server.dto.request.UpdateProfileRequest;
 import com.nhom_5.server.dto.response.ApiResponse;
+import com.nhom_5.server.dto.response.AuthResponse;
 import com.nhom_5.server.dto.response.PageResponse;
 import com.nhom_5.server.dto.response.UserProfileDto;
 import com.nhom_5.server.entity.enums.Role;
@@ -68,8 +69,8 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Chưa xác thực hoặc token không hợp lệ")
     })
     @PutMapping("/me")
-    public ResponseEntity<ApiResponse<UserProfileDto>> updateCurrentProfile(@Valid @RequestBody UpdateProfileRequest request) {
-        UserProfileDto profile = userService.updateCurrentProfile(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> updateCurrentProfile(@Valid @RequestBody UpdateProfileRequest request) {
+        AuthResponse profile = userService.updateCurrentProfile(request);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin hồ sơ thành công", profile));
     }
 

@@ -3,6 +3,7 @@ package com.nhom_5.server.service.impl;
 import com.nhom_5.server.dto.request.AdminUpdateUserRequest;
 import com.nhom_5.server.dto.request.CreateUserRequest;
 import com.nhom_5.server.dto.request.UpdateProfileRequest;
+import com.nhom_5.server.dto.response.AuthResponse;
 import com.nhom_5.server.dto.response.PageResponse;
 import com.nhom_5.server.dto.response.UserProfileDto;
 import com.nhom_5.server.entity.User;
@@ -11,6 +12,7 @@ import com.nhom_5.server.entity.enums.UserStatus;
 import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.UserRepository;
+import com.nhom_5.server.security.JwtService;
 import com.nhom_5.server.service.UserService;
 import com.nhom_5.server.util.SecurityUtil;
 import jakarta.persistence.criteria.Predicate;
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,12 +49,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserProfileDto updateCurrentProfile(UpdateProfileRequest request) {
+    public AuthResponse updateCurrentProfile(UpdateProfileRequest request) {
         User currentUser = SecurityUtil.getCurrentUser();
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        String newUsername = request.getUsername().trim().toLowerCase();
+        String newUsername = request.getUsername().trim();
 
         // Nếu người dùng thay đổi username, kiểm tra xem username mới đã bị user khác chiếm chưa
         if (!newUsername.equalsIgnoreCase(user.getUsername())) {
@@ -69,7 +72,16 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
         log.info("User [{}] updated their personal profile successfully", savedUser.getId());
-        return UserProfileDto.fromEntity(savedUser);
+
+        // Tạo JWT Token mới cho user sau khi cập nhật thông tin (đặc biệt là username mới)
+        String token = jwtService.generateToken(savedUser);
+
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(jwtService.getExpirationMs())
+                .user(UserProfileDto.fromEntity(savedUser))
+                .build();
     }
 
     @Override
@@ -118,7 +130,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserProfileDto createUser(CreateUserRequest request) {
-        String username = request.getUsername().trim().toLowerCase();
+        String username = request.getUsername().trim();
         String email = request.getEmail().trim().toLowerCase();
 
         log.info("Admin creating user: username [{}], email [{}]", username, email);
@@ -155,7 +167,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        String newUsername = request.getUsername().trim().toLowerCase();
+        String newUsername = request.getUsername().trim();
 
         if (!newUsername.equalsIgnoreCase(user.getUsername())) {
             if (userRepository.existsByUsernameAndIdNot(newUsername, id)) {

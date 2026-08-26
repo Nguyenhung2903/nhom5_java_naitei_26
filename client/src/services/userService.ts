@@ -1,5 +1,6 @@
 import { api } from '@/lib/api'
 import type { ApiResponse } from '@/types/api'
+import type { AuthResponse } from '@/types/auth'
 import type {
   UserProfile,
   PageResponse,
@@ -15,8 +16,8 @@ export const userService = {
     return res.data!
   },
 
-  updateMyProfile: async (payload: UpdateProfilePayload): Promise<UserProfile> => {
-    const res = await api.put<ApiResponse<UserProfile>>('/users/me', payload)
+  updateMyProfile: async (payload: UpdateProfilePayload): Promise<AuthResponse> => {
+    const res = await api.put<ApiResponse<AuthResponse>>('/users/me', payload)
     return res.data!
   },
 

@@ -76,7 +76,7 @@ export interface ProfilePageProps {
 }
 
 export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
-  const { user, refreshProfile } = useAuth()
+  const { user, refreshProfile, setUserSession } = useAuth()
 
   const shouldShowMemberStats = showMemberStats ?? (user?.role !== 'ADMIN')
 
@@ -193,10 +193,14 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
       errors.username = 'Tên đăng nhập không được để trống'
     } else if (profileForm.username.trim().length < 3) {
       errors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự'
+    } else if (profileForm.username.trim().length > 50) {
+      errors.username = 'Tên đăng nhập không được vượt quá 50 ký tự'
     }
 
     if (!profileForm.fullName.trim()) {
       errors.fullName = 'Họ và tên không được để trống'
+    } else if (profileForm.fullName.trim().length > 255) {
+      errors.fullName = 'Họ và tên không được vượt quá 255 ký tự'
     }
 
     if (profileForm.phone && !/^(0|\+84)[0-9]{9}$/.test(profileForm.phone.trim())) {
@@ -210,7 +214,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
 
     setIsSavingProfile(true)
     try {
-      await userService.updateMyProfile({
+      const authData = await userService.updateMyProfile({
         username: profileForm.username.trim(),
         fullName: profileForm.fullName.trim(),
         phone: profileForm.phone.trim() || undefined,
@@ -219,7 +223,12 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
         avatar: profileForm.avatar.trim() || undefined,
       })
 
-      await refreshProfile()
+      if (setUserSession) {
+        setUserSession(authData)
+      } else {
+        await refreshProfile()
+      }
+
       setProfileSuccessMsg('Cập nhật thông tin hồ sơ thành công!')
       setProfileErrors({})
       setIsEditing(false)
@@ -749,7 +758,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                             onChange={(e) => {
                               setPasswordData({ ...passwordData, newPassword: e.target.value })
                               if (passwordErrors.newPassword)
-                                setProfileErrors({ ...profileErrors, newPassword: '' })
+                                setPasswordErrors({ ...passwordErrors, newPassword: '' })
                             }}
                             error={!!passwordErrors.newPassword}
                             disabled={isChangingPassword}

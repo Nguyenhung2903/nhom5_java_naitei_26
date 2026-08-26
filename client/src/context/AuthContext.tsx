@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { authService } from '@/services/authService'
 import { AuthContext, type AuthContextType } from './auth-context'
-import type { UserProfile, LoginRequest, RegisterRequest } from '@/types/auth'
+import type { UserProfile, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 
 export { AuthContext, type AuthContextType } from './auth-context'
 
@@ -28,6 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(USER_KEY)
     setToken(null)
     setUser(null)
+  }, [])
+
+  const setUserSession = useCallback((authData: AuthResponse) => {
+    if (authData.accessToken) {
+      localStorage.setItem(TOKEN_KEY, authData.accessToken)
+      setToken(authData.accessToken)
+    }
+    if (authData.user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(authData.user))
+      setUser(authData.user)
+    }
   }, [])
 
   const refreshProfile = useCallback(async (): Promise<UserProfile | null> => {
@@ -88,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     refreshProfile,
+    setUserSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -31,7 +31,13 @@ describe('userService', () => {
   })
 
   it('calls updateMyProfile correctly', async () => {
-    vi.spyOn(api, 'put').mockResolvedValue({ data: { ...mockUser, fullName: 'John Doe Updated' } } as never)
+    const mockAuthResponse = {
+      accessToken: 'jwt-123',
+      tokenType: 'Bearer',
+      expiresIn: 604800000,
+      user: { ...mockUser, fullName: 'John Doe Updated' },
+    }
+    vi.spyOn(api, 'put').mockResolvedValue({ data: mockAuthResponse } as never)
 
     const payload = {
       username: 'johndoe',
@@ -41,7 +47,8 @@ describe('userService', () => {
     const result = await userService.updateMyProfile(payload)
 
     expect(api.put).toHaveBeenCalledWith('/users/me', payload)
-    expect(result.fullName).toBe('John Doe Updated')
+    expect(result.user.fullName).toBe('John Doe Updated')
+    expect(result.accessToken).toBe('jwt-123')
   })
 
   it('calls getUsers with query parameters', async () => {

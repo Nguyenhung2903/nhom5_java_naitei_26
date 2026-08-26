@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { UserProfile, LoginRequest, RegisterRequest } from '@/types/auth'
+import type { UserProfile, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 
 export interface AuthContextType {
   user: UserProfile | null
@@ -11,6 +11,7 @@ export interface AuthContextType {
   register: (payload: RegisterRequest) => Promise<UserProfile>
   logout: () => void
   refreshProfile: () => Promise<UserProfile | null>
+  setUserSession: (authData: AuthResponse) => void
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)

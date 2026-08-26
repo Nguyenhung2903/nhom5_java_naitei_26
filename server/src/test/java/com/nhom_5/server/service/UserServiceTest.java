@@ -3,6 +3,7 @@ package com.nhom_5.server.service;
 import com.nhom_5.server.dto.request.AdminUpdateUserRequest;
 import com.nhom_5.server.dto.request.CreateUserRequest;
 import com.nhom_5.server.dto.request.UpdateProfileRequest;
+import com.nhom_5.server.dto.response.AuthResponse;
 import com.nhom_5.server.dto.response.PageResponse;
 import com.nhom_5.server.dto.response.UserProfileDto;
 import com.nhom_5.server.entity.User;
@@ -12,6 +13,7 @@ import com.nhom_5.server.exception.AppException;
 import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.UserRepository;
 import com.nhom_5.server.security.CustomUserDetails;
+import com.nhom_5.server.security.JwtService;
 import com.nhom_5.server.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +50,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -111,13 +116,17 @@ class UserServiceTest {
         when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
         when(userRepository.existsByUsernameAndIdNot("john_doe_new", sampleUserId)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtService.generateToken(any(User.class))).thenReturn("mock_token");
+        when(jwtService.getExpirationMs()).thenReturn(604800000L);
 
-        UserProfileDto result = userService.updateCurrentProfile(request);
+        AuthResponse result = userService.updateCurrentProfile(request);
 
         assertNotNull(result);
-        assertEquals("john_doe_new", result.getUsername());
-        assertEquals("John Doe Updated", result.getFullName());
-        assertEquals("0987654321", result.getPhone());
+        assertEquals("mock_token", result.getAccessToken());
+        assertNotNull(result.getUser());
+        assertEquals("john_doe_new", result.getUser().getUsername());
+        assertEquals("John Doe Updated", result.getUser().getFullName());
+        assertEquals("0987654321", result.getUser().getPhone());
     }
 
     @Test
