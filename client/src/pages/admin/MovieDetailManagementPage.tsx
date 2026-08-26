@@ -42,6 +42,7 @@ import { movieService } from '@/services/movieService'
 import { showtimeService } from '@/services/showtimeService'
 import type { Genre, Movie, MoviePayload, MovieStatus } from '@/types/movie'
 import type { Showtime } from '@/types/showtime'
+import { SHOWTIME_STATUS_CONFIG } from '@/types/showtime'
 
 const MOVIE_STATUSES: { value: MovieStatus; label: string }[] = [
   { value: 'NOW_SHOWING', label: 'NOW_SHOWING (Đang chiếu)' },
@@ -288,20 +289,17 @@ export function MovieDetailManagementPage() {
       {
         key: 'status',
         header: 'Trạng thái',
-        render: (item) => (
-          <Badge
-            tone={
-              item.status === 'OPEN'
-                ? 'success'
-                : item.status === 'FINISHED'
-                ? 'muted'
-                : 'danger'
-            }
-            size="xs"
-          >
-            {item.status}
-          </Badge>
-        ),
+        render: (item) => {
+          const config = SHOWTIME_STATUS_CONFIG[item.status] || {
+            label: item.status,
+            tone: 'muted' as const,
+          }
+          return (
+            <Badge tone={config.tone} size="sm">
+              {config.label}
+            </Badge>
+          )
+        },
       },
     ],
     []

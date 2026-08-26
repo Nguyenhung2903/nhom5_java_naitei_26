@@ -9,14 +9,9 @@ import { showtimeService } from '@/services/showtimeService'
 import type { Movie } from '@/types/movie'
 import type { Room } from '@/types/room'
 import type { Showtime, ShowtimeFilters, ShowtimeRequest, ShowtimeStatus } from '@/types/showtime'
+import { SHOWTIME_STATUS_CONFIG } from '@/types/showtime'
 
 const initialForm: ShowtimeRequest = { movieId: '', roomId: '', startTime: '', status: 'OPEN' }
-
-const statusConfigMap: Record<ShowtimeStatus, { label: string; tone: BadgeTone }> = {
-  OPEN: { label: 'Mở bán', tone: 'success' },
-  CANCELLED: { label: 'Đã hủy', tone: 'danger' },
-  FINISHED: { label: 'Đã kết thúc', tone: 'muted' },
-}
 
 const columns: ColumnDef<Showtime>[] = [
   { key: 'movieTitle', header: 'Phim', render: (item) => <strong className="text-white">{item.movieTitle}</strong> },
@@ -28,7 +23,7 @@ const columns: ColumnDef<Showtime>[] = [
     key: 'status',
     header: 'Trạng thái',
     render: (item) => {
-      const config = statusConfigMap[item.status] || { label: item.status, tone: 'muted' as BadgeTone }
+      const config = SHOWTIME_STATUS_CONFIG[item.status] || { label: item.status, tone: 'muted' as BadgeTone }
       return <Badge tone={config.tone} size="sm">{config.label}</Badge>
     },
   },
