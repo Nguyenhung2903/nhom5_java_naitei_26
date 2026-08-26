@@ -84,7 +84,6 @@ export function CheckoutPage() {
   
   // Form Info
   const [fullName, setFullName] = useState(user?.fullName || user?.username || '')
-  const [phone, setPhone] = useState(user?.phone || '')
   const [email, setEmail] = useState(user?.email || '')
   
   // Discount Code
@@ -160,7 +159,6 @@ export function CheckoutPage() {
         finalTotalAmount,
         receiverInfo: {
           fullName,
-          phone,
           email
         }
       }
@@ -224,14 +222,7 @@ export function CheckoutPage() {
                   placeholder="Nhập họ và tên"
                 />
               </FormField>
-              <FormField label="Số điện thoại">
-                <Input 
-                  value={phone} 
-                  onChange={(e) => setPhone(e.target.value)} 
-                  placeholder="Nhập số điện thoại"
-                />
-              </FormField>
-              <FormField label="Email" className="md:col-span-2" required>
+              <FormField label="Email" required>
                 <Input 
                   type="email"
                   value={email} 

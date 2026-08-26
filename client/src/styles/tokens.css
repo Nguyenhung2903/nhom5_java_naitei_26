@@ -8,6 +8,7 @@
     --rogym-teal: #42e09e;
     --rogym-green-dark: #00492f;
     --rogym-green-deeper: #003d28;
+    --rogym-primary: var(--rogym-green);
 
     /* Backgrounds */
     --rogym-bg-base: #080e0b;
