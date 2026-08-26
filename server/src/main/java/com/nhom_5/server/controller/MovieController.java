@@ -49,9 +49,11 @@ public class MovieController {
             @Parameter(description = "Từ khóa tìm kiếm theo tên phim hoặc đạo diễn", example = "Avengers")
             @RequestParam(required = false) String keyword,
             @Parameter(description = "Trạng thái phim: NOW_SHOWING (Đang chiếu), COMING_SOON (Sắp chiếu), ENDED (Ngừng chiếu)")
-            @RequestParam(required = false) MovieStatus status
+            @RequestParam(required = false) MovieStatus status,
+            @Parameter(description = "ID của thể loại phim (UUID)", example = "cc1fdf16-e524-4c87-a027-74de957a0359")
+            @RequestParam(required = false) UUID genreId
     ) {
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách phim thành công", movieService.getMovies(keyword, status)));
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách phim thành công", movieService.getMovies(keyword, status, genreId)));
     }
 
     @Operation(

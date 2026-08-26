@@ -82,6 +82,8 @@ export function MovieManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<MovieStatus | ''>('')
   const [tempStatusFilter, setTempStatusFilter] = useState<MovieStatus | ''>('')
+  const [genreFilter, setGenreFilter] = useState<string>('')
+  const [tempGenreFilter, setTempGenreFilter] = useState<string>('')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -103,6 +105,7 @@ export function MovieManagementPage() {
       const data = await movieService.getMovies({
         keyword: searchQuery.trim() || undefined,
         status: statusFilter || undefined,
+        genreId: genreFilter || undefined,
       })
       setMovies(data)
     } catch (err) {
@@ -110,7 +113,7 @@ export function MovieManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, statusFilter, genreFilter])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -126,12 +129,14 @@ export function MovieManagementPage() {
   const handleFilterOpenChange = (open: boolean) => {
     if (open) {
       setTempStatusFilter(statusFilter)
+      setTempGenreFilter(genreFilter)
     }
     setIsFilterOpen(open)
   }
 
   const handleApplyFilter = () => {
     setStatusFilter(tempStatusFilter)
+    setGenreFilter(tempGenreFilter)
     setIsFilterOpen(false)
   }
 
@@ -391,24 +396,43 @@ export function MovieManagementPage() {
           <FilterDropdown
             open={isFilterOpen}
             onOpenChange={handleFilterOpenChange}
-            activeCount={statusFilter ? 1 : 0}
+            activeCount={(statusFilter ? 1 : 0) + (genreFilter ? 1 : 0)}
             onApply={handleApplyFilter}
             title="Bộ lọc"
           >
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--rogym-text-secondary)]">
-                Trạng thái
-              </label>
-              <Select
-                value={tempStatusFilter}
-                onValueChange={(val) => setTempStatusFilter(val as MovieStatus | '')}
-              >
-                {FILTER_STATUS_OPTIONS.map((st) => (
-                  <option key={st.value} value={st.value}>
-                    {st.label}
-                  </option>
-                ))}
-              </Select>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--rogym-text-secondary)]">
+                  Trạng thái
+                </label>
+                <Select
+                  value={tempStatusFilter}
+                  onValueChange={(val) => setTempStatusFilter(val as MovieStatus | '')}
+                >
+                  {FILTER_STATUS_OPTIONS.map((st) => (
+                    <option key={st.value} value={st.value}>
+                      {st.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--rogym-text-secondary)]">
+                  Thể loại
+                </label>
+                <Select
+                  value={tempGenreFilter}
+                  onValueChange={setTempGenreFilter}
+                >
+                  <option value="">Mọi thể loại</option>
+                  {allGenres.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           </FilterDropdown>
         }

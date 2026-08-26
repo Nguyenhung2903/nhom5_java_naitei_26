@@ -12,7 +12,7 @@ public interface MovieService {
 
     List<GenreResponse> getGenres();
 
-    List<MovieResponse> getMovies(String keyword, MovieStatus status);
+    List<MovieResponse> getMovies(String keyword, MovieStatus status, UUID genreId);
 
     MovieResponse getMovieById(UUID id);
 

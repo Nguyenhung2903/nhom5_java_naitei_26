@@ -39,7 +39,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MovieResponse> getMovies(String keyword, MovieStatus status) {
+    public List<MovieResponse> getMovies(String keyword, MovieStatus status, UUID genreId) {
         String normalizedKeyword = StringUtils.hasText(keyword) ? keyword.trim() : null;
         List<Movie> movies;
         if (normalizedKeyword != null && status != null) {
@@ -50,6 +50,12 @@ public class MovieServiceImpl implements MovieService {
             movies = movieRepository.findByStatusOrderByReleaseDateDescCreatedAtDesc(status);
         } else {
             movies = movieRepository.findAllByOrderByReleaseDateDescCreatedAtDesc();
+        }
+
+        if (genreId != null) {
+            movies = movies.stream()
+                    .filter(m -> m.getGenres() != null && m.getGenres().stream().anyMatch(g -> genreId.equals(g.getId())))
+                    .toList();
         }
 
         return movies.stream()

@@ -18,10 +18,15 @@ export const movieService = {
   getGenres: async (): Promise<Genre[]> =>
     unwrap(await api.get<ApiResponse<Genre[]>>('/movies/genres')),
 
-  getMovies: async (params?: { keyword?: string; status?: MovieStatus | '' }): Promise<Movie[]> => {
+  getMovies: async (params?: {
+    keyword?: string
+    status?: MovieStatus | ''
+    genreId?: string
+  }): Promise<Movie[]> => {
     const searchParams = new URLSearchParams()
     if (params?.keyword) searchParams.set('keyword', params.keyword)
     if (params?.status) searchParams.set('status', params.status)
+    if (params?.genreId) searchParams.set('genreId', params.genreId)
     const query = searchParams.toString()
     return unwrap(await api.get<ApiResponse<Movie[]>>(`/movies${query ? `?${query}` : ''}`))
   },
