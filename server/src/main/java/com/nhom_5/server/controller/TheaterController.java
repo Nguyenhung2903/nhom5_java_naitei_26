@@ -55,7 +55,7 @@ public class TheaterController {
 
     @Operation(
             summary = "[PUBLIC] Lấy chi tiết rạp theo ID",
-            description = "Tra cứu thông tin chi tiết của một cụm rạp (tên, địa chỉ, số điện thoại, tọa độ GPS)."
+            description = "Tra cứu thông tin chi tiết của một cụm rạp (tên, địa chỉ, số điện thoại)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy thông tin rạp thành công"),
@@ -88,7 +88,7 @@ public class TheaterController {
 
     @Operation(
             summary = "[ADMIN] Cập nhật thông tin cụm rạp",
-            description = "Cập nhật tên, địa chỉ, số điện thoại hoặc tọa độ của rạp.",
+            description = "Cập nhật tên, địa chỉ hoặc số điện thoại của rạp.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {

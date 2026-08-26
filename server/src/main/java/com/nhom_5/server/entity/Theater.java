@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,12 +33,6 @@ public class Theater extends BaseEntity {
 
     @Column(name = "phone")
     private String phone;
-
-    @Column(name = "latitude", precision = 9, scale = 6)
-    private BigDecimal latitude;
-
-    @Column(name = "longitude", precision = 9, scale = 6)
-    private BigDecimal longitude;
 
     @JsonIgnore
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL, orphanRemoval = true)

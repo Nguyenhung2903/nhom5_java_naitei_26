@@ -13,8 +13,6 @@ const initialForm: TheaterRequest = {
   name: '',
   address: '',
   phone: '',
-  latitude: undefined,
-  longitude: undefined,
 }
 
 export function TheaterManagementPage() {
@@ -85,8 +83,6 @@ export function TheaterManagementPage() {
         name: item.name,
         address: item.address,
         phone: item.phone || '',
-        latitude: item.latitude || undefined,
-        longitude: item.longitude || undefined,
       })}
       getSearchText={(item) => `${item.name} ${item.address} ${item.phone || ''}`}
       searchPlaceholder="Tìm kiếm theo tên rạp, địa chỉ, số điện thoại..."
@@ -124,38 +120,6 @@ export function TheaterManagementPage() {
               onChange={(event) => update('phone', event.target.value)}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Vĩ độ (Latitude)" htmlFor="theater-latitude">
-              <Input
-                id="theater-latitude"
-                type="number"
-                step="any"
-                placeholder="10.794..."
-                value={form.latitude ?? ''}
-                onChange={(event) =>
-                  update(
-                    'latitude',
-                    event.target.value ? Number(event.target.value) : undefined
-                  )
-                }
-              />
-            </FormField>
-            <FormField label="Kinh độ (Longitude)" htmlFor="theater-longitude">
-              <Input
-                id="theater-longitude"
-                type="number"
-                step="any"
-                placeholder="106.721..."
-                value={form.longitude ?? ''}
-                onChange={(event) =>
-                  update(
-                    'longitude',
-                    event.target.value ? Number(event.target.value) : undefined
-                  )
-                }
-              />
-            </FormField>
-          </div>
         </>
       )}
     />
