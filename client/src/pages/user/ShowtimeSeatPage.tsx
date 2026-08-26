@@ -105,8 +105,6 @@ export function ShowtimeSeatPage() {
     }
   }
 
-  if (loading && seats.length === 0) return <PageLoader ariaLabel="Đang tải sơ đồ ghế..." />
-
   const selectedSeats = seats.filter((s) => selectedSeatIds.includes(s.id))
   const totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0)
 
@@ -141,6 +139,8 @@ export function ShowtimeSeatPage() {
     }
     return list
   }, [seats, selectedSeatIds])
+
+  if (loading && seats.length === 0) return <PageLoader ariaLabel="Đang tải sơ đồ ghế..." />
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
