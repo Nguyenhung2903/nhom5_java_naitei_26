@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Alert, AlertDescription, Badge, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchInput, type ButtonVariant } from '@/components/ui'
+import { Alert, AlertDescription, Button, Card, ConfirmDialog, Modal, ModalFooter, ResponsiveTable, SearchInput, type ButtonVariant } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { CheckCircle2, Edit, Plus, Trash2 } from 'lucide-react'
 
@@ -187,26 +187,14 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       {error && <Alert tone="error"><AlertDescription>{error}</AlertDescription></Alert>}
 
       <Card variant="glass" className="p-3.5 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="w-full sm:max-w-md">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder={searchPlaceholder || 'Tìm kiếm...'}
-                inputSize="sm"
-              />
-            </div>
-            {toolbar}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-secondary)]">
-            <span>Hiển thị:</span>
-            <Badge tone={filteredItems.length > 0 ? 'accent' : 'muted'} size="sm">
-              {filteredItems.length} / {items.length} bản ghi
-            </Badge>
-          </div>
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={searchPlaceholder || 'Tìm kiếm...'}
+          inputSize="sm"
+        />
       </Card>
+      {toolbar}
       <Card variant="elevated" className="overflow-hidden">
         <ResponsiveTable
           data={filteredItems}

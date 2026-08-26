@@ -3,6 +3,9 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
 import { promotionService } from '@/services/promotionService'
+import { showtimeService } from '@/services/showtimeService'
+import { movieService } from '@/services/movieService'
+import { theaterService } from '@/services/theaterService'
 import {
   PageLoader,
   Alert,
@@ -12,18 +15,6 @@ import {
   FormField,
 } from '@/components/ui'
 import { AlertCircle, ArrowLeft, Clock, Ticket, Film, MapPin, Tag } from 'lucide-react'
-
-// Mock Data cho thông tin phim
-const MOCK_MOVIE_INFO = {
-  title: "Mai (18+)",
-  duration: "131 phút",
-  time: "19:00 - 21:11",
-  date: "25/10/2026",
-  room: "Phòng chiếu 03",
-  cinema: "Sun* Cinema Hà Nội",
-  address: "Tầng 3, Tòa nhà báo Sinh Viên VN, Yên Hòa, Cầu Giấy, Hà Nội",
-}
-
 export function CheckoutPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
   const location = useLocation()
@@ -42,6 +33,55 @@ export function CheckoutPage() {
   const [loading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
+  // Real Data states
+  const [showtime, setShowtime] = useState<any>(null)
+  const [movie, setMovie] = useState<any>(null)
+  const [theater, setTheater] = useState<any>(null)
+  const [seats, setSeats] = useState<any[]>([])
+  const [isDataLoading, setIsDataLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!showtimeId) return
+      try {
+        const st = await showtimeService.getById(showtimeId)
+        setShowtime(st)
+        
+        const [m, theaters, allSeats] = await Promise.all([
+          movieService.getMovieById(st.movieId),
+          theaterService.getAll(),
+          showtimeSeatService.getSeats(showtimeId)
+        ])
+        setMovie(m)
+        setTheater(theaters.find(t => t.id === st.theaterId))
+        setSeats(allSeats)
+      } catch (err) {
+        console.error("Failed to fetch booking details", err)
+      } finally {
+        setIsDataLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [showtimeId])
+
+  const formatTimeStr = (isoString?: string) => {
+    if (!isoString) return ''
+    return new Intl.DateTimeFormat('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(isoString))
+  }
+
+  const formatDateStr = (isoString?: string) => {
+    if (!isoString) return ''
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(new Date(isoString))
+  }
+  
   // Form Info
   const [fullName, setFullName] = useState(user?.fullName || user?.username || '')
   const [phone, setPhone] = useState(user?.phone || '')
@@ -56,7 +96,7 @@ export function CheckoutPage() {
 
   useEffect(() => {
     if (!holdExpiration || !selectedSeatIds || selectedSeatIds.length === 0) {
-      navigate(`/booking/${showtimeId}/seats`)
+      navigate(`/user/booking/${showtimeId}/seats`)
       return
     }
 
@@ -74,7 +114,7 @@ export function CheckoutPage() {
       if (remaining <= 0) {
         clearInterval(timer)
         showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
-        navigate(`/booking/${showtimeId}/seats`)
+        navigate(`/user/booking/${showtimeId}/seats`)
       }
     }, 1000)
 
@@ -131,6 +171,10 @@ export function CheckoutPage() {
   const finalTotalAmount = Math.max(0, subTotal - discountAmount)
 
   if (!selectedSeatIds) return null
+  
+  const selectedSeatLabels = seats.length > 0 
+    ? seats.filter((s: any) => selectedSeatIds.includes(s.id)).map((s: any) => `${s.seatRow}${s.seatNumber}`).join(', ')
+    : selectedSeatIds.join(', ')
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -222,26 +266,34 @@ export function CheckoutPage() {
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-border-subtle)] rounded-xl overflow-hidden">
             <div className="p-6 border-b border-[var(--rogym-border-subtle)]">
-              <h3 className="text-xl font-bold text-white mb-2">{MOCK_MOVIE_INFO.title}</h3>
-              <p className="text-[var(--rogym-text-muted)] text-sm mb-4">Thời lượng: {MOCK_MOVIE_INFO.duration}</p>
-              
-              <div className="space-y-3 text-sm">
-                <div className="flex gap-3 text-white">
-                  <Film className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
-                  <div>
-                    <p className="font-medium">{MOCK_MOVIE_INFO.cinema}</p>
-                    <p className="text-[var(--rogym-text-muted)] mt-1">{MOCK_MOVIE_INFO.room} - {MOCK_MOVIE_INFO.time} - {MOCK_MOVIE_INFO.date}</p>
+              {isDataLoading ? (
+                <div className="flex justify-center p-4">
+                  <PageLoader ariaLabel="Đang tải thông tin phim..." className="scale-75" />
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-xl font-bold text-white mb-2">{movie?.title || showtime?.movieTitle} {movie?.ageRating ? `(${movie.ageRating})` : ''}</h3>
+                  <p className="text-[var(--rogym-text-muted)] text-sm mb-4">Thời lượng: {movie?.duration ? `${movie.duration} phút` : 'Đang cập nhật'}</p>
+                  
+                  <div className="space-y-3 text-sm">
+                    <div className="flex gap-3 text-white">
+                      <Film className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
+                      <div>
+                        <p className="font-medium">{theater?.name || showtime?.theaterName}</p>
+                        <p className="text-[var(--rogym-text-muted)] mt-1">{showtime?.roomName} - {formatTimeStr(showtime?.startTime)} - {formatTimeStr(showtime?.endTime)} - {formatDateStr(showtime?.startTime)}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 text-white">
+                      <MapPin className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
+                      <p>{theater?.address || 'Đang cập nhật'}</p>
+                    </div>
+                    <div className="flex gap-3 text-white">
+                      <Ticket className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
+                      <p>Số ghế: <span className="font-bold text-[var(--rogym-primary)]">{selectedSeatLabels}</span></p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-3 text-white">
-                  <MapPin className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
-                  <p>{MOCK_MOVIE_INFO.address}</p>
-                </div>
-                <div className="flex gap-3 text-white">
-                  <Ticket className="w-5 h-5 text-[var(--rogym-primary)] shrink-0" />
-                  <p>Số ghế: <span className="font-bold text-[var(--rogym-primary)]">{selectedSeatIds.join(', ')}</span></p>
-                </div>
-              </div>
+                </>
+              )}
             </div>
             
             <div className="p-6 bg-[var(--rogym-surface-hover)]">

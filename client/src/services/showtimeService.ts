@@ -32,6 +32,11 @@ export const showtimeService = {
     const response = await api.get<ApiResponse<Showtime[]>>(`/showtimes?${params.toString()}`)
     return response.data || []
   },
+  getById: async (id: string): Promise<Showtime> => {
+    const response = await api.get<ApiResponse<Showtime>>(`/showtimes/${id}`)
+    if (!response.data) throw new Error(response.message || 'Không tìm thấy suất chiếu')
+    return response.data
+  },
   create: async (payload: ShowtimeRequest): Promise<Showtime> => {
     const response = await api.post<ApiResponse<Showtime>>('/showtimes', normalizePayload(payload))
     if (!response.data) throw new Error(response.message || 'Tạo suất chiếu thất bại')
