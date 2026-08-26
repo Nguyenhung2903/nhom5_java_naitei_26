@@ -3,10 +3,17 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ProfilePage } from './ProfilePage'
 import { useAuth } from '@/hooks/useAuth'
+import { authService } from '@/services/authService'
 import { userService } from '@/services/userService'
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
+}))
+
+vi.mock('@/services/authService', () => ({
+  authService: {
+    changePassword: vi.fn(),
+  },
 }))
 
 vi.mock('@/services/userService', () => ({
@@ -170,5 +177,76 @@ describe('ProfilePage', () => {
 
     expect(screen.queryByText('Vé đã xem')).toBeNull()
     expect(screen.queryByText('Điểm thưởng')).toBeNull()
+  })
+
+  it('validates password change form fields and submits successfully with currentPassword', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      refreshProfile: vi.fn(),
+      isAuthenticated: true,
+      isAdmin: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+    vi.mocked(authService.changePassword).mockResolvedValue(undefined)
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
+
+    // Switch to Security Tab
+    fireEvent.click(screen.getByRole('tab', { name: /đổi mật khẩu/i }))
+
+    const submitBtn = screen.getByText('Cập nhật mật khẩu')
+    fireEvent.click(submitBtn)
+
+    // Check empty validation
+    expect(screen.getByText('Vui lòng nhập mật khẩu hiện tại')).toBeTruthy()
+    expect(screen.getByText('Vui lòng nhập mật khẩu mới')).toBeTruthy()
+    expect(screen.getByText('Vui lòng xác nhận mật khẩu mới')).toBeTruthy()
+
+    // Fill current and short new password
+    const currentPassInput = screen.getByLabelText(/Mật khẩu hiện tại/i)
+    const newPassInput = screen.getByLabelText(/^Mật khẩu mới/i)
+    const confirmPassInput = screen.getByLabelText(/Xác nhận mật khẩu mới/i)
+
+    fireEvent.change(currentPassInput, { target: { value: 'OldPassword@123' } })
+    fireEvent.change(newPassInput, { target: { value: '123' } })
+    fireEvent.change(confirmPassInput, { target: { value: '123' } })
+    fireEvent.click(submitBtn)
+
+    expect(screen.getByText('Mật khẩu mới phải có ít nhất 6 ký tự')).toBeTruthy()
+
+    // Fill new password same as current password
+    fireEvent.change(newPassInput, { target: { value: 'OldPassword@123' } })
+    fireEvent.change(confirmPassInput, { target: { value: 'OldPassword@123' } })
+    fireEvent.click(submitBtn)
+
+    expect(screen.getByText('Mật khẩu mới không được trùng với mật khẩu hiện tại')).toBeTruthy()
+
+    // Fill valid new password with mismatch confirm
+    fireEvent.change(newPassInput, { target: { value: 'NewPassword@123' } })
+    fireEvent.change(confirmPassInput, { target: { value: 'DifferentPassword@123' } })
+    fireEvent.click(submitBtn)
+
+    expect(screen.getByText('Mật khẩu xác nhận không khớp')).toBeTruthy()
+
+    // Fill matching valid new password and submit
+    fireEvent.change(confirmPassInput, { target: { value: 'NewPassword@123' } })
+    fireEvent.click(submitBtn)
+
+    await waitFor(() => {
+      expect(authService.changePassword).toHaveBeenCalledWith({
+        currentPassword: 'OldPassword@123',
+        newPassword: 'NewPassword@123',
+        confirmPassword: 'NewPassword@123',
+      })
+      expect(screen.getByText('Đổi mật khẩu thành công!')).toBeTruthy()
+    })
   })
 })
