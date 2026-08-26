@@ -5,6 +5,7 @@ import com.nhom_5.server.dto.response.ComboResponse;
 import com.nhom_5.server.entity.Combo;
 import com.nhom_5.server.entity.enums.ComboStatus;
 import com.nhom_5.server.repository.ComboRepository;
+import com.nhom_5.server.repository.TicketComboRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,7 +17,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +27,9 @@ import static org.mockito.Mockito.when;
 class ComboServiceTest {
     @Mock
     private ComboRepository comboRepository;
+
+    @Mock
+    private TicketComboRepository ticketComboRepository;
 
     @InjectMocks
     private ComboService comboService;
@@ -58,14 +64,28 @@ class ComboServiceTest {
     }
 
     @Test
-    void deleteComboDeletesExistingCombo() {
+    void deleteComboDeletesExistingComboAndReferences() {
         UUID id = UUID.randomUUID();
         Combo combo = Combo.builder().id(id).name("Combo").price(BigDecimal.TEN).status(ComboStatus.ACTIVE).build();
         when(comboRepository.findById(id)).thenReturn(Optional.of(combo));
+        when(ticketComboRepository.existsByComboId(id)).thenReturn(false);
 
         comboService.deleteCombo(id);
 
         verify(comboRepository).delete(combo);
+    }
+
+    @Test
+    void deleteComboRejectsComboUsedByExistingTicket() {
+        UUID id = UUID.randomUUID();
+        Combo combo = Combo.builder().id(id).name("Combo").price(BigDecimal.TEN).status(ComboStatus.ACTIVE).build();
+        when(comboRepository.findById(id)).thenReturn(Optional.of(combo));
+        when(ticketComboRepository.existsByComboId(id)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> comboService.deleteCombo(id));
+
+        assertEquals("Không thể xóa combo vì combo này đã được sử dụng trong vé hoặc đơn hàng cũ.", exception.getMessage());
+        verify(comboRepository, never()).delete(combo);
     }
 
     private ComboRequest request() {
