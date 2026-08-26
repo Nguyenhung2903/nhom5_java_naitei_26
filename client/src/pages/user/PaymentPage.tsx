@@ -26,14 +26,14 @@ export function PaymentPage() {
   const [paymentMethod, setPaymentMethod] = useState<'VNPAY'>('VNPAY')
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [isSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isSuccess) return
 
     if (!holdExpiration || finalTotalAmount === undefined) {
-      navigate(`/booking/${showtimeId}/seats`)
+      navigate(`/user/booking/${showtimeId}/seats`)
       return
     }
 
@@ -51,7 +51,7 @@ export function PaymentPage() {
       if (remaining <= 0) {
         clearInterval(timer)
         showtimeSeatService.releaseSeats(showtimeId!, selectedSeatIds).catch(console.error)
-        navigate(`/booking/${showtimeId}/seats`)
+        navigate(`/user/booking/${showtimeId}/seats`)
       }
     }, 1000)
 
@@ -72,23 +72,20 @@ export function PaymentPage() {
         ? selectedCombos.map((item: any) => ({ comboId: item.id, quantity: item.quantity }))
         : []
 
-      const transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`
-
-      // Bỏ qua cổng thanh toán VNPay, xác nhận đơn vé trực tiếp
-      await bookingService.createBooking({
+      const pendingBooking = {
         showtimeId: showtimeId!,
         seatIds: selectedSeatIds || [],
         combos: combosList,
         discountCode: discountCode || undefined,
-        paymentMethod: 'VNPAY',
-        paymentTransactionId: transactionId,
-      })
+      }
+      
+      localStorage.setItem('pending_vnpay_booking', JSON.stringify(pendingBooking))
 
-      setIsSuccess(true)
+      const url = await bookingService.createVNPayUrl(finalTotalAmount)
+      window.location.href = url
     } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn đặt vé. Vui lòng thử lại.")
-    } finally {
       setIsProcessing(false)
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi kết nối với VNPay. Vui lòng thử lại.")
     }
   }
 
