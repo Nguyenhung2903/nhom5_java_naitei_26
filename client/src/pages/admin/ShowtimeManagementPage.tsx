@@ -70,6 +70,9 @@ export function ShowtimeManagementPage() {
   }), [filters])
 
   const theaters = [...new Map(rooms.map((room) => [room.theaterId, room.theaterName])).entries()]
+  const filteredRooms = filters.theaterId
+    ? rooms.filter((room) => room.theaterId === filters.theaterId)
+    : rooms
   const updateFilter = <K extends keyof ShowtimeFilters>(key: K, value: ShowtimeFilters[K]) => {
     setFilters((current) => ({ ...current, [key]: value || undefined }))
   }
@@ -102,7 +105,15 @@ export function ShowtimeManagementPage() {
               </Select>
             </FormField>
             <FormField label="Rạp">
-              <Select value={filters.theaterId || ''} onValueChange={(value) => updateFilter('theaterId', value)} aria-label="Lọc theo rạp">
+              <Select
+                value={filters.theaterId || ''}
+                onValueChange={(value) => setFilters((current) => ({
+                  ...current,
+                  theaterId: value || undefined,
+                  roomId: undefined,
+                }))}
+                aria-label="Lọc theo rạp"
+              >
                 <option value="">Tất cả rạp</option>
                 {theaters.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
               </Select>
@@ -110,7 +121,7 @@ export function ShowtimeManagementPage() {
             <FormField label="Phòng">
               <Select value={filters.roomId || ''} onValueChange={(value) => updateFilter('roomId', value)} aria-label="Lọc theo phòng">
                 <option value="">Tất cả phòng</option>
-                {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+                {filteredRooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
               </Select>
             </FormField>
             <FormField label="Ngày chiếu">

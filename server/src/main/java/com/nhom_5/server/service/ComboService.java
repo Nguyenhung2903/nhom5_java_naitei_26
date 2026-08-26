@@ -5,7 +5,9 @@ import com.nhom_5.server.dto.response.ComboResponse;
 import com.nhom_5.server.entity.Combo;
 import com.nhom_5.server.entity.enums.ComboStatus;
 import com.nhom_5.server.repository.ComboRepository;
+import com.nhom_5.server.repository.TicketComboRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ComboService {
     private final ComboRepository comboRepository;
+    private final TicketComboRepository ticketComboRepository;
 
     public List<ComboResponse> getActiveCombos() {
         return comboRepository.findByStatus(ComboStatus.ACTIVE)
@@ -39,10 +42,16 @@ public class ComboService {
         return toResponse(comboRepository.save(combo));
     }
 
+    @Transactional
     public void deleteCombo(UUID id) {
         Combo combo = comboRepository.findById(id)
                 .orElseThrow(() -> new com.nhom_5.server.exception.AppException(
                         com.nhom_5.server.exception.ErrorCode.NOT_FOUND, "Không tìm thấy combo với ID: " + id));
+        if (ticketComboRepository.existsByComboId(id)) {
+            throw new com.nhom_5.server.exception.AppException(
+                    com.nhom_5.server.exception.ErrorCode.BAD_REQUEST,
+                    "Không thể xóa combo vì combo này đã được sử dụng trong vé hoặc đơn hàng cũ.");
+        }
         comboRepository.delete(combo);
     }
 
