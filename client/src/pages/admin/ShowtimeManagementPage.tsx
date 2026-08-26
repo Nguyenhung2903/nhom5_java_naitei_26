@@ -1,7 +1,7 @@
 import { CalendarDays } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { AdminCrudPage } from '@/components/admin'
-import { Button, FormField, Input, Select } from '@/components/ui'
+import { Button, DatePickerInput, FormField, Input, SearchToolbar, Select } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { movieService } from '@/services/movieService'
 import { roomService } from '@/services/roomService'
@@ -77,28 +77,41 @@ export function ShowtimeManagementPage() {
         status: item.status,
       })}
       toolbar={(
-        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-6">
-          <Select value={filters.movieId || ''} onValueChange={(value) => updateFilter('movieId', value)} aria-label="Lọc theo phim">
-            <option value="">Tất cả phim</option>
-            {movies.map((movie) => <option key={movie.id} value={movie.id}>{movie.title}</option>)}
-          </Select>
-          <Select value={filters.theaterId || ''} onValueChange={(value) => updateFilter('theaterId', value)} aria-label="Lọc theo rạp">
-            <option value="">Tất cả rạp</option>
-            {theaters.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-          </Select>
-          <Select value={filters.roomId || ''} onValueChange={(value) => updateFilter('roomId', value)} aria-label="Lọc theo phòng">
-            <option value="">Tất cả phòng</option>
-            {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
-          </Select>
-          <Input type="date" value={filters.date || ''} onChange={(event) => updateFilter('date', event.target.value)} aria-label="Lọc theo ngày chiếu" />
-          <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value as ShowtimeStatus || undefined)} aria-label="Lọc theo trạng thái">
-            <option value="">Tất cả trạng thái</option>
-            <option value="OPEN">Mở bán</option>
-            <option value="CANCELLED">Đã hủy</option>
-            <option value="FINISHED">Đã kết thúc</option>
-          </Select>
+        <SearchToolbar variant="plain" layout="col" className="mb-4" actions={(
           <Button type="button" variant="secondary" onClick={() => setFilters({})}>Xóa bộ lọc</Button>
-        </div>
+        )}>
+          <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+            <FormField label="Phim">
+              <Select value={filters.movieId || ''} onValueChange={(value) => updateFilter('movieId', value)} aria-label="Lọc theo phim">
+                <option value="">Tất cả phim</option>
+                {movies.map((movie) => <option key={movie.id} value={movie.id}>{movie.title}</option>)}
+              </Select>
+            </FormField>
+            <FormField label="Rạp">
+              <Select value={filters.theaterId || ''} onValueChange={(value) => updateFilter('theaterId', value)} aria-label="Lọc theo rạp">
+                <option value="">Tất cả rạp</option>
+                {theaters.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              </Select>
+            </FormField>
+            <FormField label="Phòng">
+              <Select value={filters.roomId || ''} onValueChange={(value) => updateFilter('roomId', value)} aria-label="Lọc theo phòng">
+                <option value="">Tất cả phòng</option>
+                {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+              </Select>
+            </FormField>
+            <FormField label="Ngày chiếu">
+              <DatePickerInput value={filters.date || ''} onChange={(value) => updateFilter('date', value)} aria-label="Lọc theo ngày chiếu" />
+            </FormField>
+            <FormField label="Trạng thái">
+              <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value as ShowtimeStatus || undefined)} aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="OPEN">Mở bán</option>
+                <option value="CANCELLED">Đã hủy</option>
+                <option value="FINISHED">Đã kết thúc</option>
+              </Select>
+            </FormField>
+          </div>
+        </SearchToolbar>
       )}
       getSearchText={(item) => `${item.movieTitle} ${item.theaterName} ${item.roomName} ${item.status}`}
       renderForm={(form, update) => {
