@@ -54,8 +54,6 @@ public class TheaterServiceImpl implements TheaterService {
                 .name(request.getName().trim())
                 .address(request.getAddress().trim())
                 .phone(request.getPhone())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
                 .build();
         return TheaterResponse.fromEntity(theaterRepository.save(theater));
     }
@@ -68,8 +66,6 @@ public class TheaterServiceImpl implements TheaterService {
         theater.setName(request.getName().trim());
         theater.setAddress(request.getAddress().trim());
         theater.setPhone(request.getPhone());
-        theater.setLatitude(request.getLatitude());
-        theater.setLongitude(request.getLongitude());
         return TheaterResponse.fromEntity(theaterRepository.save(theater));
     }
 

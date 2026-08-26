@@ -1,13 +1,9 @@
 package com.nhom_5.server.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 @Data
 @Schema(description = "Dữ liệu tạo hoặc cập nhật cụm rạp")
@@ -27,13 +23,4 @@ public class TheaterRequest {
     @Schema(description = "Số điện thoại liên hệ rạp", example = "19001234")
     private String phone;
 
-    @DecimalMin(value = "-90.0", message = "Vĩ độ không hợp lệ")
-    @DecimalMax(value = "90.0", message = "Vĩ độ không hợp lệ")
-    @Schema(description = "Tọa độ vĩ độ (Latitude)", example = "10.7949")
-    private BigDecimal latitude;
-
-    @DecimalMin(value = "-180.0", message = "Kinh độ không hợp lệ")
-    @DecimalMax(value = "180.0", message = "Kinh độ không hợp lệ")
-    @Schema(description = "Tọa độ kinh độ (Longitude)", example = "106.7218")
-    private BigDecimal longitude;
 }

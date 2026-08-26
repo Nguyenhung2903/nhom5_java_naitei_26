@@ -13,7 +13,7 @@ vi.mock('@/services/theaterService', () => ({
 describe('CinemasPage', () => {
   it('loads and displays the public cinema list', async () => {
     vi.mocked(theaterService.getAll).mockResolvedValue([
-      { id: 'theater-1', name: 'Cinema A', address: 'Address A', phone: '0123456789', latitude: null, longitude: null },
+      { id: 'theater-1', name: 'Cinema A', address: 'Address A', phone: '0123456789' },
     ])
 
     render(
