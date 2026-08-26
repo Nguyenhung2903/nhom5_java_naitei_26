@@ -21,7 +21,7 @@ export interface MyBookingResponse {
   bookingTime: string;
   totalAmount: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'EXPIRED';
-  paymentStatus: 'UNPAID' | 'PAID' | 'REFUNDED';
+  paymentStatus: 'UNPAID' | 'PAID' | 'FAILED';
   movieTitle: string;
   moviePoster: string;
   ageRating: string;
@@ -45,5 +45,9 @@ export const bookingService = {
   createVNPayUrl: async (amount: number): Promise<string> => {
     const res = await api.get<{ url: string }>(`/payment/vnpay/create-url?amount=${amount}`)
     return res.url
+  },
+  cancelBooking: async (bookingId: string): Promise<string> => {
+    const res = await api.post<{ message: string }>(`/bookings/${bookingId}/cancel`)
+    return res.message || 'Hủy vé thành công'
   }
 }

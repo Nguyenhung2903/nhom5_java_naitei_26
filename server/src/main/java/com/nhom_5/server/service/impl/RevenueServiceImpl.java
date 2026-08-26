@@ -391,12 +391,12 @@ public class RevenueServiceImpl implements RevenueService {
             bookings = bookingRepository.findByPaymentStatusOrderByBookingTimeDesc(PaymentStatus.PAID);
         }
 
-        if (movieId == null && theaterId == null) {
-            return bookings;
-        }
-
         return bookings.stream()
+                .filter(b -> b.getBookingStatus() == com.nhom_5.server.entity.enums.BookingStatus.CONFIRMED)
                 .filter(b -> {
+                    if (movieId == null && theaterId == null) {
+                        return true;
+                    }
                     if (b.getTickets() == null) return false;
                     return b.getTickets().stream().anyMatch(t -> isTicketMatching(t, movieId, theaterId));
                 })

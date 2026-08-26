@@ -255,7 +255,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<MyBookingResponse> getMyBookings() {
         User currentUser = SecurityUtil.getCurrentUser();
-        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusWithDetails(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
+        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusWithDetails(currentUser, PaymentStatus.PAID);
 
         return bookings.stream().map(booking -> {
             MyBookingResponse response = MyBookingResponse.builder()
@@ -308,5 +308,50 @@ public class BookingServiceImpl implements BookingService {
 
             return response;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(UUID bookingId) {
+        User currentUser = SecurityUtil.getCurrentUser();
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy đơn đặt vé"));
+
+        boolean isOwner = booking.getUser() != null && booking.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == com.nhom_5.server.entity.enums.Role.ADMIN;
+        if (!isOwner && !isAdmin) {
+            throw new AppException(ErrorCode.FORBIDDEN, "Bạn không có quyền hủy đơn đặt vé này");
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Đơn đặt vé này đã bị hủy trước đó");
+        }
+
+        List<Ticket> tickets = booking.getTickets();
+        Instant now = Instant.now();
+
+        if (tickets != null && !tickets.isEmpty()) {
+            for (Ticket ticket : tickets) {
+                if (ticket.getShowtimeSeat() != null && ticket.getShowtimeSeat().getShowtime() != null) {
+                    Showtime showtime = ticket.getShowtimeSeat().getShowtime();
+                    if (showtime.getStartTime() != null && showtime.getStartTime().isBefore(now)) {
+                        throw new AppException(ErrorCode.BAD_REQUEST, "Không thể hủy vé vì suất chiếu đã bắt đầu hoặc đã qua giờ chiếu");
+                    }
+                }
+            }
+
+            for (Ticket ticket : tickets) {
+                ShowtimeSeat seat = ticket.getShowtimeSeat();
+                if (seat != null) {
+                    seat.setStatus(ShowtimeSeatStatus.AVAILABLE);
+                    seat.setHeldBy(null);
+                    seat.setHeldUntil(null);
+                    showtimeSeatRepository.save(seat);
+                }
+            }
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
     }
 }

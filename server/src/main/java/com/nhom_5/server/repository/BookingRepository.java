@@ -32,6 +32,18 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             @org.springframework.data.repository.query.Param("user") User user,
             @org.springframework.data.repository.query.Param("paymentStatus") com.nhom_5.server.entity.enums.PaymentStatus paymentStatus);
 
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT DISTINCT b
+            FROM Booking b
+            LEFT JOIN FETCH b.user u
+            LEFT JOIN FETCH b.tickets t
+            LEFT JOIN FETCH t.showtimeSeat ss
+            LEFT JOIN FETCH ss.seat s
+            LEFT JOIN FETCH ss.showtime st
+            WHERE b.id = :id
+            """)
+    java.util.Optional<Booking> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") UUID id);
+
     List<Booking> findByBookingTimeBetweenAndPaymentStatusOrderByBookingTimeDesc(
             java.time.Instant startTime,
             java.time.Instant endTime,
