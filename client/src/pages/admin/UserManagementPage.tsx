@@ -31,6 +31,7 @@ import {
   Spinner,
 } from '@/components/ui'
 import { userService } from '@/services/userService'
+import { useAuth } from '@/hooks/useAuth'
 import type {
   UserProfile,
   Role,
@@ -65,6 +66,7 @@ const initialEditForm: AdminUpdateUserPayload = {
 }
 
 export function UserManagementPage() {
+  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [page, setPage] = useState(1)
   const [pageSize] = useState(10)
@@ -259,6 +261,19 @@ export function UserManagementPage() {
       return
     }
 
+    const isEditingSelf =
+      currentUser && (editingUserId === currentUser.id || editingUserEmail.toLowerCase() === currentUser.email.toLowerCase())
+
+    if (isEditingSelf && editForm.status === 'LOCKED') {
+      setEditErrors({ form: 'Bạn không thể tự khóa tài khoản của chính mình' })
+      return
+    }
+
+    if (isEditingSelf && editForm.role !== 'ADMIN') {
+      setEditErrors({ form: 'Bạn không thể tự hạ quyền tài khoản của chính mình' })
+      return
+    }
+
     setSaving(true)
     try {
       await userService.updateUser(editingUserId, {
@@ -287,12 +302,22 @@ export function UserManagementPage() {
 
   // --- Lock / Soft Delete Handlers ---
   const handleOpenLock = (user: UserProfile) => {
+    if (currentUser && (user.id === currentUser.id || user.email.toLowerCase() === currentUser.email.toLowerCase())) {
+      setError('Bạn không thể tự khóa tài khoản của chính mình')
+      return
+    }
     setUserToLock(user)
     setIsLockOpen(true)
   }
 
   const handleConfirmLock = async () => {
     if (!userToLock) return
+
+    if (currentUser && (userToLock.id === currentUser.id || userToLock.email.toLowerCase() === currentUser.email.toLowerCase())) {
+      setError('Bạn không thể tự khóa tài khoản của chính mình')
+      setIsLockOpen(false)
+      return
+    }
 
     setLocking(true)
     try {
@@ -423,81 +448,94 @@ export function UserManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {users.map((item) => (
-                    <tr key={item.id} className="transition-colors hover:bg-white/[0.02]">
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <Avatar
-                            name={item.fullName || item.username}
-                            src={item.avatar || undefined}
-                            size="md"
-                            border
-                          />
-                          <div className="min-w-0">
-                            <p className="font-bold text-white truncate">{item.fullName}</p>
-                            <p className="text-[11px] text-[var(--rogym-text-muted)]">
-                              {item.gender ? `${item.gender} • ` : ''}
-                              {item.birthday || 'Chưa có ngày sinh'}
+                  {users.map((item) => {
+                    const isSelf =
+                      currentUser &&
+                      (item.id === currentUser.id || item.email.toLowerCase() === currentUser.email.toLowerCase())
+
+                    return (
+                      <tr key={item.id} className="transition-colors hover:bg-white/[0.02]">
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <Avatar
+                              name={item.fullName || item.username}
+                              src={item.avatar || undefined}
+                              size="md"
+                              border
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-bold text-white truncate">{item.fullName}</p>
+                                {isSelf && (
+                                  <Badge tone="accent" size="sm">
+                                    Bạn
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-[var(--rogym-text-muted)]">
+                                {item.gender ? `${item.gender} • ` : ''}
+                                {item.birthday || 'Chưa có ngày sinh'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5">
+                          <div className="space-y-0.5">
+                            <p className="font-mono text-white">@{item.username}</p>
+                            <p className="flex items-center gap-1 text-[var(--rogym-text-secondary)]">
+                              <Mail className="h-3 w-3 text-[var(--rogym-teal)]" />
+                              {item.email}
                             </p>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-4 py-3.5">
-                        <div className="space-y-0.5">
-                          <p className="font-mono text-white">@{item.username}</p>
-                          <p className="flex items-center gap-1 text-[var(--rogym-text-secondary)]">
-                            <Mail className="h-3 w-3 text-[var(--rogym-teal)]" />
-                            {item.email}
-                          </p>
-                        </div>
-                      </td>
+                        <td className="px-4 py-3.5">
+                          <span className="flex items-center gap-1 text-white">
+                            <Phone className="h-3 w-3 text-[var(--rogym-teal)]" />
+                            {item.phone || 'Chưa cập nhật'}
+                          </span>
+                        </td>
 
-                      <td className="px-4 py-3.5">
-                        <span className="flex items-center gap-1 text-white">
-                          <Phone className="h-3 w-3 text-[var(--rogym-teal)]" />
-                          {item.phone || 'Chưa cập nhật'}
-                        </span>
-                      </td>
+                        <td className="px-4 py-3.5">
+                          <Badge tone={item.role === 'ADMIN' ? 'accent' : 'primary'} size="sm">
+                            {item.role === 'ADMIN' ? 'Quản Trị Viên' : 'Khách Hàng'}
+                          </Badge>
+                        </td>
 
-                      <td className="px-4 py-3.5">
-                        <Badge tone={item.role === 'ADMIN' ? 'accent' : 'primary'} size="sm">
-                          {item.role === 'ADMIN' ? 'Quản Trị Viên' : 'Khách Hàng'}
-                        </Badge>
-                      </td>
+                        <td className="px-4 py-3.5">
+                          <Badge tone={item.status === 'ACTIVE' ? 'success' : 'danger'} size="sm">
+                            {item.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa'}
+                          </Badge>
+                        </td>
 
-                      <td className="px-4 py-3.5">
-                        <Badge tone={item.status === 'ACTIVE' ? 'success' : 'danger'} size="sm">
-                          {item.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa'}
-                        </Badge>
-                      </td>
-
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            leftIcon={<Edit className="h-3.5 w-3.5" />}
-                            onClick={() => handleOpenEdit(item)}
-                          >
-                            Sửa
-                          </Button>
-                          {item.status !== 'LOCKED' && (
+                        <td className="px-4 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <Button
                               type="button"
-                              variant="danger"
+                              variant="secondary"
                               size="sm"
-                              leftIcon={<Lock className="h-3.5 w-3.5" />}
-                              onClick={() => handleOpenLock(item)}
+                              leftIcon={<Edit className="h-3.5 w-3.5" />}
+                              onClick={() => handleOpenEdit(item)}
                             >
-                              Khóa
+                              Sửa
                             </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {item.status !== 'LOCKED' && !isSelf && (
+                              <Button
+                                type="button"
+                                variant="danger"
+                                size="sm"
+                                leftIcon={<Lock className="h-3.5 w-3.5" />}
+                                onClick={() => handleOpenLock(item)}
+                              >
+                                Khóa
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -793,11 +831,22 @@ export function UserManagementPage() {
               </Select>
             </FormField>
 
-            <FormField label="Vai trò" htmlFor="editRole">
+            <FormField
+              label="Vai trò"
+              htmlFor="editRole"
+              hint={
+                currentUser && (editingUserId === currentUser.id || editingUserEmail.toLowerCase() === currentUser.email.toLowerCase())
+                  ? 'Không thể tự thay đổi vai trò của chính mình'
+                  : undefined
+              }
+            >
               <Select
                 value={editForm.role}
                 onValueChange={(val) => setEditForm({ ...editForm, role: val as Role })}
-                disabled={saving}
+                disabled={
+                  saving ||
+                  Boolean(currentUser && (editingUserId === currentUser.id || editingUserEmail.toLowerCase() === currentUser.email.toLowerCase()))
+                }
               >
                 <option value="USER">Khách Hàng (USER)</option>
                 <option value="ADMIN">Quản Trị Viên (ADMIN)</option>
@@ -806,11 +855,22 @@ export function UserManagementPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField label="Trạng thái tài khoản" htmlFor="editStatus">
+            <FormField
+              label="Trạng thái tài khoản"
+              htmlFor="editStatus"
+              hint={
+                currentUser && (editingUserId === currentUser.id || editingUserEmail.toLowerCase() === currentUser.email.toLowerCase())
+                  ? 'Không thể tự khóa tài khoản của chính mình'
+                  : undefined
+              }
+            >
               <Select
                 value={editForm.status}
                 onValueChange={(val) => setEditForm({ ...editForm, status: val as UserStatus })}
-                disabled={saving}
+                disabled={
+                  saving ||
+                  Boolean(currentUser && (editingUserId === currentUser.id || editingUserEmail.toLowerCase() === currentUser.email.toLowerCase()))
+                }
               >
                 <option value="ACTIVE">Hoạt động (ACTIVE)</option>
                 <option value="LOCKED">Bị khóa (LOCKED)</option>

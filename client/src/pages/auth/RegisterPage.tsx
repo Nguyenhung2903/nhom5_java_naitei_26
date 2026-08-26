@@ -14,6 +14,7 @@ import {
   Alert,
   AlertDescription,
   Select,
+  DatePickerInput,
 } from '@/components/ui'
 import {
   UserPlus,
@@ -21,11 +22,7 @@ import {
   Mail,
   Lock,
   Phone,
-  Calendar,
-  Sparkles,
   AlertCircle,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react'
 
 export function RegisterPage() {
@@ -43,7 +40,6 @@ export function RegisterPage() {
     birthday: '',
   })
 
-  const [showOptionalFields, setShowOptionalFields] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -90,11 +86,31 @@ export function RegisterPage() {
       nextErrors.confirmPassword = 'Mật khẩu xác nhận không khớp'
     }
 
-    // Phone (Optional)
-    if (formData.phone.trim()) {
-      const phoneRegex = /^(0|\+84)[0-9]{9}$/
-      if (!phoneRegex.test(formData.phone.trim())) {
-        nextErrors.phone = 'Số điện thoại không đúng định dạng (10 chữ số)'
+    // Phone (Required)
+    const phoneRegex = /^(0|\+84)[0-9]{9}$/
+    if (!formData.phone.trim()) {
+      nextErrors.phone = 'Số điện thoại không được để trống'
+    } else if (!phoneRegex.test(formData.phone.trim())) {
+      nextErrors.phone = 'Số điện thoại không đúng định dạng (10 chữ số)'
+    }
+
+    // Gender (Required)
+    if (!formData.gender) {
+      nextErrors.gender = 'Vui lòng chọn giới tính'
+    }
+
+    // Birthday (Required, >= 14 years old)
+    if (!formData.birthday) {
+      nextErrors.birthday = 'Vui lòng chọn ngày sinh'
+    } else {
+      const birthDate = new Date(formData.birthday)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const minAgeDate = new Date(today.getFullYear() - 14, today.getMonth(), today.getDate())
+      if (isNaN(birthDate.getTime()) || birthDate > today) {
+        nextErrors.birthday = 'Ngày sinh không hợp lệ'
+      } else if (birthDate > minAgeDate) {
+        nextErrors.birthday = 'Bạn phải từ đủ 14 tuổi trở lên để đăng ký tài khoản'
       }
     }
 
@@ -115,9 +131,9 @@ export function RegisterPage() {
         email: formData.email.trim(),
         username: formData.username.trim(),
         password: formData.password,
-        phone: formData.phone.trim() || undefined,
-        gender: formData.gender || undefined,
-        birthday: formData.birthday || undefined,
+        phone: formData.phone.trim(),
+        gender: formData.gender,
+        birthday: formData.birthday,
       })
 
       // Đăng ký thành công -> Tự động đăng nhập và về trang chủ
@@ -277,80 +293,69 @@ export function RegisterPage() {
             </FormField>
           </div>
 
-          {/* Collapsible Optional Information */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setShowOptionalFields(!showOptionalFields)}
-              className="flex items-center justify-between w-full py-2 px-3 text-xs font-semibold text-[var(--rogym-teal)] bg-white/5 hover:bg-white/10 rounded-lg border border-[var(--rogym-border-subtle)] transition-colors cursor-pointer"
-            >
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                {showOptionalFields ? 'Thu gọn thông tin cá nhân' : 'Bổ sung thông tin cá nhân (Tùy chọn)'}
-              </span>
-              {showOptionalFields ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
+          {/* Số điện thoại */}
+          <FormField
+            label="Số điện thoại"
+            htmlFor="phone"
+            required
+            error={errors.phone}
+          >
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="VD: 0912345678"
+              value={formData.phone}
+              onChange={(e) => {
+                setFormData({ ...formData, phone: e.target.value })
+                if (errors.phone) setErrors({ ...errors, phone: '' })
+              }}
+              leftIcon={<Phone className="w-4 h-4 text-[var(--rogym-text-muted)]" />}
+              error={!!errors.phone}
+              disabled={isSubmitting}
+              autoComplete="tel"
+            />
+          </FormField>
 
-            {showOptionalFields && (
-              <div className="space-y-3 pt-3 p-3 mt-2 rounded-xl bg-black/20 border border-[var(--rogym-border-subtle)] animate-in fade-in zoom-in-95 duration-150">
-                {/* Số điện thoại */}
-                <FormField
-                  label="Số điện thoại"
-                  htmlFor="phone"
-                  error={errors.phone}
-                >
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="VD: 0912345678"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      setFormData({ ...formData, phone: e.target.value })
-                      if (errors.phone) setErrors({ ...errors, phone: '' })
-                    }}
-                    leftIcon={<Phone className="w-4 h-4 text-[var(--rogym-text-muted)]" />}
-                    error={!!errors.phone}
-                    disabled={isSubmitting}
-                    autoComplete="tel"
-                  />
-                </FormField>
+          {/* Giới tính & Ngày sinh */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField label="Giới tính" htmlFor="gender" required error={errors.gender}>
+              <Select
+                id="gender"
+                value={formData.gender}
+                onValueChange={(val) => {
+                  setFormData({ ...formData, gender: val })
+                  if (errors.gender) setErrors({ ...errors, gender: '' })
+                }}
+                disabled={isSubmitting}
+                error={!!errors.gender}
+              >
+                <option value="">Chọn giới tính</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Khác">Khác</option>
+              </Select>
+            </FormField>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Giới tính */}
-                  <FormField label="Giới tính" htmlFor="gender">
-                    <Select
-                      value={formData.gender}
-                      onValueChange={(val) => setFormData({ ...formData, gender: val })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">Chọn giới tính</option>
-                      <option value="Nam">Nam</option>
-                      <option value="Nữ">Nữ</option>
-                      <option value="Khác">Khác</option>
-                    </Select>
-                  </FormField>
-
-                  {/* Ngày sinh */}
-                  <FormField label="Ngày sinh" htmlFor="birthday">
-                    <Input
-                      id="birthday"
-                      name="birthday"
-                      type="date"
-                      value={formData.birthday}
-                      onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
-                      leftIcon={<Calendar className="w-4 h-4 text-[var(--rogym-text-muted)]" />}
-                      disabled={isSubmitting}
-                      className="text-xs"
-                    />
-                  </FormField>
-                </div>
-              </div>
-            )}
+            <FormField label="Ngày sinh" htmlFor="birthday" required error={errors.birthday}>
+              <DatePickerInput
+                id="birthday"
+                value={formData.birthday}
+                onChange={(val) => {
+                  setFormData({ ...formData, birthday: val })
+                  if (errors.birthday) setErrors({ ...errors, birthday: '' })
+                }}
+                placeholder="DD/MM/YYYY"
+                min="1900-01-01"
+                max={(() => {
+                  const now = new Date()
+                  const d = new Date(now.getFullYear() - 14, now.getMonth(), now.getDate())
+                  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+                })()}
+                disabled={isSubmitting}
+                error={!!errors.birthday}
+              />
+            </FormField>
           </div>
 
           <Button

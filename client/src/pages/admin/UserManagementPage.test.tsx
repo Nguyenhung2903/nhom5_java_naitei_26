@@ -13,6 +13,21 @@ vi.mock('@/services/userService', () => ({
   },
 }))
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'user-1',
+      username: 'admin01',
+      email: 'admin01@cinemanest.vn',
+      fullName: 'Admin User',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+    isAuthenticated: true,
+    isAdmin: true,
+  }),
+}))
+
 afterEach(() => {
   vi.restoreAllMocks()
 })
@@ -133,5 +148,55 @@ describe('UserManagementPage', () => {
         })
       )
     })
+  })
+
+  it('displays "Bạn" badge for current user and hides Lock button for self', async () => {
+    vi.mocked(userService.getUsers).mockResolvedValue({
+      content: mockUsers,
+      pageNo: 0,
+      pageSize: 10,
+      totalElements: 2,
+      totalPages: 1,
+      last: true,
+    })
+
+    render(
+      <MemoryRouter>
+        <UserManagementPage />
+      </MemoryRouter>
+    )
+
+    await screen.findByText('Admin User')
+    expect(screen.getByText('Bạn')).toBeTruthy()
+
+    // Chỉ có 1 nút Khóa (cho client01), không có cho admin01
+    const lockButtons = screen.getAllByText('Khóa')
+    expect(lockButtons.length).toBe(1)
+  })
+
+  it('disables role and status select fields when editing self', async () => {
+    vi.mocked(userService.getUsers).mockResolvedValue({
+      content: mockUsers,
+      pageNo: 0,
+      pageSize: 10,
+      totalElements: 2,
+      totalPages: 1,
+      last: true,
+    })
+
+    render(
+      <MemoryRouter>
+        <UserManagementPage />
+      </MemoryRouter>
+    )
+
+    await screen.findByText('Admin User')
+
+    const editButtons = screen.getAllByText('Sửa')
+    fireEvent.click(editButtons[0]) // Edit Admin User (self)
+
+    expect(screen.getByText('Chỉnh sửa thông tin & phân quyền')).toBeTruthy()
+    expect(screen.getByText('Không thể tự thay đổi vai trò của chính mình')).toBeTruthy()
+    expect(screen.getByText('Không thể tự khóa tài khoản của chính mình')).toBeTruthy()
   })
 })

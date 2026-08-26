@@ -102,9 +102,6 @@ export function NewsManagementPage() {
             <Newspaper className="h-6 w-6 text-[var(--rogym-green)]" />
             Quản lý tin tức
           </h1>
-          <p className="mt-1 text-xs text-[var(--rogym-text-secondary)]">
-            CRUD bài viết, thông báo và tin tức hiển thị cho khách hàng.
-          </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input

@@ -58,4 +58,22 @@ public class BookingController {
         List<MyBookingResponse> bookings = bookingService.getMyBookings();
         return ApiResponse.success("Lấy lịch sử đặt vé thành công", bookings);
     }
+
+    @Operation(
+            summary = "[USER] Hủy đơn đặt vé xem phim",
+            description = "Cho phép người dùng hủy vé trước khi suất chiếu bắt đầu và hoàn trả lại trạng thái ghế trống.",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Hủy vé thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Suất chiếu đã bắt đầu hoặc đơn vé không thể hủy"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Không có quyền hủy đơn vé này"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Không tìm thấy đơn đặt vé")
+    })
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ApiResponse<String> cancelBooking(@org.springframework.web.bind.annotation.PathVariable java.util.UUID id) {
+        bookingService.cancelBooking(id);
+        return ApiResponse.success("Hủy vé thành công");
+    }
 }

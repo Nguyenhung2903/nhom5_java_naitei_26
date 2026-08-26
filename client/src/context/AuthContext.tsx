@@ -54,11 +54,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [logout])
 
   useEffect(() => {
+    const handleAccountLocked = () => {
+      logout()
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login?reason=account_locked'
+      }
+    }
+
+    window.addEventListener('auth:account-locked', handleAccountLocked)
+    return () => {
+      window.removeEventListener('auth:account-locked', handleAccountLocked)
+    }
+  }, [logout])
+
+  useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem(TOKEN_KEY)
       if (storedToken) {
         try {
           const profile = await authService.getCurrentUser()
+          if (profile.status === 'LOCKED') {
+            logout()
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login?reason=account_locked'
+            }
+            return
+          }
           setUser(profile)
           localStorage.setItem(USER_KEY, JSON.stringify(profile))
         } catch {
@@ -71,8 +92,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void initAuth()
   }, [logout])
 
+  // Heartbeat định kỳ (30s) và khi tab được focus lại để phát hiện kịp thời nếu tài khoản bị Admin khóa
+  useEffect(() => {
+    if (!token || !user) return
+
+    const verifySessionStatus = async () => {
+      try {
+        const profile = await authService.getCurrentUser()
+        if (profile.status === 'LOCKED') {
+          logout()
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?reason=account_locked'
+          }
+        }
+      } catch (err: unknown) {
+        const isLocked =
+          err instanceof Error &&
+          (err.message.toLowerCase().includes('tài khoản của bạn đã bị khóa') ||
+            err.message.toLowerCase().includes('tạm ngưng hoạt động'))
+        if (isLocked) {
+          logout()
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?reason=account_locked'
+          }
+        }
+      }
+    }
+
+    const intervalId = setInterval(() => {
+      void verifySessionStatus()
+    }, 30000)
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void verifySessionStatus()
+      }
+    }
+
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+    }
+  }, [token, user, logout])
+
   const login = async (payload: LoginRequest): Promise<UserProfile> => {
     const data = await authService.login(payload)
+    if (data.user?.status === 'LOCKED') {
+      logout()
+      throw new Error('Tài khoản của bạn đã bị khóa hoặc tạm ngưng hoạt động')
+    }
     localStorage.setItem(TOKEN_KEY, data.accessToken)
     localStorage.setItem(USER_KEY, JSON.stringify(data.user))
     setToken(data.accessToken)

@@ -2,7 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { DayPicker, type DropdownProps } from 'react-day-picker'
 import { Popover } from 'radix-ui'
 import { Calendar } from 'lucide-react'
-import { format, parse, isValid, isAfter, isBefore, type Locale } from 'date-fns'
+import { format, parse, isValid, type Locale } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Select } from './Select'
 import { cn } from '@/lib/utils'
@@ -40,6 +40,7 @@ function CalendarDropdown({
 }
 
 export interface DatePickerInputProps {
+  id?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -55,7 +56,7 @@ export interface DatePickerInputProps {
 }
 
 function tryParseUserInput(text: string): Date | null {
-  for (const fmt of ['dd/MM/yyyy', 'd/M/yyyy', 'dd-MM-yyyy', 'dd/MM/yy']) {
+  for (const fmt of ['dd/MM/yyyy', 'd/M/yyyy', 'dd-MM-yyyy', 'dd/MM/yy', 'yyyy-MM-dd', 'yyyy/MM/dd']) {
     const d = parse(text, fmt, new Date())
     if (isValid(d)) return d
   }
@@ -63,6 +64,7 @@ function tryParseUserInput(text: string): Date | null {
 }
 
 export function DatePickerInput({
+  id,
   value,
   onChange,
   placeholder = 'DD/MM/YYYY',
@@ -127,8 +129,6 @@ export function DatePickerInput({
 
     const parsed = tryParseUserInput(text)
     if (parsed) {
-      if (isBefore(parsed, calendarFromDate)) return
-      if (isAfter(parsed, calendarToDate)) return
       onChange(format(parsed, 'yyyy-MM-dd'))
     }
   }
@@ -150,6 +150,7 @@ export function DatePickerInput({
       <Popover.Anchor asChild>
         <div className={cn('relative', className)}>
           <input
+            id={id}
             type="text"
             disabled={disabled}
             required={required}

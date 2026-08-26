@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { movieService } from '@/services/movieService'
 import type { Movie } from '@/types/movie'
 import { Card, Badge, Button, PageLoader } from '@/components/ui'
-import { Film, Ticket, RefreshCcw, Flame, Clock, Calendar, AlertCircle } from 'lucide-react'
+import { Film, Ticket, Flame, Clock, Calendar, AlertCircle } from 'lucide-react'
 
 const movieStatusMap = {
   NOW_SHOWING: { tone: 'success' as const, label: 'Đang chiếu' },
@@ -14,7 +14,7 @@ const movieStatusMap = {
 export function UserMoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
-  const [movieFilter, setMovieFilter] = useState<'ALL' | 'NOW_SHOWING' | 'COMING_SOON'>('ALL')
+  const [movieFilter, setMovieFilter] = useState<'NOW_SHOWING' | 'COMING_SOON'>('NOW_SHOWING')
 
   const fetchMovies = async () => {
     try {
@@ -33,13 +33,7 @@ export function UserMoviesPage() {
   }, [])
 
   const filteredMovies = useMemo(() => {
-    let list = movies.filter((m) => m.status !== 'ENDED')
-    if (movieFilter === 'NOW_SHOWING') {
-      list = list.filter((m) => m.status === 'NOW_SHOWING')
-    } else if (movieFilter === 'COMING_SOON') {
-      list = list.filter((m) => m.status === 'COMING_SOON')
-    }
-    return list
+    return movies.filter((m) => m.status === movieFilter)
   }, [movies, movieFilter])
 
   return (
@@ -58,17 +52,6 @@ export function UserMoviesPage() {
 
         <div className="flex items-center gap-3">
           <div className="flex p-1 rounded-xl bg-white/5 border border-white/10 text-xs">
-            <button
-              type="button"
-              onClick={() => setMovieFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
-                movieFilter === 'ALL'
-                  ? 'bg-[var(--rogym-green)] text-black'
-                  : 'text-[var(--rogym-text-secondary)] hover:text-white'
-              }`}
-            >
-              Tất cả ({movies.filter((m) => m.status !== 'ENDED').length})
-            </button>
             <button
               type="button"
               onClick={() => setMovieFilter('NOW_SHOWING')}
@@ -92,17 +75,6 @@ export function UserMoviesPage() {
               Sắp chiếu ({movies.filter((m) => m.status === 'COMING_SOON').length})
             </button>
           </div>
-
-          <Button
-            type="button"
-            variant="outline-white"
-            size="sm"
-            onClick={fetchMovies}
-            loading={loading}
-            leftIcon={<RefreshCcw className="w-4 h-4" />}
-          >
-            Làm mới
-          </Button>
         </div>
       </div>
 

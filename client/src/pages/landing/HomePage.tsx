@@ -16,15 +16,16 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
+  PageLoader,
 } from '@/components/ui'
 import {
   Film,
   Ticket,
   Sparkles,
   Clock,
+  Calendar,
   Newspaper,
   BadgePercent,
-  RefreshCcw,
   UserCheck,
   Tv,
   Headphones,
@@ -59,18 +60,7 @@ export function HomePage() {
   const [newsList, setNewsList] = useState<News[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
-  const [movieFilter, setMovieFilter] = useState<'ALL' | 'NOW_SHOWING' | 'COMING_SOON'>('ALL')
   const [newsKeyword, setNewsKeyword] = useState('')
-
-  const filteredMovies = useMemo(() => {
-    let list = movies.filter((m) => m.status !== 'ENDED')
-    if (movieFilter === 'NOW_SHOWING') {
-      list = list.filter((m) => m.status === 'NOW_SHOWING')
-    } else if (movieFilter === 'COMING_SOON') {
-      list = list.filter((m) => m.status === 'COMING_SOON')
-    }
-    return list
-  }, [movies, movieFilter])
 
   const filteredNews = useMemo(() => {
     if (!newsKeyword.trim()) return newsList
@@ -89,7 +79,7 @@ export function HomePage() {
     setLoading(true)
     try {
       const [movieData, newsData, promotionData] = await Promise.all([
-        movieService.getMovies(),
+        movieService.getMovies({ status: 'NOW_SHOWING' }),
         newsService.getNews(),
         promotionService.getPromotions({ status: 'ACTIVE' }),
       ])
@@ -106,6 +96,10 @@ export function HomePage() {
   useEffect(() => {
     void loadHomeData()
   }, [])
+
+  if (loading) {
+    return <PageLoader ariaLabel="Đang tải trang chủ CinemaNest..." />
+  }
 
   return (
     <div className="space-y-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -204,70 +198,22 @@ export function HomePage() {
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-bold font-display text-white uppercase tracking-wide flex items-center gap-2">
               <Flame className="w-6 h-6 text-[var(--rogym-green)]" />
-              <span>Phim Đang Công Chiếu & Sắp Chiếu</span>
+              <span>Phim Đang Chiếu</span>
             </h2>
             <p className="text-xs text-[var(--rogym-text-muted)]">
-              Chọn phim yêu thích để xem lịch chiếu chi tiết và chọn vị trí ngồi đẹp nhất
+              Khám phá các siêu phẩm đang được công chiếu tại tất cả các cụm rạp
             </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex p-1 rounded-xl bg-white/5 border border-white/10 text-xs">
-              <button
-                type="button"
-                onClick={() => setMovieFilter('ALL')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
-                  movieFilter === 'ALL'
-                    ? 'bg-[var(--rogym-green)] text-black'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white'
-                }`}
-              >
-                Tất cả ({movies.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setMovieFilter('NOW_SHOWING')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
-                  movieFilter === 'NOW_SHOWING'
-                    ? 'bg-[var(--rogym-green)] text-black'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white'
-                }`}
-              >
-                Đang chiếu
-              </button>
-              <button
-                type="button"
-                onClick={() => setMovieFilter('COMING_SOON')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
-                  movieFilter === 'COMING_SOON'
-                    ? 'bg-[var(--rogym-green)] text-black'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white'
-                }`}
-              >
-                Sắp chiếu
-              </button>
-            </div>
-            <Button
-              type="button"
-              variant="outline-white"
-              size="sm"
-              onClick={loadHomeData}
-              loading={loading}
-              leftIcon={<RefreshCcw className="w-4 h-4" />}
-            >
-              Làm mới
-            </Button>
           </div>
         </div>
 
-        {filteredMovies.length === 0 ? (
+        {movies.length === 0 ? (
           <Card variant="glass" className="p-12 text-center">
             <Film className="w-12 h-12 text-[var(--rogym-text-muted)] mx-auto mb-3" />
-            <p className="text-sm text-[var(--rogym-text-secondary)]">Không tìm thấy phim phù hợp.</p>
+            <p className="text-sm text-[var(--rogym-text-secondary)]">Hiện chưa có phim nào đang chiếu.</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMovies.map((movie) => (
+            {movies.map((movie) => (
               <Card
                 key={movie.id}
                 variant="interactive"
@@ -315,6 +261,12 @@ export function HomePage() {
                         <Clock className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
                         {movie.duration} phút
                       </span>
+                      {movie.releaseDate && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                          {formatDate(movie.releaseDate)}
+                        </span>
+                      )}
                     </div>
 
                     <p className="text-xs text-[var(--rogym-text-secondary)] line-clamp-2 leading-relaxed">

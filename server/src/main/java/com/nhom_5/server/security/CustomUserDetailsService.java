@@ -19,9 +19,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email.trim().toLowerCase())
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với email: " + email));
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(identifier.trim().toLowerCase())
+                .orElseGet(() -> userRepository.findByEmail(identifier.trim().toLowerCase())
+                        .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với identifier: " + identifier)));
 
         return new CustomUserDetails(user);
     }

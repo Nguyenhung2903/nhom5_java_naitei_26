@@ -162,6 +162,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
     {
       key: 'actions',
       header: 'Hành động',
+      align: 'right',
       render: (item) => (
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <Button

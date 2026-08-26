@@ -22,6 +22,8 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectUrl = searchParams.get('redirect')
+  const isLocked = searchParams.get('reason') === 'account_locked' || searchParams.get('locked') === 'true'
+  const [showLockedAlert, setShowLockedAlert] = useState(isLocked)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -52,6 +54,7 @@ export function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setServerError(null)
+    setShowLockedAlert(false)
 
     if (!validate()) return
 
@@ -91,6 +94,14 @@ export function LoginPage() {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {showLockedAlert && !serverError && (
+          <Alert tone="error" icon={<AlertCircle className="w-4 h-4" />}>
+            <AlertDescription>
+              Tài khoản của bạn đã bị khóa hoặc tạm ngưng hoạt động. Vui lòng liên hệ ban quản trị để được hỗ trợ.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {serverError && (
           <Alert tone="error" icon={<AlertCircle className="w-4 h-4" />}>
             <AlertDescription>{serverError}</AlertDescription>

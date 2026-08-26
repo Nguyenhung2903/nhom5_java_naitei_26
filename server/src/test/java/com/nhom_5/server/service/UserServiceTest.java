@@ -250,37 +250,102 @@ class UserServiceTest {
     @Test
     @DisplayName("Admin cập nhật người dùng thành công kèm đổi mật khẩu")
     void testUpdateUser_Admin_Success() {
+        UUID targetUserId = UUID.randomUUID();
+        User targetUser = User.builder()
+                .id(targetUserId)
+                .username("target_user")
+                .fullName("Target User")
+                .role(Role.USER)
+                .status(UserStatus.ACTIVE)
+                .build();
+
         AdminUpdateUserRequest request = AdminUpdateUserRequest.builder()
-                .username("john_doe_updated")
-                .fullName("John Doe Admin Updated")
+                .username("target_user_updated")
+                .fullName("Target User Updated")
                 .role(Role.ADMIN)
                 .status(UserStatus.ACTIVE)
                 .password("NewSecretPassword@123")
                 .build();
 
-        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
-        when(userRepository.existsByUsernameAndIdNot("john_doe_updated", sampleUserId)).thenReturn(false);
+        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
+        when(userRepository.existsByUsernameAndIdNot("target_user_updated", targetUserId)).thenReturn(false);
         when(passwordEncoder.encode("NewSecretPassword@123")).thenReturn("new_encoded_password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        UserProfileDto result = userService.updateUser(sampleUserId, request);
+        UserProfileDto result = userService.updateUser(targetUserId, request);
 
         assertNotNull(result);
-        assertEquals("john_doe_updated", result.getUsername());
-        assertEquals("John Doe Admin Updated", result.getFullName());
+        assertEquals("target_user_updated", result.getUsername());
+        assertEquals("Target User Updated", result.getFullName());
         assertEquals(Role.ADMIN, result.getRole());
         verify(passwordEncoder, times(1)).encode("NewSecretPassword@123");
     }
 
     @Test
-    @DisplayName("Admin xóa mềm người dùng (chuyển status sang LOCKED) thành công")
-    void testDeleteUser_SoftDelete_Success() {
+    @DisplayName("Admin tự khóa tài khoản của chính mình trong updateUser ném ngoại lệ")
+    void testUpdateUser_SelfLock_ThrowsException() {
+        AdminUpdateUserRequest request = AdminUpdateUserRequest.builder()
+                .username("john_doe")
+                .fullName("John Doe")
+                .role(Role.ADMIN)
+                .status(UserStatus.LOCKED)
+                .build();
+
         when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
+
+        AppException ex = assertThrows(AppException.class, () -> userService.updateUser(sampleUserId, request));
+        assertEquals(ErrorCode.BAD_REQUEST, ex.getErrorCode());
+        assertEquals("Bạn không thể tự khóa tài khoản của chính mình", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Admin tự hạ quyền của chính mình trong updateUser ném ngoại lệ")
+    void testUpdateUser_SelfDemote_ThrowsException() {
+        AdminUpdateUserRequest request = AdminUpdateUserRequest.builder()
+                .username("john_doe")
+                .fullName("John Doe")
+                .role(Role.USER)
+                .status(UserStatus.ACTIVE)
+                .build();
+
+        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
+
+        AppException ex = assertThrows(AppException.class, () -> userService.updateUser(sampleUserId, request));
+        assertEquals(ErrorCode.BAD_REQUEST, ex.getErrorCode());
+        assertEquals("Bạn không thể tự hạ quyền tài khoản của chính mình", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Admin xóa mềm người dùng khác (chuyển status sang LOCKED) thành công")
+    void testDeleteUser_OtherUser_Success() {
+        UUID targetUserId = UUID.randomUUID();
+        User targetUser = User.builder()
+                .id(targetUserId)
+                .username("other_user")
+                .fullName("Other User")
+                .role(Role.USER)
+                .status(UserStatus.ACTIVE)
+                .build();
+
+        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        userService.deleteUser(sampleUserId);
+        userService.deleteUser(targetUserId);
 
-        assertEquals(UserStatus.LOCKED, sampleUser.getStatus());
-        verify(userRepository, times(1)).save(sampleUser);
+        assertEquals(UserStatus.LOCKED, targetUser.getStatus());
+        verify(userRepository, times(1)).save(targetUser);
+    }
+
+    @Test
+    @DisplayName("Admin tự khóa tài khoản của chính mình trong deleteUser ném ngoại lệ")
+    void testDeleteUser_SelfLock_ThrowsException() {
+        when(userRepository.findById(sampleUserId)).thenReturn(Optional.of(sampleUser));
+
+        AppException ex = assertThrows(AppException.class, () -> userService.deleteUser(sampleUserId));
+        assertEquals(ErrorCode.BAD_REQUEST, ex.getErrorCode());
+        assertEquals("Bạn không thể tự khóa tài khoản của chính mình", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 }

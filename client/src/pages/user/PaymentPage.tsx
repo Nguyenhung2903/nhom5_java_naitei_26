@@ -23,7 +23,7 @@ export function PaymentPage() {
     discountCode
   } = location.state || {}
 
-  const [paymentMethod, setPaymentMethod] = useState<'VNPAY'>('VNPAY')
+  const [paymentMethod, setPaymentMethod] = useState<'VNPAY' | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess] = useState(false)
@@ -65,6 +65,11 @@ export function PaymentPage() {
   }
 
   const handleVNPayPayment = async () => {
+    if (!paymentMethod) {
+      setError("Vui lòng chọn phương thức thanh toán")
+      return
+    }
+
     setIsProcessing(true)
     setError(null)
     try {
@@ -94,8 +99,8 @@ export function PaymentPage() {
   if (isSuccess) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-primary)]/50 rounded-xl p-8 max-w-md mx-auto shadow-2xl">
-          <CheckCircle2 className="w-16 h-16 text-[var(--rogym-primary)] mx-auto mb-4 animate-bounce" />
+        <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-green)]/50 rounded-xl p-8 max-w-md mx-auto shadow-2xl">
+          <CheckCircle2 className="w-16 h-16 text-[var(--rogym-green)] mx-auto mb-4 animate-bounce" />
           <h1 className="text-2xl font-bold text-white mb-2">Thanh toán thành công!</h1>
           <p className="text-[var(--rogym-text-muted)] mb-8">
             Cảm ơn bạn đã đặt vé. Thông tin vé đã được lưu vào hệ thống và sẵn sàng trong mục Vé của tôi.
@@ -149,15 +154,23 @@ export function PaymentPage() {
         {/* Lựa chọn phương thức */}
         <div className="md:col-span-7 space-y-4">
           <div 
-            onClick={() => setPaymentMethod('VNPAY')}
-            className={`cursor-pointer border rounded-xl p-6 transition-all ${
+            onClick={() => setPaymentMethod((prev) => (prev === 'VNPAY' ? null : 'VNPAY'))}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setPaymentMethod((prev) => (prev === 'VNPAY' ? null : 'VNPAY'))
+              }
+            }}
+            className={`cursor-pointer border rounded-xl p-6 transition-all select-none ${
               paymentMethod === 'VNPAY' 
-                ? 'border-[var(--rogym-primary)] bg-[var(--rogym-primary)]/10' 
-                : 'border-[var(--rogym-border-subtle)] bg-[var(--rogym-surface)] hover:bg-[var(--rogym-surface-hover)]'
+                ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)]/10 shadow-[0_0_20px_rgba(6,195,132,0.15)]' 
+                : 'border-[var(--rogym-border-subtle)] bg-[var(--rogym-surface)] hover:border-[var(--rogym-border-teal-hover)] hover:bg-[var(--rogym-surface-hover)]'
             }`}
           >
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full ${paymentMethod === 'VNPAY' ? 'bg-[var(--rogym-primary)]/20 text-[var(--rogym-primary)]' : 'bg-[var(--rogym-surface-hover)] text-[var(--rogym-text-muted)]'}`}>
+              <div className={`p-3 rounded-full transition-colors ${paymentMethod === 'VNPAY' ? 'bg-[var(--rogym-green)]/20 text-[var(--rogym-green)]' : 'bg-[var(--rogym-surface-hover)] text-[var(--rogym-text-muted)]'}`}>
                 <CreditCard className="w-6 h-6" />
               </div>
               <div className="flex-1">
@@ -166,8 +179,8 @@ export function PaymentPage() {
                   Thanh toán qua ví điện tử VNPAY hoặc quét mã QR ngân hàng (VNPAY-QR).
                 </p>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'VNPAY' ? 'border-[var(--rogym-primary)]' : 'border-[var(--rogym-border-subtle)]'}`}>
-                {paymentMethod === 'VNPAY' && <div className="w-3 h-3 rounded-full bg-[var(--rogym-primary)]" />}
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${paymentMethod === 'VNPAY' ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)]/20' : 'border-[var(--rogym-border-subtle)]'}`}>
+                {paymentMethod === 'VNPAY' && <div className="w-3 h-3 rounded-full bg-[var(--rogym-green)] shadow-sm" />}
               </div>
             </div>
           </div>
@@ -177,20 +190,23 @@ export function PaymentPage() {
         <div className="md:col-span-5 space-y-6">
           <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-border-subtle)] rounded-xl p-6 sticky top-6">
             <h3 className="text-xl font-bold text-white mb-4">Tổng số tiền</h3>
-            <div className="text-3xl font-black text-[var(--rogym-primary)] mb-6">
+            <div className="text-3xl font-black text-[var(--rogym-green)] mb-6">
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalTotalAmount)}
             </div>
 
-            {paymentMethod === 'VNPAY' && (
-              <Button 
-                variant="primary" 
-                size="lg"
-                className="w-full mt-4 font-bold"
-                onClick={handleVNPayPayment}
-                disabled={isProcessing}
-              >
-                {isProcessing ? <PageLoader ariaLabel="Đang xử lý đặt vé..." className="scale-75" /> : 'Thanh Toán Ngay'}
-              </Button>
+            <Button 
+              variant="primary" 
+              size="lg"
+              className="w-full mt-4 font-bold"
+              onClick={handleVNPayPayment}
+              disabled={!paymentMethod || isProcessing}
+            >
+              {isProcessing ? <PageLoader ariaLabel="Đang xử lý đặt vé..." className="scale-75" /> : 'Thanh Toán Ngay'}
+            </Button>
+            {!paymentMethod && (
+              <p className="text-xs text-[var(--rogym-text-muted)] text-center mt-2">
+                Vui lòng chọn phương thức thanh toán để tiếp tục
+              </p>
             )}
           </div>
         </div>

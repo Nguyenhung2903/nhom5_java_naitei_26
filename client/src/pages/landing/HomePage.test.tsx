@@ -39,9 +39,9 @@ describe('HomePage', () => {
         id: 'movie-1',
         title: 'Avengers: Secret Wars',
         description: 'Epic movie',
-        durationMinutes: 180,
+        duration: 180,
         status: 'NOW_SHOWING',
-        genre: 'Hành động',
+        genres: [{ id: '1', name: 'Hành động' }],
         ageRating: 'T16',
       },
     ])

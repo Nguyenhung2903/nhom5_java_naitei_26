@@ -44,6 +44,11 @@ public class UserServiceImpl implements UserService {
         User currentUser = SecurityUtil.getCurrentUser();
         User freshUser = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (freshUser.getStatus() == UserStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
         return UserProfileDto.fromEntity(freshUser);
     }
 
@@ -53,6 +58,10 @@ public class UserServiceImpl implements UserService {
         User currentUser = SecurityUtil.getCurrentUser();
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getStatus() == UserStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
 
         String newUsername = request.getUsername().trim();
 
@@ -167,6 +176,16 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+        if (id.equals(currentUserId)) {
+            if (request.getStatus() == UserStatus.LOCKED) {
+                throw new AppException(ErrorCode.BAD_REQUEST, "Bạn không thể tự khóa tài khoản của chính mình");
+            }
+            if (request.getRole() != null && request.getRole() != Role.ADMIN) {
+                throw new AppException(ErrorCode.BAD_REQUEST, "Bạn không thể tự hạ quyền tài khoản của chính mình");
+            }
+        }
+
         String newUsername = request.getUsername().trim();
 
         if (!newUsername.equalsIgnoreCase(user.getUsername())) {
@@ -200,6 +219,11 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+        if (id.equals(currentUserId)) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Bạn không thể tự khóa tài khoản của chính mình");
+        }
 
         // Soft delete / Lock account
         user.setStatus(UserStatus.LOCKED);
