@@ -42,6 +42,7 @@ const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage')
 const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
 const ComboManagementPage = lazy(() => import('@/pages/admin/ComboManagementPage').then((m) => ({ default: m.ComboManagementPage })))
 const UserManagementPage = lazy(() => import('@/pages/admin/UserManagementPage').then((m) => ({ default: m.UserManagementPage })))
+const RevenueManagementPage = lazy(() => import('@/pages/admin/RevenueManagementPage').then((m) => ({ default: m.RevenueManagementPage })))
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })))
 
 const NotFoundPage = lazy(() => import('@/pages/common/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
@@ -241,6 +242,10 @@ export const router = createBrowserRouter([
           {
             path: 'users',
             element: withSuspense(UserManagementPage),
+          },
+          {
+            path: 'revenue',
+            element: withSuspense(RevenueManagementPage),
           },
           {
             path: 'profile',

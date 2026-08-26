@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   StatCard,
@@ -19,36 +20,59 @@ import {
   Plus,
   Shield,
   MapPin,
+  BarChart3,
 } from 'lucide-react'
+import { revenueService } from '@/services/revenueService'
+import type { RevenueOverview } from '@/types/revenue'
+
+function formatVND(amount: number | undefined | null): string {
+  if (amount === undefined || amount === null) return '0 đ'
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
+}
 
 export function DashboardPage() {
+  const [overview, setOverview] = useState<RevenueOverview | null>(null)
+
+  useEffect(() => {
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    revenueService
+      .getOverview({ startDate: startOfMonth, endDate: now.toISOString() })
+      .then(setOverview)
+      .catch((err: Error) => {
+        console.error('Lỗi tải tổng quan doanh thu dashboard:', err)
+      })
+  }, [])
+
   const stats = [
     {
       label: 'Tổng doanh thu tháng',
-      value: '245.800.000 đ',
-      icon: <DollarSign className="w-5 h-5" />,
-      trend: { value: '18.4%', isPositive: true },
+      value: overview ? formatVND(overview.totalRevenue) : '245.800.000 đ',
+      icon: <DollarSign className="w-5 h-5 text-[var(--rogym-green)]" />,
+      trend: {
+        value: `${overview?.growthRate !== undefined && overview.growthRate >= 0 ? '+' : ''}${overview?.growthRate || 18.4}%`,
+        isPositive: (overview?.growthRate || 0) >= 0,
+      },
       hint: 'Tăng so với tháng trước',
     },
     {
-      label: 'Vé đã bán hôm nay',
-      value: '1.240 vé',
-      icon: <Ticket className="w-5 h-5" />,
+      label: 'Vé đã bán',
+      value: overview ? `${overview.totalTicketsSold.toLocaleString('vi-VN')} vé` : '1.240 vé',
+      icon: <Ticket className="w-5 h-5 text-sky-400" />,
       trend: { value: '12%', isPositive: true },
-      hint: 'Chiếm 82% công suất ghế',
+      hint: `${overview ? overview.totalBookings.toLocaleString('vi-VN') : '450'} đơn thanh toán`,
     },
     {
       label: 'Phim đang công chiếu',
       value: '14 phim',
-      icon: <Film className="w-5 h-5" />,
-      hint: '2 phim bom tấn mới',
+      icon: <Film className="w-5 h-5 text-emerald-400" />,
+      hint: 'Phim đang bán vé',
     },
     {
-      label: 'Thành viên mới',
-      value: '382 người',
-      icon: <Users className="w-5 h-5" />,
-      trend: { value: '5.6%', isPositive: true },
-      hint: 'Tài khoản khách hàng',
+      label: 'Giá trị TB/Đơn (AOV)',
+      value: overview ? formatVND(overview.averageOrderValue) : '210.000 đ',
+      icon: <Users className="w-5 h-5 text-purple-400" />,
+      hint: 'Doanh thu trung bình/đơn',
     },
   ]
 
@@ -73,9 +97,14 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link to="/admin/revenue">
+            <Button variant="primary" size="sm" leftIcon={<BarChart3 className="w-4 h-4" />}>
+              Báo cáo doanh thu
+            </Button>
+          </Link>
           <Link to="/admin/movies">
-            <Button variant="primary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
+            <Button variant="secondary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
               Thêm phim mới
             </Button>
           </Link>
@@ -142,6 +171,17 @@ export function DashboardPage() {
           </CardHeader>
 
           <CardContent className="p-0 space-y-2.5">
+            <Link
+              to="/admin/revenue"
+              className="flex items-center justify-between p-3 rounded-xl bg-[var(--rogym-green)]/10 hover:bg-[var(--rogym-green)]/20 border border-[var(--rogym-green)]/30 text-xs font-semibold text-white transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[var(--rogym-green)]" />
+                Báo cáo & Thống kê Doanh thu
+              </span>
+              <span className="text-[var(--rogym-green)]">→</span>
+            </Link>
+
             <Link
               to="/admin/movies"
               className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-[var(--rogym-border-subtle)] text-xs font-semibold text-white transition-all"

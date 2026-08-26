@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Settings,
   Sparkles,
+  TrendingUp,
 } from 'lucide-react'
 
 export function TheaterDetailManagementPage() {
@@ -307,7 +308,12 @@ export function TheaterDetailManagementPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link to={`/admin/revenue?theaterId=${theaterId}`}>
+            <Button variant="secondary" size="sm" leftIcon={<TrendingUp className="w-4 h-4 text-[var(--rogym-teal)]" />}>
+              Doanh thu rạp
+            </Button>
+          </Link>
           <Button variant="secondary" onClick={() => navigate('/admin/theaters')} size="sm">
             Danh sách rạp
           </Button>

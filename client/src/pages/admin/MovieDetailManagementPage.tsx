@@ -13,6 +13,7 @@ import {
   Sparkles,
   ExternalLink,
   RotateCcw,
+  TrendingUp,
 } from 'lucide-react'
 import {
   Alert,
@@ -334,7 +335,17 @@ export function MovieDetailManagementPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link to={`/admin/revenue?movieId=${movieId}`}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              leftIcon={<TrendingUp className="w-4 h-4 text-[var(--rogym-green)]" />}
+            >
+              Doanh thu phim
+            </Button>
+          </Link>
           <Button
             type="button"
             variant="danger"
