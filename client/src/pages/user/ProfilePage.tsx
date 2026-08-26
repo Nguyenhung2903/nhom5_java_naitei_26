@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, type FormEvent } from 'react'
 import { format, parse, isValid } from 'date-fns'
+import { ApiError } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { authService } from '@/services/authService'
 import { userService } from '@/services/userService'
@@ -103,7 +104,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
 
   // Password Change State
   const [passwordData, setPasswordData] = useState({
-    oldPassword: '',
+    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   })
@@ -249,13 +250,18 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
     setPasswordErrorMsg(null)
 
     const errors: Record<string, string> = {}
-    if (!passwordData.oldPassword) {
-      errors.oldPassword = 'Vui lòng nhập mật khẩu hiện tại'
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại'
     }
     if (!passwordData.newPassword) {
       errors.newPassword = 'Vui lòng nhập mật khẩu mới'
     } else if (passwordData.newPassword.length < 6) {
       errors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự'
+    } else if (
+      passwordData.currentPassword &&
+      passwordData.newPassword === passwordData.currentPassword
+    ) {
+      errors.newPassword = 'Mật khẩu mới không được trùng với mật khẩu hiện tại'
     }
     if (!passwordData.confirmPassword) {
       errors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới'
@@ -271,15 +277,29 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
     setIsChangingPassword(true)
     try {
       await authService.changePassword({
-        oldPassword: passwordData.oldPassword,
+        currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
         confirmPassword: passwordData.confirmPassword,
       })
       setPasswordSuccessMsg('Đổi mật khẩu thành công!')
-      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
       setPasswordErrors({})
     } catch (err: unknown) {
-      if (err instanceof Error) {
+      if (err instanceof ApiError) {
+        const responseData = err.data as { errors?: Array<{ field: string; message: string }> } | undefined
+        if (responseData?.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          const fieldErrors: Record<string, string> = {}
+          for (const item of responseData.errors) {
+            if (item.field && item.message) {
+              fieldErrors[item.field] = item.message
+            }
+          }
+          setPasswordErrors(fieldErrors)
+          setPasswordErrorMsg(err.message || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.')
+        } else {
+          setPasswordErrorMsg(err.message)
+        }
+      } else if (err instanceof Error) {
         setPasswordErrorMsg(err.message)
       } else {
         setPasswordErrorMsg('Không thể đổi mật khẩu. Vui lòng kiểm tra lại.')
@@ -722,22 +742,25 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                     <form onSubmit={handlePasswordChange} className="space-y-4 max-w-xl">
                       <FormField
                         label="Mật khẩu hiện tại"
-                        htmlFor="oldPassword"
+                        htmlFor="currentPassword"
                         required
-                        error={passwordErrors.oldPassword}
+                        error={passwordErrors.currentPassword}
                       >
                         <Input
-                          id="oldPassword"
+                          id="currentPassword"
                           type="password"
+                          autoComplete="current-password"
                           showPasswordToggle
                           placeholder="Nhập mật khẩu đang sử dụng"
-                          value={passwordData.oldPassword}
+                          value={passwordData.currentPassword}
                           onChange={(e) => {
-                            setPasswordData({ ...passwordData, oldPassword: e.target.value })
-                            if (passwordErrors.oldPassword)
-                              setPasswordErrors({ ...passwordErrors, oldPassword: '' })
+                            setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                            if (passwordErrors.currentPassword)
+                              setPasswordErrors({ ...passwordErrors, currentPassword: '' })
+                            if (passwordSuccessMsg) setPasswordSuccessMsg(null)
+                            if (passwordErrorMsg) setPasswordErrorMsg(null)
                           }}
-                          error={!!passwordErrors.oldPassword}
+                          error={!!passwordErrors.currentPassword}
                           disabled={isChangingPassword}
                         />
                       </FormField>
@@ -752,6 +775,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                           <Input
                             id="newPassword"
                             type="password"
+                            autoComplete="new-password"
                             showPasswordToggle
                             placeholder="Tối thiểu 6 ký tự"
                             value={passwordData.newPassword}
@@ -759,6 +783,8 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                               setPasswordData({ ...passwordData, newPassword: e.target.value })
                               if (passwordErrors.newPassword)
                                 setPasswordErrors({ ...passwordErrors, newPassword: '' })
+                              if (passwordSuccessMsg) setPasswordSuccessMsg(null)
+                              if (passwordErrorMsg) setPasswordErrorMsg(null)
                             }}
                             error={!!passwordErrors.newPassword}
                             disabled={isChangingPassword}
@@ -774,6 +800,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                           <Input
                             id="confirmPassword"
                             type="password"
+                            autoComplete="new-password"
                             showPasswordToggle
                             placeholder="Nhập lại mật khẩu mới"
                             value={passwordData.confirmPassword}
@@ -781,6 +808,8 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
                               setPasswordData({ ...passwordData, confirmPassword: e.target.value })
                               if (passwordErrors.confirmPassword)
                                 setPasswordErrors({ ...passwordErrors, confirmPassword: '' })
+                              if (passwordSuccessMsg) setPasswordSuccessMsg(null)
+                              if (passwordErrorMsg) setPasswordErrorMsg(null)
                             }}
                             error={!!passwordErrors.confirmPassword}
                             disabled={isChangingPassword}

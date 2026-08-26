@@ -1,5 +1,6 @@
 package com.nhom_5.server.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,6 +19,7 @@ import lombok.Setter;
 public class ChangePasswordRequest {
 
     @NotBlank(message = "Mật khẩu hiện tại không được để trống")
+    @JsonAlias({"oldPassword"})
     @Schema(description = "Mật khẩu hiện tại", example = "OldPassword@123")
     private String currentPassword;
 

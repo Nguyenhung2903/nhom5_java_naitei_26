@@ -24,6 +24,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Checkbox,
   ConfirmDialog,
   FormField,
   Input,
@@ -39,7 +40,7 @@ import {
 } from '@/components/ui'
 import { movieService } from '@/services/movieService'
 import { showtimeService } from '@/services/showtimeService'
-import type { Movie, MoviePayload, MovieStatus } from '@/types/movie'
+import type { Genre, Movie, MoviePayload, MovieStatus } from '@/types/movie'
 import type { Showtime } from '@/types/showtime'
 
 const MOVIE_STATUSES: { value: MovieStatus; label: string }[] = [
@@ -60,7 +61,7 @@ interface MovieFormState {
   poster: string
   trailer: string
   status: MovieStatus
-  genreIds: string
+  genreIds: string[]
 }
 
 const emptyFormState: MovieFormState = {
@@ -75,7 +76,7 @@ const emptyFormState: MovieFormState = {
   poster: '',
   trailer: '',
   status: 'NOW_SHOWING',
-  genreIds: '',
+  genreIds: [],
 }
 
 /**
@@ -103,6 +104,7 @@ export function MovieDetailManagementPage() {
   const navigate = useNavigate()
 
   const [movie, setMovie] = useState<Movie | null>(null)
+  const [allGenres, setAllGenres] = useState<Genre[]>([])
   const [showtimes, setShowtimes] = useState<Showtime[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -127,7 +129,7 @@ export function MovieDetailManagementPage() {
       poster: data.poster || '',
       trailer: data.trailer || '',
       status: data.status || 'NOW_SHOWING',
-      genreIds: data.genres ? data.genres.map((g) => g.id).join(', ') : '',
+      genreIds: data.genres ? data.genres.map((g) => g.id) : [],
     })
   }, [])
 
@@ -136,11 +138,13 @@ export function MovieDetailManagementPage() {
     setLoading(true)
     setError(null)
     try {
-      const [movieData, allShowtimes] = await Promise.all([
+      const [movieData, allShowtimes, genresData] = await Promise.all([
         movieService.getMovieById(movieId),
         showtimeService.getAll().catch(() => [] as Showtime[]),
+        movieService.getGenres().catch(() => [] as Genre[]),
       ])
       setMovie(movieData)
+      setAllGenres(genresData)
       populateFormFromMovie(movieData)
       setShowtimes(allShowtimes.filter((s) => s.movieId === movieId))
     } catch (err) {
@@ -154,8 +158,18 @@ export function MovieDetailManagementPage() {
     void loadData()
   }, [loadData])
 
-  const updateField = (field: keyof MovieFormState, value: string) => {
+  const updateField = (field: keyof Omit<MovieFormState, 'genreIds'>, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleToggleGenre = (genreId: string) => {
+    setForm((prev) => {
+      const exists = prev.genreIds.includes(genreId)
+      const nextGenreIds = exists
+        ? prev.genreIds.filter((id) => id !== genreId)
+        : [...prev.genreIds, genreId]
+      return { ...prev, genreIds: nextGenreIds }
+    })
   }
 
   const handleResetForm = () => {
@@ -179,10 +193,7 @@ export function MovieDetailManagementPage() {
       poster: form.poster.trim() || undefined,
       trailer: form.trailer.trim() || undefined,
       status: form.status,
-      genreIds: form.genreIds
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean),
+      genreIds: form.genreIds,
     }
   }
 
@@ -197,6 +208,11 @@ export function MovieDetailManagementPage() {
 
     if (!form.duration || Number(form.duration) <= 0) {
       setError('Thời lượng phim phải lớn hơn 0 phút.')
+      return
+    }
+
+    if (form.genreIds.length === 0) {
+      setError('Vui lòng chọn ít nhất 1 thể loại cho phim.')
       return
     }
 
@@ -578,16 +594,45 @@ export function MovieDetailManagementPage() {
                 </div>
 
                 <FormField
-                  label="Mã Thể loại (Genre UUIDs)"
-                  htmlFor="movie-genres"
-                  hint="Phân tách các UUID thể loại bằng dấu phẩy"
+                  label="Thể loại phim"
+                  required
+                  hint="Chọn 1 hoặc nhiều thể loại phù hợp với nội dung phim"
                 >
-                  <Input
-                    id="movie-genres"
-                    value={form.genreIds}
-                    onChange={(e) => updateField('genreIds', e.target.value)}
-                    placeholder="VD: e0bf26cb-..., 551804c4-..."
-                  />
+                  {allGenres.length === 0 ? (
+                    <div className="p-3 text-xs text-[var(--rogym-text-muted)] italic">
+                      Đang tải danh sách thể loại...
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3.5 rounded-xl border border-[var(--rogym-border-subtle)] bg-white/5">
+                      {allGenres.map((g) => {
+                        const isChecked = form.genreIds.includes(g.id)
+                        return (
+                          <Checkbox
+                            key={g.id}
+                            id={`detail-genre-${g.id}`}
+                            label={g.name}
+                            checked={isChecked}
+                            onChange={() => handleToggleGenre(g.id)}
+                            checkboxSize="sm"
+                          />
+                        )
+                      })}
+                    </div>
+                  )}
+                  {form.genreIds.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                      <span className="text-xs text-[var(--rogym-text-muted)]">
+                        Đã chọn ({form.genreIds.length}):
+                      </span>
+                      {allGenres
+                        .filter((g) => form.genreIds.includes(g.id))
+                        .map((g) => (
+                          <Badge key={g.id} tone="accent" size="xs">
+                            {g.name}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
                 </FormField>
 
                 <FormField label="Mô tả tóm tắt nội dung phim" htmlFor="movie-desc">

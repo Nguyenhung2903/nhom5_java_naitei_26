@@ -13,6 +13,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(400, "Email đã được sử dụng bởi một tài khoản khác", HttpStatus.BAD_REQUEST),
     OLD_PASSWORD_INCORRECT(400, "Mật khẩu hiện tại không chính xác", HttpStatus.BAD_REQUEST),
     PASSWORDS_DO_NOT_MATCH(400, "Xác nhận mật khẩu mới không khớp", HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_SAME_AS_OLD(400, "Mật khẩu mới không được trùng với mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED(401, "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),

@@ -1,6 +1,6 @@
 import { api } from '@/lib/api'
 import type { ApiResponse } from '@/types/api'
-import type { Movie, MovieOption, MoviePayload, MovieStatus } from '@/types/movie'
+import type { Genre, Movie, MovieOption, MoviePayload, MovieStatus } from '@/types/movie'
 
 function unwrap<T>(response: ApiResponse<T>): T {
   if (response.data === undefined) {
@@ -15,10 +15,18 @@ export const movieService = {
     return response.data || []
   },
 
-  getMovies: async (params?: { keyword?: string; status?: MovieStatus | '' }): Promise<Movie[]> => {
+  getGenres: async (): Promise<Genre[]> =>
+    unwrap(await api.get<ApiResponse<Genre[]>>('/movies/genres')),
+
+  getMovies: async (params?: {
+    keyword?: string
+    status?: MovieStatus | ''
+    genreId?: string
+  }): Promise<Movie[]> => {
     const searchParams = new URLSearchParams()
     if (params?.keyword) searchParams.set('keyword', params.keyword)
     if (params?.status) searchParams.set('status', params.status)
+    if (params?.genreId) searchParams.set('genreId', params.genreId)
     const query = searchParams.toString()
     return unwrap(await api.get<ApiResponse<Movie[]>>(`/movies${query ? `?${query}` : ''}`))
   },

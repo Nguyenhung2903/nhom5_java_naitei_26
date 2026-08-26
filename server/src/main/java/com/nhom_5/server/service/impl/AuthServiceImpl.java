@@ -137,9 +137,20 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        // Kiểm tra trạng thái tài khoản
+        if (user.getStatus() == UserStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
         // Kiểm tra mật khẩu hiện tại
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
+        }
+
+        // Kiểm tra mật khẩu mới không được trùng với mật khẩu hiện tại
+        if (request.getNewPassword().equals(request.getCurrentPassword())
+                || passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
 
         // Kiểm tra xác nhận mật khẩu mới

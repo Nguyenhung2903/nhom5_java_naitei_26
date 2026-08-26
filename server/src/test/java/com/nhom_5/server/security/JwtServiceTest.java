@@ -41,7 +41,7 @@ class JwtServiceTest {
         assertFalse(token.isEmpty());
 
         String extractedUsername = jwtService.extractUsername(token);
-        assertEquals("testuser", extractedUsername);
+        assertEquals("testuser@example.com", extractedUsername);
 
         CustomUserDetails userDetails = new CustomUserDetails(user);
         assertTrue(jwtService.validateToken(token, userDetails));

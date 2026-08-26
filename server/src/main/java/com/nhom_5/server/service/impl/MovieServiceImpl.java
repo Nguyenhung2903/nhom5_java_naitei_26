@@ -1,6 +1,7 @@
 package com.nhom_5.server.service.impl;
 
 import com.nhom_5.server.dto.request.MovieRequest;
+import com.nhom_5.server.dto.response.GenreResponse;
 import com.nhom_5.server.dto.response.MovieResponse;
 import com.nhom_5.server.entity.Genre;
 import com.nhom_5.server.entity.Movie;
@@ -11,6 +12,7 @@ import com.nhom_5.server.repository.GenreRepository;
 import com.nhom_5.server.repository.MovieRepository;
 import com.nhom_5.server.service.MovieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -29,7 +31,15 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MovieResponse> getMovies(String keyword, MovieStatus status) {
+    public List<GenreResponse> getGenres() {
+        return genreRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
+                .map(GenreResponse::fromEntity)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MovieResponse> getMovies(String keyword, MovieStatus status, UUID genreId) {
         String normalizedKeyword = StringUtils.hasText(keyword) ? keyword.trim() : null;
         List<Movie> movies;
         if (normalizedKeyword != null && status != null) {
@@ -40,6 +50,12 @@ public class MovieServiceImpl implements MovieService {
             movies = movieRepository.findByStatusOrderByReleaseDateDescCreatedAtDesc(status);
         } else {
             movies = movieRepository.findAllByOrderByReleaseDateDescCreatedAtDesc();
+        }
+
+        if (genreId != null) {
+            movies = movies.stream()
+                    .filter(m -> m.getGenres() != null && m.getGenres().stream().anyMatch(g -> genreId.equals(g.getId())))
+                    .toList();
         }
 
         return movies.stream()

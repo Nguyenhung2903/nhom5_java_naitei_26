@@ -14,24 +14,33 @@ import {
   Badge,
   Button,
   Card,
+  Checkbox,
   ConfirmDialog,
+  FilterDropdown,
   FormField,
   Input,
   Modal,
   ModalFooter,
   ResponsiveTable,
-  SearchInput,
+  SearchToolbar,
   Select,
   Textarea,
   type ColumnDef,
 } from '@/components/ui'
 import { movieService } from '@/services/movieService'
-import type { Movie, MoviePayload, MovieStatus } from '@/types/movie'
+import type { Genre, Movie, MoviePayload, MovieStatus } from '@/types/movie'
 
 const MOVIE_STATUSES: { value: MovieStatus; label: string }[] = [
   { value: 'NOW_SHOWING', label: 'NOW_SHOWING (Đang chiếu)' },
   { value: 'COMING_SOON', label: 'COMING_SOON (Sắp chiếu)' },
   { value: 'ENDED', label: 'ENDED (Ngừng chiếu)' },
+]
+
+const FILTER_STATUS_OPTIONS: { value: MovieStatus | ''; label: string }[] = [
+  { value: '', label: 'Mọi trạng thái' },
+  { value: 'NOW_SHOWING', label: 'Đang chiếu' },
+  { value: 'COMING_SOON', label: 'Sắp chiếu' },
+  { value: 'ENDED', label: 'Ngừng chiếu' },
 ]
 
 interface CreateMovieFormState {
@@ -46,7 +55,7 @@ interface CreateMovieFormState {
   poster: string
   trailer: string
   status: MovieStatus
-  genreIds: string
+  genreIds: string[]
 }
 
 const emptyCreateForm: CreateMovieFormState = {
@@ -61,16 +70,21 @@ const emptyCreateForm: CreateMovieFormState = {
   poster: '',
   trailer: '',
   status: 'NOW_SHOWING',
-  genreIds: '',
+  genreIds: [],
 }
 
 export function MovieManagementPage() {
   const navigate = useNavigate()
 
   const [movies, setMovies] = useState<Movie[]>([])
+  const [allGenres, setAllGenres] = useState<Genre[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<MovieStatus | ''>('')
+  const [tempStatusFilter, setTempStatusFilter] = useState<MovieStatus | ''>('')
+  const [genreFilter, setGenreFilter] = useState<string>('')
+  const [tempGenreFilter, setTempGenreFilter] = useState<string>('')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
 
@@ -91,6 +105,7 @@ export function MovieManagementPage() {
       const data = await movieService.getMovies({
         keyword: searchQuery.trim() || undefined,
         status: statusFilter || undefined,
+        genreId: genreFilter || undefined,
       })
       setMovies(data)
     } catch (err) {
@@ -98,7 +113,7 @@ export function MovieManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, statusFilter, genreFilter])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -107,8 +122,36 @@ export function MovieManagementPage() {
     return () => window.clearTimeout(timer)
   }, [loadMovies])
 
-  const updateCreateField = (field: keyof CreateMovieFormState, value: string) => {
+  useEffect(() => {
+    movieService.getGenres().then(setAllGenres).catch(() => {})
+  }, [])
+
+  const handleFilterOpenChange = (open: boolean) => {
+    if (open) {
+      setTempStatusFilter(statusFilter)
+      setTempGenreFilter(genreFilter)
+    }
+    setIsFilterOpen(open)
+  }
+
+  const handleApplyFilter = () => {
+    setStatusFilter(tempStatusFilter)
+    setGenreFilter(tempGenreFilter)
+    setIsFilterOpen(false)
+  }
+
+  const updateCreateField = (field: keyof Omit<CreateMovieFormState, 'genreIds'>, value: string) => {
     setCreateForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleToggleCreateGenre = (genreId: string) => {
+    setCreateForm((prev) => {
+      const exists = prev.genreIds.includes(genreId)
+      const nextGenreIds = exists
+        ? prev.genreIds.filter((id) => id !== genreId)
+        : [...prev.genreIds, genreId]
+      return { ...prev, genreIds: nextGenreIds }
+    })
   }
 
   const handleOpenCreateModal = () => {
@@ -127,6 +170,10 @@ export function MovieManagementPage() {
       setCreateError('Thời lượng phim phải lớn hơn 0 phút.')
       return
     }
+    if (createForm.genreIds.length === 0) {
+      setCreateError('Vui lòng chọn ít nhất 1 thể loại cho phim.')
+      return
+    }
 
     setCreating(true)
     setCreateError(null)
@@ -143,10 +190,7 @@ export function MovieManagementPage() {
         poster: createForm.poster.trim() || undefined,
         trailer: createForm.trailer.trim() || undefined,
         status: createForm.status,
-        genreIds: createForm.genreIds
-          .split(',')
-          .map((id) => id.trim())
-          .filter(Boolean),
+        genreIds: createForm.genreIds,
       }
 
       const created = await movieService.createMovie(payload)
@@ -307,10 +351,15 @@ export function MovieManagementPage() {
       {/* Top Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="flex items-center gap-2.5 text-2xl font-bold uppercase tracking-wide text-white">
-            <Film className="h-6 w-6 text-[var(--rogym-green)]" />
-            <span>Quản lý phim</span>
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="flex items-center gap-2.5 text-2xl font-bold uppercase tracking-wide text-white">
+              <Film className="h-6 w-6 text-[var(--rogym-green)]" />
+              <span>Quản lý phim</span>
+            </h1>
+            <Badge tone={movies.length > 0 ? 'accent' : 'muted'} size="sm">
+              {movies.length} phim
+            </Badge>
+          </div>
           <p className="mt-1 text-xs text-[var(--rogym-text-secondary)]">
             Danh mục phim, trạng thái công chiếu và các thông số hiển thị hệ thống.
           </p>
@@ -338,40 +387,56 @@ export function MovieManagementPage() {
       )}
 
       {/* Toolbar Tìm kiếm & Lọc */}
-      <Card variant="glass" className="p-3.5 sm:p-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 max-w-2xl">
-            <div className="flex-1">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Tìm kiếm theo tên phim, đạo diễn..."
-                inputSize="sm"
-              />
-            </div>
-            <div className="w-full sm:w-56">
-              <Select
-                value={statusFilter}
-                onValueChange={(val) => setStatusFilter(val as MovieStatus | '')}
-              >
-                <option value="">Tất cả trạng thái</option>
-                {MOVIE_STATUSES.map((st) => (
-                  <option key={st.value} value={st.value}>
-                    {st.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
+      <SearchToolbar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder="Tìm kiếm theo tên phim, đạo diễn..."
+        layout="row"
+        filters={
+          <FilterDropdown
+            open={isFilterOpen}
+            onOpenChange={handleFilterOpenChange}
+            activeCount={(statusFilter ? 1 : 0) + (genreFilter ? 1 : 0)}
+            onApply={handleApplyFilter}
+            title="Bộ lọc"
+          >
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--rogym-text-secondary)]">
+                  Trạng thái
+                </label>
+                <Select
+                  value={tempStatusFilter}
+                  onValueChange={(val) => setTempStatusFilter(val as MovieStatus | '')}
+                >
+                  {FILTER_STATUS_OPTIONS.map((st) => (
+                    <option key={st.value} value={st.value}>
+                      {st.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
 
-          <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-secondary)] self-end md:self-auto">
-            <span>Hiển thị:</span>
-            <Badge tone={movies.length > 0 ? 'accent' : 'muted'} size="sm">
-              {movies.length} phim
-            </Badge>
-          </div>
-        </div>
-      </Card>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--rogym-text-secondary)]">
+                  Thể loại
+                </label>
+                <Select
+                  value={tempGenreFilter}
+                  onValueChange={setTempGenreFilter}
+                >
+                  <option value="">Mọi thể loại</option>
+                  {allGenres.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          </FilterDropdown>
+        }
+      />
 
       {/* Bảng Dữ liệu Phim */}
       <Card variant="elevated" className="overflow-hidden">
@@ -509,16 +574,45 @@ export function MovieManagementPage() {
           </div>
 
           <FormField
-            label="Mã Thể loại (Genre UUIDs)"
-            htmlFor="create-genreIds"
-            hint="Phân tách các UUID thể loại bằng dấu phẩy"
+            label="Thể loại phim"
+            required
+            hint="Chọn 1 hoặc nhiều thể loại phù hợp với nội dung phim"
           >
-            <Input
-              id="create-genreIds"
-              value={createForm.genreIds}
-              onChange={(e) => updateCreateField('genreIds', e.target.value)}
-              placeholder="VD: UUID1, UUID2..."
-            />
+            {allGenres.length === 0 ? (
+              <div className="p-3 text-xs text-[var(--rogym-text-muted)] italic">
+                Đang tải danh sách thể loại...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3.5 rounded-xl border border-[var(--rogym-border-subtle)] bg-white/5">
+                {allGenres.map((g) => {
+                  const isChecked = createForm.genreIds.includes(g.id)
+                  return (
+                    <Checkbox
+                      key={g.id}
+                      id={`create-genre-${g.id}`}
+                      label={g.name}
+                      checked={isChecked}
+                      onChange={() => handleToggleCreateGenre(g.id)}
+                      checkboxSize="sm"
+                    />
+                  )
+                })}
+              </div>
+            )}
+            {createForm.genreIds.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                <span className="text-xs text-[var(--rogym-text-muted)]">
+                  Đã chọn ({createForm.genreIds.length}):
+                </span>
+                {allGenres
+                  .filter((g) => createForm.genreIds.includes(g.id))
+                  .map((g) => (
+                    <Badge key={g.id} tone="accent" size="xs">
+                      {g.name}
+                    </Badge>
+                  ))}
+              </div>
+            )}
           </FormField>
 
           <FormField label="Mô tả tóm tắt" htmlFor="create-desc">
