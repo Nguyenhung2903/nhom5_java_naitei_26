@@ -26,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,6 +42,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         log.info("Processing user registration for username: [{}], email: [{}]", request.getUsername(), request.getEmail());
+
+        // Kiểm tra độ tuổi tối thiểu từ đủ 14 tuổi
+        if (request.getBirthday() != null && request.getBirthday().isAfter(LocalDate.now().minusYears(14))) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Bạn phải từ đủ 14 tuổi trở lên để đăng ký tài khoản");
+        }
 
         // Kiểm tra xem username đã tồn tại chưa
         if (userRepository.existsByUsername(request.getUsername())) {
