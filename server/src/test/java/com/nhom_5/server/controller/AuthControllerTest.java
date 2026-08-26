@@ -67,7 +67,7 @@ public class AuthControllerTest {
     @DisplayName("Đăng nhập thành công bằng email chuẩn (chữ thường)")
     void testLoginWithEmail_Success() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("user@cinemanest.vn")
+                .email("user@cinemanest.vn")
                 .password("User@123456")
                 .build();
 
@@ -85,22 +85,7 @@ public class AuthControllerTest {
     @DisplayName("Đăng nhập thành công khi email viết hoa (Case-insensitive)")
     void testLoginWithEmail_MixedCase_Success() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("User@cinemanest.vn")
-                .password("User@123456")
-                .build();
-
-        ResponseEntity<ApiResponse<AuthResponse>> response = authController.login(request);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody().getData().getAccessToken());
-    }
-
-    @Test
-    @DisplayName("Đăng nhập thành công khi username viết hoa (Case-insensitive)")
-    void testLoginWithUsername_UpperCase_Success() {
-        LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("USER")
+                .email("User@cinemanest.vn")
                 .password("User@123456")
                 .build();
 
@@ -115,7 +100,7 @@ public class AuthControllerTest {
     @DisplayName("Đăng nhập thất bại khi sai mật khẩu")
     void testLogin_WrongPassword_ThrowsException() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("user@cinemanest.vn")
+                .email("user@cinemanest.vn")
                 .password("WrongPassword123")
                 .build();
 
@@ -127,7 +112,7 @@ public class AuthControllerTest {
     @DisplayName("Đăng nhập thất bại khi tài khoản không tồn tại")
     void testLogin_UserNotFound_ThrowsException() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("nonexistent@cinemanest.vn")
+                .email("nonexistent@cinemanest.vn")
                 .password("User@123456")
                 .build();
 
@@ -139,7 +124,7 @@ public class AuthControllerTest {
     @DisplayName("Đăng nhập thất bại khi tài khoản bị khóa (LOCKED)")
     void testLogin_AccountLocked_ThrowsException() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("locked@cinemanest.vn")
+                .email("locked@cinemanest.vn")
                 .password("User@123456")
                 .build();
 

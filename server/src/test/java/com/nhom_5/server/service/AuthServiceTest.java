@@ -107,16 +107,16 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Đăng nhập thành công với Username hoặc Email")
+    @DisplayName("Đăng nhập thành công với Email")
     void testLoginSuccess() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("johndoe")
+                .email("johndoe@example.com")
                 .password("Password@123")
                 .build();
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(new UsernamePasswordAuthenticationToken(sampleUser.getUsername(), "Password@123"));
-        when(userRepository.findByUsernameOrEmail("johndoe")).thenReturn(Optional.of(sampleUser));
+                .thenReturn(new UsernamePasswordAuthenticationToken(sampleUser.getEmail(), "Password@123"));
+        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(Optional.of(sampleUser));
         when(jwtService.generateToken(sampleUser)).thenReturn("mocked.jwt.token");
         when(jwtService.getExpirationMs()).thenReturn(604800000L);
 
@@ -125,13 +125,14 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals("mocked.jwt.token", response.getAccessToken());
         assertEquals("johndoe", response.getUser().getUsername());
+        assertEquals("johndoe@example.com", response.getUser().getEmail());
     }
 
     @Test
     @DisplayName("Đăng nhập thất bại khi sai mật khẩu")
     void testLoginBadCredentials() {
         LoginRequest request = LoginRequest.builder()
-                .usernameOrEmail("johndoe")
+                .email("johndoe@example.com")
                 .password("WrongPassword")
                 .build();
 

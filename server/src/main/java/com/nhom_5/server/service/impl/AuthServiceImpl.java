@@ -81,17 +81,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        String identifier = request.getUsernameOrEmail().trim();
-        log.info("Processing login attempt for identifier: [{}]", identifier);
+        String email = request.getEmail().trim().toLowerCase();
+        log.info("Processing login attempt for email: [{}]", email);
 
         try {
             // Xác thực thông tin đăng nhập qua Spring Security AuthenticationManager
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(identifier, request.getPassword())
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
             );
 
-            // Tìm entity User theo username hoặc email
-            User user = userRepository.findByUsernameOrEmail(identifier)
+            // Tìm entity User theo email
+            User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
             // Kiểm tra trạng thái tài khoản
@@ -101,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
 
             // Sinh Access Token
             String token = jwtService.generateToken(user);
-            log.info("User [{}] logged in successfully", user.getUsername());
+            log.info("User with email [{}] logged in successfully", user.getEmail());
 
             return AuthResponse.builder()
                     .accessToken(token)
@@ -111,10 +111,10 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
         } catch (BadCredentialsException ex) {
-            log.warn("Login failed for identifier [{}]: Invalid credentials", identifier);
+            log.warn("Login failed for email [{}]: Invalid credentials", email);
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         } catch (LockedException | DisabledException ex) {
-            log.warn("Login failed for identifier [{}]: Account is locked or disabled", identifier);
+            log.warn("Login failed for email [{}]: Account is locked or disabled", email);
             throw new AppException(ErrorCode.ACCOUNT_LOCKED);
         }
     }

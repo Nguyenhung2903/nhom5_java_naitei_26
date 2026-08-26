@@ -1,6 +1,7 @@
 package com.nhom_5.server.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,9 +17,10 @@ import lombok.Setter;
 @Schema(description = "Dữ liệu yêu cầu đăng nhập")
 public class LoginRequest {
 
-    @NotBlank(message = "Tên đăng nhập hoặc email không được để trống")
-    @Schema(description = "Tên đăng nhập hoặc Email", example = "admin")
-    private String usernameOrEmail;
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Địa chỉ email không đúng định dạng")
+    @Schema(description = "Địa chỉ email đăng nhập", example = "admin@cinemanest.vn")
+    private String email;
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Schema(description = "Mật khẩu", example = "Admin@123456")
