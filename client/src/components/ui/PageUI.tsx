@@ -83,7 +83,8 @@ export function PageErrorState({
   retryLabel?: string
 }) {
   const { t } = useTranslation('common')
-  const effectiveRetryLabel = retryLabel ?? t('button.retry')
+  const translated = t('button.retry')
+  const effectiveRetryLabel = retryLabel ?? (translated && translated !== 'button.retry' ? translated : 'Thử lại')
   return (
     <Card variant="compact" className="flex flex-col items-start gap-4 border-red-400/20 p-5 sm:flex-row sm:items-center">
       <AlertCircle className="shrink-0 text-red-300" size={22} />
