@@ -3,8 +3,13 @@ package com.nhom_5.server.service;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import com.nhom_5.server.repository.ShowtimeSeatRepository;
+import com.nhom_5.server.entity.Showtime;
 import com.nhom_5.server.entity.ShowtimeSeat;
+import com.nhom_5.server.entity.enums.ShowtimeStatus;
+import com.nhom_5.server.exception.AppException;
+import com.nhom_5.server.exception.ErrorCode;
+import com.nhom_5.server.repository.ShowtimeRepository;
+import com.nhom_5.server.repository.ShowtimeSeatRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import java.util.List;
@@ -19,6 +24,7 @@ import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
 @RequiredArgsConstructor
 public class ShowtimeSeatService {
     private final ShowtimeSeatRepository showtimeSeatRepository;
+    private final ShowtimeRepository showtimeRepository;
 
     @Transactional(readOnly = true)
     public List<ShowtimeSeatResponse> getSeats(UUID showtimeId) {
@@ -30,13 +36,23 @@ public class ShowtimeSeatService {
 
     @Transactional
     public void holdSeats(UUID showtimeId, List<UUID> seatIds, User user) {
+        Showtime showtime = showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy thông tin suất chiếu"));
+
+        Instant now = Instant.now();
+        if (showtime.getStatus() != ShowtimeStatus.OPEN) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Suất chiếu không ở trạng thái mở bán");
+        }
+        if (showtime.getStartTime().isBefore(now)) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Suất chiếu đã bắt đầu hoặc đã qua giờ chiếu");
+        }
+
         List<ShowtimeSeat> seats = showtimeSeatRepository.findByShowtimeIdAndIdsForUpdate(showtimeId, seatIds);
 
         if (seats.size() != seatIds.size()) {
             throw new IllegalArgumentException("Một hoặc nhiều ghế không hợp lệ cho suất chiếu này");
         }
 
-        Instant now = Instant.now();
         Instant holdExpiration = now.plus(5, ChronoUnit.MINUTES);
 
         for (ShowtimeSeat seat : seats) {

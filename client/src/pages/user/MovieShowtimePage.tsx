@@ -422,7 +422,7 @@ export function MovieShowtimePage() {
                             {isPassed && (
                               <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400">
                                 <AlertCircle className="w-3 h-3" />
-                                {isCancelled ? 'Đã hủy' : 'Đã qua giờ'}
+                                {isCancelled ? 'Đã hủy' : showtime.status === 'FINISHED' ? 'Đã kết thúc' : 'Đã qua giờ'}
                               </span>
                             )}
 

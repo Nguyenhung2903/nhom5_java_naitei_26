@@ -47,4 +47,11 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, UUID>, JpaSp
                         @Param("theaterId") UUID theaterId,
                         @Param("startTime") Instant startTime,
                         @Param("endTime") Instant endTime);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Showtime s SET s.status = :newStatus WHERE s.status = :oldStatus AND s.endTime <= :now")
+    int updateStatusByEndTimeBeforeAndStatus(
+            @Param("oldStatus") com.nhom_5.server.entity.enums.ShowtimeStatus oldStatus,
+            @Param("newStatus") com.nhom_5.server.entity.enums.ShowtimeStatus newStatus,
+            @Param("now") Instant now);
 }

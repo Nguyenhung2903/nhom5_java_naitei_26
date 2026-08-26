@@ -23,6 +23,11 @@ public class ShowtimeResponse {
     private ShowtimeStatus status;
 
     public static ShowtimeResponse fromEntity(Showtime showtime) {
+        ShowtimeStatus effectiveStatus = showtime.getStatus();
+        if (effectiveStatus == ShowtimeStatus.OPEN && showtime.getEndTime() != null && showtime.getEndTime().isBefore(Instant.now())) {
+            effectiveStatus = ShowtimeStatus.FINISHED;
+        }
+
         return ShowtimeResponse.builder()
                 .id(showtime.getId())
                 .movieId(showtime.getMovie().getId())
@@ -33,7 +38,7 @@ public class ShowtimeResponse {
                 .theaterName(showtime.getRoom().getTheater().getName())
                 .startTime(showtime.getStartTime())
                 .endTime(showtime.getEndTime())
-                .status(showtime.getStatus())
+                .status(effectiveStatus)
                 .build();
     }
 }
