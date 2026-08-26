@@ -31,8 +31,8 @@ vi.mock('@/services/showtimeService', () => ({
 }))
 
 const theaters = [
-  { id: 'theater-1', name: 'Cinema A', address: 'Address A', phone: null, latitude: null, longitude: null },
-  { id: 'theater-2', name: 'Cinema B', address: 'Address B', phone: null, latitude: null, longitude: null },
+  { id: 'theater-1', name: 'Cinema A', address: 'Address A', phone: null },
+  { id: 'theater-2', name: 'Cinema B', address: 'Address B', phone: null },
 ]
 
 // Future showtime

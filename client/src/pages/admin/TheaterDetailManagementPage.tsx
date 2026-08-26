@@ -49,8 +49,6 @@ export function TheaterDetailManagementPage() {
     name: '',
     address: '',
     phone: '',
-    latitude: undefined,
-    longitude: undefined,
   })
   const [savingTheater, setSavingTheater] = useState(false)
 
@@ -79,8 +77,6 @@ export function TheaterDetailManagementPage() {
         name: theaterData.name,
         address: theaterData.address,
         phone: theaterData.phone || '',
-        latitude: theaterData.latitude || undefined,
-        longitude: theaterData.longitude || undefined,
       })
 
       const theaterRooms = allRooms.filter((r) => r.theaterId === theaterId)
@@ -388,7 +384,7 @@ export function TheaterDetailManagementPage() {
             <span>Thông Tin Cụm Rạp</span>
           </div>
           <span className="text-xs text-[var(--rogym-text-muted)]">
-            Cập nhật tên, địa chỉ và tọa độ GPS
+            Cập nhật tên, địa chỉ và số điện thoại
           </span>
         </div>
 
@@ -426,39 +422,7 @@ export function TheaterDetailManagementPage() {
             </FormField>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
-            <FormField label="Vĩ độ (Latitude)" htmlFor="theater-lat-input">
-              <Input
-                id="theater-lat-input"
-                type="number"
-                step="any"
-                value={theaterForm.latitude ?? ''}
-                onChange={(e) =>
-                  setTheaterForm((prev) => ({
-                    ...prev,
-                    latitude: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }
-                placeholder="10.794..."
-              />
-            </FormField>
-
-            <FormField label="Kinh độ (Longitude)" htmlFor="theater-lng-input">
-              <Input
-                id="theater-lng-input"
-                type="number"
-                step="any"
-                value={theaterForm.longitude ?? ''}
-                onChange={(e) =>
-                  setTheaterForm((prev) => ({
-                    ...prev,
-                    longitude: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }
-                placeholder="106.721..."
-              />
-            </FormField>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <Button
               type="submit"
               variant="primary"

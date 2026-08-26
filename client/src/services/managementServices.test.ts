@@ -11,7 +11,7 @@ afterEach(() => {
 
 describe('management services', () => {
   it('loads theaters through the shared API client', async () => {
-    const theater = { id: 'theater-1', name: 'CGV', address: 'Hanoi', phone: null, latitude: null, longitude: null }
+    const theater = { id: 'theater-1', name: 'CGV', address: 'Hanoi', phone: null }
     vi.spyOn(api, 'get').mockResolvedValue({ data: [theater] } as never)
 
     await expect(theaterService.getAll()).resolves.toEqual([theater])
