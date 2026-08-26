@@ -32,7 +32,7 @@ export function ComboPage() {
   useEffect(() => {
     // If no seat data, user accessed directly -> redirect to seat selection
     if (!holdExpiration || !selectedSeatIds || selectedSeatIds.length === 0) {
-      navigate(`/booking/${showtimeId}/seats`)
+      navigate(`/user/booking/${showtimeId}/seats`)
       return
     }
 
