@@ -61,11 +61,13 @@ describe('ProfilePage', () => {
     expect(screen.getByText('Chỉnh sửa')).toBeTruthy()
   })
 
-  it('switches to edit mode, submits changes, and calls refreshProfile', async () => {
+  it('switches to edit mode, submits changes, and calls setUserSession', async () => {
     const refreshProfile = vi.fn().mockResolvedValue(mockUser)
+    const setUserSession = vi.fn()
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser,
       refreshProfile,
+      setUserSession,
       isAuthenticated: true,
       isAdmin: false,
       isLoading: false,
@@ -75,8 +77,13 @@ describe('ProfilePage', () => {
       token: 'fake-token',
     })
     vi.mocked(userService.updateMyProfile).mockResolvedValue({
-      ...mockUser,
-      fullName: 'John Doe Updated',
+      accessToken: 'new-fake-token',
+      tokenType: 'Bearer',
+      expiresIn: 604800000,
+      user: {
+        ...mockUser,
+        fullName: 'John Doe Updated',
+      },
     })
 
     render(
@@ -104,7 +111,11 @@ describe('ProfilePage', () => {
           fullName: 'John Doe Updated',
         })
       )
-      expect(refreshProfile).toHaveBeenCalledOnce()
+      expect(setUserSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accessToken: 'new-fake-token',
+        })
+      )
     })
   })
 

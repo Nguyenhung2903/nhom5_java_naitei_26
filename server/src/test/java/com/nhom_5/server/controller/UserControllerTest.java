@@ -5,6 +5,7 @@ import com.nhom_5.server.dto.request.AdminUpdateUserRequest;
 import com.nhom_5.server.dto.request.CreateUserRequest;
 import com.nhom_5.server.dto.request.UpdateProfileRequest;
 import com.nhom_5.server.dto.response.ApiResponse;
+import com.nhom_5.server.dto.response.AuthResponse;
 import com.nhom_5.server.dto.response.PageResponse;
 import com.nhom_5.server.dto.response.UserProfileDto;
 import com.nhom_5.server.entity.User;
@@ -115,13 +116,15 @@ public class UserControllerTest {
                 .avatar("https://example.com/new_avatar.jpg")
                 .build();
 
-        ResponseEntity<ApiResponse<UserProfileDto>> response = userController.updateCurrentProfile(request);
+        ResponseEntity<ApiResponse<AuthResponse>> response = userController.updateCurrentProfile(request);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("user01_updated", response.getBody().getData().getUsername());
-        assertEquals("Standard User Updated", response.getBody().getData().getFullName());
-        assertEquals("0933333333", response.getBody().getData().getPhone());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getData().getAccessToken());
+        assertEquals("user01_updated", response.getBody().getData().getUser().getUsername());
+        assertEquals("Standard User Updated", response.getBody().getData().getUser().getFullName());
+        assertEquals("0933333333", response.getBody().getData().getUser().getPhone());
     }
 
     @Test

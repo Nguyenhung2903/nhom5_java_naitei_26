@@ -47,8 +47,8 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "[PUBLIC] Đăng nhập hệ thống",
-            description = "Xác thực bằng Username hoặc Email kèm Mật khẩu để nhận JWT Access Token. Mặc định có thể đăng nhập bằng tài khoản admin (Username: admin / Password: Admin@123456)."
+            summary = "[PUBLIC] Đăng nhập hệ thống bằng Email và Mật khẩu",
+            description = "Xác thực bằng Email kèm Mật khẩu để nhận JWT Access Token. Mặc định có thể đăng nhập bằng tài khoản admin (Email: admin@cinemanest.vn / Password: Admin@123456)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Đăng nhập thành công"),

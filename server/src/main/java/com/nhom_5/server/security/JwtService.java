@@ -51,11 +51,12 @@ public class JwtService {
     public String generateToken(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("userId", user.getId());
+        extraClaims.put("username", user.getUsername());
         extraClaims.put("email", user.getEmail());
         extraClaims.put("role", user.getRole().name());
         extraClaims.put("fullName", user.getFullName());
 
-        return buildToken(extraClaims, user.getUsername(), jwtExpirationMs);
+        return buildToken(extraClaims, user.getEmail(), jwtExpirationMs);
     }
 
     /**
@@ -66,6 +67,7 @@ public class JwtService {
         if (userDetails instanceof CustomUserDetails customUserDetails) {
             User user = customUserDetails.getUser();
             extraClaims.put("userId", user.getId());
+            extraClaims.put("username", user.getUsername());
             extraClaims.put("email", user.getEmail());
             extraClaims.put("role", user.getRole().name());
             extraClaims.put("fullName", user.getFullName());

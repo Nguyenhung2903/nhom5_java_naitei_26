@@ -1,6 +1,6 @@
 export type Role = 'ADMIN' | 'USER'
 
-export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED'
+export type UserStatus = 'ACTIVE' | 'LOCKED'
 
 export interface UserProfile {
   id: string
@@ -18,7 +18,7 @@ export interface UserProfile {
 }
 
 export interface LoginRequest {
-  usernameOrEmail: string
+  email: string
   password: string
 }
 

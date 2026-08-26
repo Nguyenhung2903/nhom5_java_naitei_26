@@ -15,7 +15,7 @@ import {
   Alert,
   AlertDescription,
 } from '@/components/ui'
-import { User, Lock, LogIn, Sparkles, AlertCircle } from 'lucide-react'
+import { Mail, Lock, LogIn, Sparkles, AlertCircle } from 'lucide-react'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -24,7 +24,7 @@ export function LoginPage() {
   const redirectUrl = searchParams.get('redirect')
 
   const [formData, setFormData] = useState({
-    usernameOrEmail: '',
+    email: '',
     password: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -33,9 +33,12 @@ export function LoginPage() {
 
   const validate = (): boolean => {
     const nextErrors: Record<string, string> = {}
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-    if (!formData.usernameOrEmail.trim()) {
-      nextErrors.usernameOrEmail = 'Vui lòng nhập tên đăng nhập hoặc email'
+    if (!formData.email.trim()) {
+      nextErrors.email = 'Vui lòng nhập địa chỉ email'
+    } else if (!emailRegex.test(formData.email.trim())) {
+      nextErrors.email = 'Địa chỉ email không đúng định dạng (VD: example@email.com)'
     }
 
     if (!formData.password) {
@@ -55,7 +58,7 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       const user = await login({
-        usernameOrEmail: formData.usernameOrEmail.trim(),
+        email: formData.email.trim(),
         password: formData.password,
       })
 
@@ -83,7 +86,7 @@ export function LoginPage() {
           Đăng Nhập
         </CardTitle>
         <CardDescription className="text-xs text-[var(--rogym-text-secondary)] mt-1">
-          Nhập tài khoản để trải nghiệm đặt vé và quản lý hệ thống
+          Nhập địa chỉ email để trải nghiệm đặt vé và quản lý hệ thống
         </CardDescription>
       </CardHeader>
 
@@ -96,24 +99,25 @@ export function LoginPage() {
 
         <form id="login-form" onSubmit={handleSubmit} className="space-y-4">
           <FormField
-            label="Tên đăng nhập hoặc Email"
-            htmlFor="usernameOrEmail"
+            label="Địa chỉ Email"
+            htmlFor="email"
             required
-            error={errors.usernameOrEmail}
+            error={errors.email}
           >
             <Input
-              id="usernameOrEmail"
-              name="usernameOrEmail"
-              placeholder="VD: admin hoặc nguyenvana@gmail.com"
-              value={formData.usernameOrEmail}
+              id="email"
+              name="email"
+              type="email"
+              placeholder="VD: nguyenvana@gmail.com"
+              value={formData.email}
               onChange={(e) => {
-                setFormData({ ...formData, usernameOrEmail: e.target.value })
-                if (errors.usernameOrEmail) setErrors({ ...errors, usernameOrEmail: '' })
+                setFormData({ ...formData, email: e.target.value })
+                if (errors.email) setErrors({ ...errors, email: '' })
               }}
-              leftIcon={<User className="w-4 h-4 text-[var(--rogym-text-muted)]" />}
-              error={!!errors.usernameOrEmail}
+              leftIcon={<Mail className="w-4 h-4 text-[var(--rogym-text-muted)]" />}
+              error={!!errors.email}
               disabled={isSubmitting}
-              autoComplete="username"
+              autoComplete="email"
             />
           </FormField>
 
