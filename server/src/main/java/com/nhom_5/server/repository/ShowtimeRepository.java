@@ -14,6 +14,7 @@ import java.util.UUID;
 public interface ShowtimeRepository extends JpaRepository<Showtime, UUID>, JpaSpecificationExecutor<Showtime> {
     boolean existsByRoomId(UUID roomId);
     List<Showtime> findByRoomId(UUID roomId);
+    List<Showtime> findByRoomIdAndStatusAndStartTimeAfter(UUID roomId, com.nhom_5.server.entity.enums.ShowtimeStatus status, Instant startTime);
 
     @Modifying
     @Query("DELETE FROM Showtime s WHERE s.room.id = :roomId")

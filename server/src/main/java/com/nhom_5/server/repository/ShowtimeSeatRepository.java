@@ -18,6 +18,23 @@ import java.util.UUID;
 public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID> {
     boolean existsBySeatId(UUID seatId);
 
+    boolean existsBySeatIdAndStatusIn(UUID seatId,
+            List<com.nhom_5.server.entity.enums.ShowtimeSeatStatus> statuses);
+
+    boolean existsBySeatIdInAndStatusIn(List<UUID> seatIds,
+            List<com.nhom_5.server.entity.enums.ShowtimeSeatStatus> statuses);
+
+    @Modifying
+    @Query("DELETE FROM ShowtimeSeat ss WHERE ss.seat.id = :seatId")
+    void deleteBySeatId(@Param("seatId") UUID seatId);
+
+    @Modifying
+    @Query("DELETE FROM ShowtimeSeat ss WHERE ss.seat.id IN :seatIds")
+    void deleteBySeatIdIn(@Param("seatIds") List<UUID> seatIds);
+
+    List<ShowtimeSeat> findBySeatIdInAndStatus(List<UUID> seatIds,
+            com.nhom_5.server.entity.enums.ShowtimeSeatStatus status);
+
     boolean existsByShowtimeId(UUID showtimeId);
 
     boolean existsByShowtimeIdAndStatusIn(UUID showtimeId,

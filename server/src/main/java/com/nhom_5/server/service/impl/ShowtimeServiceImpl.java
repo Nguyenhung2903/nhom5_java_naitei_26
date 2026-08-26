@@ -151,13 +151,13 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         return ShowtimeResponse.fromEntity(savedShowtime);
     }
 
-    private BigDecimal calculateSeatPrice(SeatType seatType) {
+    public static BigDecimal calculateSeatPrice(SeatType seatType) {
         if (seatType == null) {
             return BigDecimal.valueOf(75000);
         }
         return switch (seatType) {
             case VIP -> BigDecimal.valueOf(95000);
-            case COUPLE -> BigDecimal.valueOf(160000);
+            case COUPLE -> BigDecimal.valueOf(80000);
             case NORMAL -> BigDecimal.valueOf(75000);
         };
     }

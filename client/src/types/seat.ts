@@ -17,3 +17,11 @@ export interface SeatRequest {
   seatNumber: number
   seatType: SeatType
 }
+
+export interface CreateRowSeatRequest {
+  roomId: string
+  seatRow: string
+  seatCount: number
+  seatType: SeatType
+}
+

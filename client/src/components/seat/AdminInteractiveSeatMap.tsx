@@ -5,8 +5,7 @@ import { Button, Modal, FormField, Input, Select, ConfirmDialog } from '@/compon
 import { seatService } from '@/services/seatService'
 import { roomService } from '@/services/roomService'
 import type { Seat, SeatType } from '@/types/seat'
-import { Plus, RotateCcw, Trash2, CheckSquare, Square, Armchair, Layers } from 'lucide-react'
-
+import { Plus, RotateCcw, Trash2, CheckSquare, Square, Armchair, Layers, Rows } from 'lucide-react'
 
 interface AdminInteractiveSeatMapProps {
   roomId: string
@@ -15,6 +14,13 @@ interface AdminInteractiveSeatMapProps {
   seats: Seat[]
   onRefresh: () => void
   className?: string
+}
+
+interface AdminRowItem {
+  type: 'single' | 'couple'
+  seat: Seat
+  partnerSeat?: Seat
+  seatNumber: number
 }
 
 export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = ({
@@ -29,11 +35,19 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
   const [loadingAction, setLoadingAction] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // Modal Thêm ghế
+  // Modal Thêm ghế đơn lẻ
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addForm, setAddForm] = useState<{ seatRow: string; seatNumber: number; seatType: SeatType }>({
     seatRow: 'A',
     seatNumber: 1,
+    seatType: 'NORMAL',
+  })
+
+  // Modal Thêm nhanh cả hàng ghế
+  const [addRowModalOpen, setAddRowModalOpen] = useState(false)
+  const [addRowForm, setAddRowForm] = useState<{ seatRow: string; seatCount: number; seatType: SeatType }>({
+    seatRow: 'F',
+    seatCount: 10,
     seatType: 'NORMAL',
   })
 
@@ -42,7 +56,13 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
   // Confirm Xóa các ghế đã chọn
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
-  // Nhóm ghế theo hàng
+  // Tìm số ghế lớn nhất trong cả phòng để căn chỉnh lối đi
+  const maxSeatNumberInRoom = useMemo(() => {
+    if (seats.length === 0) return 10
+    return Math.max(...seats.map((s) => s.seatNumber), 10)
+  }, [seats])
+
+  // Nhóm ghế theo hàng và xử lý gom cặp ghế đôi động
   const rows = useMemo(() => {
     const grouped: Record<string, Seat[]> = {}
     seats.forEach((seat) => {
@@ -51,13 +71,44 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
       grouped[row].push(seat)
     })
 
-    const sortedRowKeys = Object.keys(grouped).sort()
+    const sortedRowKeys = Object.keys(grouped).sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    )
+
     return sortedRowKeys.map((rowKey) => {
       const rowSeats = grouped[rowKey].sort((a, b) => a.seatNumber - b.seatNumber)
+
+      const items: AdminRowItem[] = []
+      for (let i = 0; i < rowSeats.length; i++) {
+        const current = rowSeats[i]
+        const next = rowSeats[i + 1]
+
+        if (
+          current.seatType === 'COUPLE' &&
+          next &&
+          next.seatType === 'COUPLE' &&
+          next.seatNumber === current.seatNumber + 1
+        ) {
+          items.push({
+            type: 'couple',
+            seat: current,
+            partnerSeat: next,
+            seatNumber: current.seatNumber,
+          })
+          i++
+        } else {
+          items.push({
+            type: 'single',
+            seat: current,
+            seatNumber: current.seatNumber,
+          })
+        }
+      }
+
       return {
         rowKey,
-        seats: rowSeats,
-        isCoupleRow: rowSeats.some((s) => s.seatType === 'COUPLE'),
+        items,
+        rawSeats: rowSeats,
       }
     })
   }, [seats])
@@ -66,6 +117,17 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
     setSelectedSeatIds((prev) =>
       prev.includes(seatId) ? prev.filter((id) => id !== seatId) : [...prev, seatId]
     )
+  }
+
+  const handleCoupleToggle = (mainId: string, partnerId?: string) => {
+    const ids = partnerId ? [mainId, partnerId] : [mainId]
+    const allSelected = ids.every((id) => selectedSeatIds.includes(id))
+
+    if (allSelected) {
+      setSelectedSeatIds((prev) => prev.filter((id) => !ids.includes(id)))
+    } else {
+      setSelectedSeatIds((prev) => Array.from(new Set([...prev, ...ids])))
+    }
   }
 
   const handleSelectRow = (rowSeats: Seat[]) => {
@@ -110,18 +172,16 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
     }
   }
 
-  // Xóa các ghế đã chọn
+  // Xóa các ghế đã chọn qua API Batch Delete an toàn
   const handleBatchDelete = async () => {
     if (selectedSeatIds.length === 0) return
     setLoadingAction(true)
     setFeedback(null)
     try {
-      for (const id of selectedSeatIds) {
-        await seatService.delete(id)
-      }
+      await seatService.deleteBatch(selectedSeatIds)
       setFeedback({
         type: 'success',
-        message: `Đã xóa ${selectedSeatIds.length} ghế khỏi phòng chiếu`,
+        message: `Đã xóa ${selectedSeatIds.length} ghế khỏi phòng chiếu thành công`,
       })
       setSelectedSeatIds([])
       setDeleteConfirmOpen(false)
@@ -129,7 +189,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
     } catch (err: unknown) {
       setFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'Không thể xóa ghế (ghế có thể đã có suất chiếu)',
+        message: err instanceof Error ? err.message : 'Không thể xóa ghế (ghế có thể đã có suất chiếu có vé đặt/giữ chỗ)',
       })
     } finally {
       setLoadingAction(false)
@@ -159,35 +219,115 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
     }
   }
 
-  // Thêm ghế mới
+  // Thêm ghế đơn lẻ
   const handleAddSeat = async () => {
+    const row = addForm.seatRow.trim().toUpperCase()
+    const num = Number(addForm.seatNumber)
+    if (!row || num <= 0) return
+
+    // Kiểm tra trùng lặp trên client
+    const exists = seats.some((s) => s.seatRow.toUpperCase() === row && s.seatNumber === num)
+    if (exists) {
+      setFeedback({
+        type: 'error',
+        message: `Ghế ${row}${num} đã tồn tại trong phòng chiếu!`,
+      })
+      return
+    }
+
     setLoadingAction(true)
     setFeedback(null)
     try {
       await seatService.create({
         roomId,
-        seatRow: addForm.seatRow.trim().toUpperCase(),
-        seatNumber: Number(addForm.seatNumber),
+        seatRow: row,
+        seatNumber: num,
         seatType: addForm.seatType,
       })
       setFeedback({
         type: 'success',
-        message: `Đã thêm ghế ${addForm.seatRow.toUpperCase()}${addForm.seatNumber} thành công`,
+        message: `Đã thêm ghế ${row}${num} thành công`,
       })
       setAddModalOpen(false)
       onRefresh()
     } catch (err: unknown) {
       setFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'Không thể thêm ghế (số ghế có thể đã tồn tại)',
+        message: err instanceof Error ? err.message : 'Không thể thêm ghế',
       })
     } finally {
       setLoadingAction(false)
     }
   }
 
-  const getSeatByRowAndNumber = (rowKey: string, number: number) => {
-    return seats.find((s) => s.seatRow.toUpperCase() === rowKey && s.seatNumber === number)
+  // Thêm nhanh cả hàng ghế
+  const handleAddRow = async () => {
+    const row = addRowForm.seatRow.trim().toUpperCase()
+    const count = Number(addRowForm.seatCount)
+    if (!row || count <= 0) return
+
+    setLoadingAction(true)
+    setFeedback(null)
+    try {
+      const created = await seatService.createRow({
+        roomId,
+        seatRow: row,
+        seatCount: count,
+        seatType: addRowForm.seatType,
+      })
+      setFeedback({
+        type: 'success',
+        message: `Đã thêm thành công hàng ghế ${row} gồm ${created.length} ghế (${addRowForm.seatType})`,
+      })
+      setAddRowModalOpen(false)
+      onRefresh()
+    } catch (err: unknown) {
+      setFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Không thể thêm hàng ghế (hàng ghế có thể đã trùng số ghế)',
+      })
+    } finally {
+      setLoadingAction(false)
+    }
+  }
+
+  const renderAdminItem = (item: AdminRowItem) => {
+    if (item.type === 'couple' && item.partnerSeat) {
+      const main = item.seat
+      const partner = item.partnerSeat
+      const isSelected =
+        selectedSeatIds.includes(main.id) && selectedSeatIds.includes(partner.id)
+      const isPartialSelected =
+        (selectedSeatIds.includes(main.id) || selectedSeatIds.includes(partner.id)) && !isSelected
+
+      return (
+        <SeatItem
+          key={`couple-${main.id}-${partner.id}`}
+          seatRow={main.seatRow}
+          seatNumber={main.seatNumber}
+          couplePartnerNumber={partner.seatNumber}
+          seatType="COUPLE"
+          isCouple={true}
+          isSelected={isSelected || isPartialSelected}
+          interactive={true}
+          onClick={() => handleCoupleToggle(main.id, partner.id)}
+        />
+      )
+    }
+
+    const seat = item.seat
+    return (
+      <SeatItem
+        key={seat.id}
+        seatRow={seat.seatRow}
+        seatNumber={seat.seatNumber}
+        seatType={seat.seatType}
+        isCouple={seat.seatType === 'COUPLE'}
+        isSelected={selectedSeatIds.includes(seat.id)}
+        interactive={true}
+        onClick={() => handleSeatToggle(seat.id)}
+      />
+    )
   }
 
   return (
@@ -221,7 +361,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
           <div>
             <h3 className="text-base font-bold text-white">Sơ đồ Chỗ ngồi Trực quan</h3>
             <p className="text-xs text-[var(--rogym-text-muted)]">
-              Click vào từng ghế hoặc chọn nhiều ghế để chỉnh sửa loại ghế và bố cục
+              Click vào từng ghế hoặc chọn nhiều ghế để chỉnh sửa loại ghế và bố cục phòng chiếu
             </p>
           </div>
         </div>
@@ -261,6 +401,18 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
 
           <Button
             type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setAddRowModalOpen(true)}
+            disabled={loadingAction}
+            className="flex items-center gap-1.5 text-xs text-[var(--rogym-teal)] border-[var(--rogym-teal)]/40 hover:bg-[var(--rogym-teal)]/10"
+          >
+            <Rows className="w-4 h-4" />
+            <span>Thêm cả hàng</span>
+          </Button>
+
+          <Button
+            type="button"
             variant="primary"
             size="sm"
             onClick={() => setAddModalOpen(true)}
@@ -268,7 +420,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
             className="flex items-center gap-1.5 text-xs"
           >
             <Plus className="w-4 h-4" />
-            <span>Thêm ghế</span>
+            <span>Thêm ghế lẻ</span>
           </Button>
         </div>
       </div>
@@ -351,8 +503,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
       <div className="p-4 sm:p-8 rounded-2xl bg-[var(--rogym-bg-deep)] border border-[var(--rogym-border-subtle)] shadow-2xl flex flex-col items-center">
         <ScreenIndicator label={`MÀN HÌNH - ${theaterName.toUpperCase()} • ${roomName.toUpperCase()}`} />
 
-
-        <div className="w-full max-w-4xl overflow-x-auto py-6 px-2 flex justify-center">
+        <div className="w-full max-w-5xl overflow-x-auto py-6 px-2 flex justify-center">
           {seats.length === 0 ? (
             <div className="py-12 text-center text-[var(--rogym-text-muted)] space-y-3">
               <Armchair className="w-12 h-12 mx-auto opacity-40" />
@@ -368,128 +519,78 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
             </div>
           ) : (
             <div className="flex flex-col gap-3 min-w-max items-center">
-              {rows.map(({ rowKey, seats: rowSeats, isCoupleRow }) => {
-                const isAllRowSelected = rowSeats.every((s) => selectedSeatIds.includes(s.id))
+              {rows.map(({ rowKey, items, rawSeats }) => {
+                const isAllRowSelected =
+                  rawSeats.length > 0 && rawSeats.every((s) => selectedSeatIds.includes(s.id))
 
-                if (isCoupleRow) {
-                  const pair1_2 = [getSeatByRowAndNumber(rowKey, 1), getSeatByRowAndNumber(rowKey, 2)].filter(Boolean) as Seat[]
-                  const pair3_4 = [getSeatByRowAndNumber(rowKey, 3), getSeatByRowAndNumber(rowKey, 4)].filter(Boolean) as Seat[]
-                  const pair5_6 = [getSeatByRowAndNumber(rowKey, 5), getSeatByRowAndNumber(rowKey, 6)].filter(Boolean) as Seat[]
-                  const pair7_8 = [getSeatByRowAndNumber(rowKey, 7), getSeatByRowAndNumber(rowKey, 8)].filter(Boolean) as Seat[]
-                  const pair9_10 = [getSeatByRowAndNumber(rowKey, 9), getSeatByRowAndNumber(rowKey, 10)].filter(Boolean) as Seat[]
+                const useAisles = maxSeatNumberInRoom >= 8 && items.length >= 4
+                const leftThreshold = 2
+                const rightThreshold = maxSeatNumberInRoom - 1
 
-                  const renderCouplePair = (pair: Seat[]) => {
-                    if (pair.length === 0) return null
-                    const main = pair[0]
-                    const partner = pair.length > 1 ? pair[1] : undefined
-                    const isSelected = selectedSeatIds.includes(main.id) || (partner ? selectedSeatIds.includes(partner.id) : false)
-
-                    return (
-                      <SeatItem
-                        key={`couple-${main.id}`}
-                        seatRow={main.seatRow}
-                        seatNumber={main.seatNumber}
-                        couplePartnerNumber={partner?.seatNumber}
-                        seatType="COUPLE"
-                        isCouple={true}
-                        isSelected={isSelected}
-                        interactive={true}
-                        onClick={() => {
-                          handleSeatToggle(main.id)
-                          if (partner) handleSeatToggle(partner.id)
-                        }}
-                      />
-                    )
-                  }
-
-                  return (
-                    <div key={rowKey} className="flex items-center gap-2 sm:gap-3">
-                      {/* Nút chọn cả hàng bên trái */}
-                      <button
-                        type="button"
-                        onClick={() => handleSelectRow(rowSeats)}
-                        title={`Chọn toàn bộ hàng ${rowKey}`}
-                        className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
-                          isAllRowSelected
-                            ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
-                            : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
-                        }`}
-                      >
-                        {rowKey}
-                      </button>
-
-                      <div className="flex items-center gap-1.5 sm:gap-2">{renderCouplePair(pair1_2)}</div>
-                      <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-l border-dashed border-[var(--rogym-border-white-dim)]" />
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        {renderCouplePair(pair3_4)}
-                        {renderCouplePair(pair5_6)}
-                        {renderCouplePair(pair7_8)}
-                      </div>
-                      <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-r border-dashed border-[var(--rogym-border-white-dim)]" />
-                      <div className="flex items-center gap-1.5 sm:gap-2">{renderCouplePair(pair9_10)}</div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleSelectRow(rowSeats)}
-                        title={`Chọn toàn bộ hàng ${rowKey}`}
-                        className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
-                          isAllRowSelected
-                            ? 'border-cyan-400 bg-cyan-400 text-black'
-                            : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
-                        }`}
-                      >
-                        {rowKey}
-                      </button>
-                    </div>
-                  )
-                }
-
-                // Hàng ghế đơn
-                const leftCluster = rowSeats.filter((s) => s.seatNumber <= 2)
-                const centerCluster = rowSeats.filter((s) => s.seatNumber >= 3 && s.seatNumber <= 8)
-                const rightCluster = rowSeats.filter((s) => s.seatNumber >= 9)
-
-                const renderSingle = (seat: Seat) => (
-                  <SeatItem
-                    key={seat.id}
-                    seatRow={seat.seatRow}
-                    seatNumber={seat.seatNumber}
-                    seatType={seat.seatType}
-                    isSelected={selectedSeatIds.includes(seat.id)}
-                    interactive={true}
-                    onClick={() => handleSeatToggle(seat.id)}
-                  />
-                )
+                const leftCluster = useAisles
+                  ? items.filter((it) => it.seatNumber <= leftThreshold)
+                  : []
+                const centerCluster = useAisles
+                  ? items.filter((it) => it.seatNumber > leftThreshold && it.seatNumber < rightThreshold)
+                  : items
+                const rightCluster = useAisles
+                  ? items.filter((it) => it.seatNumber >= rightThreshold)
+                  : []
 
                 return (
                   <div key={rowKey} className="flex items-center gap-2 sm:gap-3">
+                    {/* Nút chọn cả hàng bên trái */}
                     <button
                       type="button"
-                      onClick={() => handleSelectRow(rowSeats)}
+                      onClick={() => handleSelectRow(rawSeats)}
                       title={`Chọn toàn bộ hàng ${rowKey}`}
                       className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
                         isAllRowSelected
-                          ? 'border-cyan-400 bg-cyan-400 text-black'
-                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
+                          ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
+                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
                       }`}
                     >
                       {rowKey}
                     </button>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">{leftCluster.map(renderSingle)}</div>
-                    <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-l border-dashed border-[var(--rogym-border-white-dim)]" />
-                    <div className="flex items-center gap-1.5 sm:gap-2">{centerCluster.map(renderSingle)}</div>
-                    <div className="w-4 sm:w-7 h-8 flex items-center justify-center border-r border-dashed border-[var(--rogym-border-white-dim)]" />
-                    <div className="flex items-center gap-1.5 sm:gap-2">{rightCluster.map(renderSingle)}</div>
+                    {/* Cụm trái */}
+                    {leftCluster.length > 0 && (
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        {leftCluster.map(renderAdminItem)}
+                      </div>
+                    )}
 
+                    {/* Lối đi bên trái */}
+                    {leftCluster.length > 0 && (
+                      <div className="w-3 sm:w-6 h-8 flex items-center justify-center border-l border-dashed border-[var(--rogym-border-white-dim)]" />
+                    )}
+
+                    {/* Cụm giữa */}
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      {centerCluster.map(renderAdminItem)}
+                    </div>
+
+                    {/* Lối đi bên phải */}
+                    {rightCluster.length > 0 && (
+                      <div className="w-3 sm:w-6 h-8 flex items-center justify-center border-r border-dashed border-[var(--rogym-border-white-dim)]" />
+                    )}
+
+                    {/* Cụm phải */}
+                    {rightCluster.length > 0 && (
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        {rightCluster.map(renderAdminItem)}
+                      </div>
+                    )}
+
+                    {/* Nút chọn cả hàng bên phải */}
                     <button
                       type="button"
-                      onClick={() => handleSelectRow(rowSeats)}
+                      onClick={() => handleSelectRow(rawSeats)}
                       title={`Chọn toàn bộ hàng ${rowKey}`}
                       className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
                         isAllRowSelected
-                          ? 'border-cyan-400 bg-cyan-400 text-black'
-                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-cyan-400'
+                          ? 'border-[var(--rogym-green)] bg-[var(--rogym-green)] text-black'
+                          : 'border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:border-[var(--rogym-teal)]'
                       }`}
                     >
                       {rowKey}
@@ -505,15 +606,15 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
         <div className="flex flex-wrap items-center justify-center gap-4 mt-6 py-3 px-6 rounded-xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-subtle)] text-xs">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-sm border border-emerald-500/60 bg-emerald-950/40" />
-            <span className="text-emerald-400 font-medium">Thường (A-B)</span>
+            <span className="text-emerald-400 font-medium">Ghế Thường</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-sm border border-amber-500/60 bg-amber-950/40" />
-            <span className="text-amber-400 font-medium">VIP (C-D)</span>
+            <span className="text-amber-400 font-medium">Ghế VIP</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-7 h-4 rounded-sm border border-rose-500/60 bg-rose-950/40" />
-            <span className="text-rose-300 font-medium">Ghế Đôi (E)</span>
+            <span className="text-rose-300 font-medium">Ghế Đôi</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-sm border border-cyan-400 bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
@@ -522,7 +623,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
         </div>
       </div>
 
-      {/* Modal Thêm ghế mới */}
+      {/* Modal Thêm ghế lẻ */}
       <Modal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
@@ -578,6 +679,67 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
         </div>
       </Modal>
 
+      {/* Modal Thêm nhanh nguyên hàng ghế */}
+      <Modal
+        open={addRowModalOpen}
+        onClose={() => setAddRowModalOpen(false)}
+        title="Thêm Nhanh Nguyên Hàng Ghế Mới"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setAddRowModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button variant="primary" onClick={handleAddRow} loading={loadingAction}>
+              Tạo hàng ghế
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Ký hiệu hàng (A-Z)" htmlFor="add-row-name" required>
+              <Input
+                id="add-row-name"
+                maxLength={2}
+                value={addRowForm.seatRow}
+                onChange={(e) => setAddRowForm((prev) => ({ ...prev, seatRow: e.target.value.toUpperCase() }))}
+                placeholder="VD: F, G, H..."
+                required
+              />
+            </FormField>
+            <FormField label="Số lượng ghế trong hàng" htmlFor="add-row-count" required>
+              <Input
+                id="add-row-count"
+                type="number"
+                min={1}
+                max={50}
+                value={addRowForm.seatCount}
+                onChange={(e) => setAddRowForm((prev) => ({ ...prev, seatCount: Number(e.target.value) }))}
+                placeholder="VD: 10, 12..."
+                required
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Loại ghế cho cả hàng" htmlFor="add-row-type" required>
+            <Select
+              value={addRowForm.seatType}
+              onValueChange={(val) => setAddRowForm((prev) => ({ ...prev, seatType: val as SeatType }))}
+              required
+            >
+              <option value="NORMAL">Ghế Thường (NORMAL)</option>
+              <option value="VIP">Ghế VIP (VIP)</option>
+              <option value="COUPLE">Ghế Đôi (COUPLE)</option>
+            </Select>
+          </FormField>
+
+          <p className="text-xs text-[var(--rogym-text-muted)] bg-[var(--rogym-bg-deep)] p-3 rounded-lg border border-white/5">
+            Mẹo: Hệ thống sẽ tự động tạo từ ghế số 1 đến {addRowForm.seatCount} cho hàng {addRowForm.seatRow || '...'} và tự động đồng bộ vào các suất chiếu tương lai.
+          </p>
+        </div>
+      </Modal>
+
       {/* Confirm Dialog Khôi phục sơ đồ chuẩn */}
       <ConfirmDialog
         open={resetConfirmOpen}
@@ -594,7 +756,7 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
       <ConfirmDialog
         open={deleteConfirmOpen}
         title={`Xóa ${selectedSeatIds.length} ghế đã chọn?`}
-        description="Các ghế đã chọn sẽ bị xóa khỏi sơ đồ phòng chiếu. Bạn có chắc chắn muốn xóa không?"
+        description="Các ghế đã chọn sẽ bị xóa vĩnh viễn khỏi sơ đồ phòng chiếu. Bạn có chắc chắn muốn xóa không?"
         confirmLabel="Xóa ghế"
         cancelLabel="Hủy"
         variant="danger"
@@ -604,4 +766,5 @@ export const AdminInteractiveSeatMap: React.FC<AdminInteractiveSeatMapProps> = (
     </div>
   )
 }
+
 
