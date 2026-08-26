@@ -12,6 +12,7 @@ export type SelectOptionProps = {
 }
 
 export interface SelectProps {
+  id?: string
   children: ReactNode
   className?: string
   value: string

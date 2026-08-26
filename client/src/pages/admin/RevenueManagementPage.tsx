@@ -33,6 +33,7 @@ import {
   Alert,
   AlertDescription,
   PageLoader,
+  DatePickerInput,
 } from '@/components/ui'
 import {
   TrendingUp,
@@ -45,12 +46,16 @@ import {
   Film,
   MapPin,
   Calendar,
+  CalendarRange,
   Search,
   Eye,
   Info,
   Receipt,
   User,
   Clock,
+  RotateCcw,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react'
 
 function formatVND(amount: number | undefined | null): string {
@@ -80,6 +85,13 @@ function formatDate(dateStr: string | undefined | null): string {
   }
 }
 
+function formatYYYYMMDD(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 type TimePreset = '7_DAYS' | '30_DAYS' | 'THIS_MONTH' | 'THIS_YEAR' | 'ALL' | 'CUSTOM'
 
 export function RevenueManagementPage() {
@@ -89,8 +101,12 @@ export function RevenueManagementPage() {
   const [timePreset, setTimePreset] = useState<TimePreset>(() => {
     return (searchParams.get('preset') as TimePreset) || '30_DAYS'
   })
-  const [customStartDate, setCustomStartDate] = useState<string>('')
-  const [customEndDate, setCustomEndDate] = useState<string>('')
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    return searchParams.get('startDate') || ''
+  })
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    return searchParams.get('endDate') || ''
+  })
   const [selectedMovieId, setSelectedMovieId] = useState<string>(() => searchParams.get('movieId') || '')
   const [selectedTheaterId, setSelectedTheaterId] = useState<string>(() => searchParams.get('theaterId') || '')
   const [chartGroupBy, setChartGroupBy] = useState<'day' | 'month'>('day')
@@ -117,7 +133,16 @@ export function RevenueManagementPage() {
   const [loading, setLoading] = useState<boolean>(true)
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<{ tone: 'success' | 'error' | 'warning' | 'info'; message: string } | null>(null)
   const [selectedBookingDetail, setSelectedBookingDetail] = useState<AdminBookingDetail | null>(null)
+
+  // Validate custom date range
+  const isDateRangeInvalid = useMemo(() => {
+    if (timePreset === 'CUSTOM' && customStartDate && customEndDate) {
+      return customStartDate > customEndDate
+    }
+    return false
+  }, [timePreset, customStartDate, customEndDate])
 
   // Calculate start & end ISO dates from preset
   const dateRange = useMemo(() => {
@@ -143,6 +168,9 @@ export function RevenueManagementPage() {
       return { startDate: start.toISOString(), endDate: now.toISOString() }
     }
     if (timePreset === 'CUSTOM') {
+      if (customStartDate && customEndDate && customStartDate > customEndDate) {
+        return { startDate: undefined, endDate: undefined }
+      }
       const start = customStartDate ? new Date(`${customStartDate}T00:00:00Z`).toISOString() : undefined
       const end = customEndDate ? new Date(`${customEndDate}T23:59:59Z`).toISOString() : undefined
       return { startDate: start, endDate: end }
@@ -166,10 +194,14 @@ export function RevenueManagementPage() {
   useEffect(() => {
     const params = new URLSearchParams()
     if (timePreset !== '30_DAYS') params.set('preset', timePreset)
+    if (timePreset === 'CUSTOM') {
+      if (customStartDate) params.set('startDate', customStartDate)
+      if (customEndDate) params.set('endDate', customEndDate)
+    }
     if (selectedMovieId) params.set('movieId', selectedMovieId)
     if (selectedTheaterId) params.set('theaterId', selectedTheaterId)
     setSearchParams(params, { replace: true })
-  }, [timePreset, selectedMovieId, selectedTheaterId, setSearchParams])
+  }, [timePreset, customStartDate, customEndDate, selectedMovieId, selectedTheaterId, setSearchParams])
 
   // Main Data Fetcher
   const fetchData = useCallback(async (isRefresh = false) => {
@@ -212,8 +244,10 @@ export function RevenueManagementPage() {
   }, [dateRange, selectedMovieId, selectedTheaterId, chartGroupBy])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (!isDateRangeInvalid) {
+      fetchData()
+    }
+  }, [fetchData, isDateRangeInvalid])
 
   // Filter Bookings locally
   const filteredBookings = useMemo(() => {
@@ -247,7 +281,10 @@ export function RevenueManagementPage() {
   // Handle Export CSV
   const handleExportCSV = () => {
     if (bookings.length === 0) {
-      alert('Không có dữ liệu giao dịch để xuất báo cáo.')
+      setFeedback({
+        tone: 'warning',
+        message: 'Không có dữ liệu giao dịch trong khoảng thời gian đã chọn để xuất báo cáo.',
+      })
       return
     }
 
@@ -298,6 +335,11 @@ export function RevenueManagementPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+
+    setFeedback({
+      tone: 'success',
+      message: `Đã xuất file báo cáo doanh thu (${bookings.length} đơn đặt vé) thành công!`,
+    })
   }
 
   // Chart max calculation
@@ -472,6 +514,15 @@ export function RevenueManagementPage() {
         </div>
       </div>
 
+      {feedback && (
+        <Alert
+          tone={feedback.tone}
+          icon={feedback.tone === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+        >
+          <AlertDescription>{feedback.message}</AlertDescription>
+        </Alert>
+      )}
+
       {error && (
         <Alert tone="error">
           <AlertDescription>{error}</AlertDescription>
@@ -480,6 +531,7 @@ export function RevenueManagementPage() {
 
       {/* 2. Global Filter Toolbar */}
       <Card variant="elevated" className="p-5 border-[var(--rogym-border-subtle)] space-y-4">
+        {/* Preset Selector Row */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--rogym-border-subtle)]">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[var(--rogym-teal)]" />
@@ -507,30 +559,66 @@ export function RevenueManagementPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Custom Date Range if preset is CUSTOM */}
-          {timePreset === 'CUSTOM' ? (
-            <>
-              <FormField label="Từ ngày" htmlFor="customStartDate">
-                <Input
+        {/* Custom Date Range Panel (Expanded when preset is CUSTOM) */}
+        {timePreset === 'CUSTOM' && (
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-[var(--rogym-border-subtle)] space-y-3.5 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--rogym-teal)]">
+                <CalendarRange className="w-4 h-4" />
+                <span>Khoảng thời gian tùy chỉnh</span>
+              </div>
+              {(customStartDate || customEndDate) && (
+                <Button
+                  variant="dark"
+                  size="xs"
+                  leftIcon={<RotateCcw className="w-3 h-3" />}
+                  onClick={() => {
+                    setCustomStartDate('')
+                    setCustomEndDate('')
+                  }}
+                >
+                  Xóa bộ lọc ngày
+                </Button>
+              )}
+            </div>
+
+            {isDateRangeInvalid && (
+              <Alert tone="error" icon={<AlertCircle className="w-4 h-4" />}>
+                <AlertDescription>
+                  Ngày bắt đầu không được lớn hơn ngày kết thúc. Vui lòng điều chỉnh lại khoảng thời gian hợp lệ.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <FormField label="Từ ngày" htmlFor="customStartDate" hint="Ngày bắt đầu chu kỳ thống kê">
+                <DatePickerInput
                   id="customStartDate"
-                  type="date"
                   value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  onChange={setCustomStartDate}
+                  max={customEndDate || formatYYYYMMDD(new Date())}
+                  placeholder="Chọn ngày bắt đầu"
+                  error={isDateRangeInvalid}
                 />
               </FormField>
 
-              <FormField label="Đến ngày" htmlFor="customEndDate">
-                <Input
+              <FormField label="Đến ngày" htmlFor="customEndDate" hint="Ngày kết thúc chu kỳ thống kê">
+                <DatePickerInput
                   id="customEndDate"
-                  type="date"
                   value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  onChange={setCustomEndDate}
+                  min={customStartDate || undefined}
+                  max={formatYYYYMMDD(new Date())}
+                  placeholder="Chọn ngày kết thúc"
+                  error={isDateRangeInvalid}
                 />
               </FormField>
-            </>
-          ) : null}
+            </div>
+          </div>
+        )}
 
+        {/* Business Filter Grid (Always 3 clean columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Filter by Movie */}
           <FormField label="Lọc theo Phim">
             <Select
@@ -631,29 +719,23 @@ export function RevenueManagementPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center border border-[var(--rogym-border-subtle)] rounded-lg p-0.5">
-              <button
+            <div className="flex items-center gap-1 border border-[var(--rogym-border-subtle)] rounded-lg p-0.5 bg-black/20">
+              <Button
                 type="button"
+                variant={chartViewMode === 'bar' ? 'primary' : 'dark'}
+                size="xs"
                 onClick={() => setChartViewMode('bar')}
-                className={`px-2.5 py-1 text-xs font-semibold rounded cursor-pointer transition-all ${
-                  chartViewMode === 'bar'
-                    ? 'bg-[var(--rogym-green)] text-black'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white'
-                }`}
               >
                 Cột
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={chartViewMode === 'line' ? 'primary' : 'dark'}
+                size="xs"
                 onClick={() => setChartViewMode('line')}
-                className={`px-2.5 py-1 text-xs font-semibold rounded cursor-pointer transition-all ${
-                  chartViewMode === 'line'
-                    ? 'bg-[var(--rogym-green)] text-black'
-                    : 'text-[var(--rogym-text-secondary)] hover:text-white'
-                }`}
               >
                 Đường
-              </button>
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -783,15 +865,14 @@ export function RevenueManagementPage() {
                       <div className="flex items-center gap-3 min-w-0">
                         {/* Rank Badge */}
                         <span
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono ${
-                            rankIdx === 0
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono ${rankIdx === 0
                               ? 'bg-amber-400 text-black shadow-md shadow-amber-400/30'
                               : rankIdx === 1
-                              ? 'bg-slate-300 text-black'
-                              : rankIdx === 2
-                              ? 'bg-amber-700 text-white'
-                              : 'bg-white/10 text-white'
-                          }`}
+                                ? 'bg-slate-300 text-black'
+                                : rankIdx === 2
+                                  ? 'bg-amber-700 text-white'
+                                  : 'bg-white/10 text-white'
+                            }`}
                         >
                           {rankIdx + 1}
                         </span>
