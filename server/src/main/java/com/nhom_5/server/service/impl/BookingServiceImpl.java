@@ -255,7 +255,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<MyBookingResponse> getMyBookings() {
         User currentUser = SecurityUtil.getCurrentUser();
-        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusOrderByBookingTimeDesc(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
+        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusWithDetails(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
 
         return bookings.stream().map(booking -> {
             MyBookingResponse response = MyBookingResponse.builder()

@@ -13,6 +13,25 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByUserOrderByBookingTimeDesc(User user);
     List<Booking> findByUserAndPaymentStatusOrderByBookingTimeDesc(User user, com.nhom_5.server.entity.enums.PaymentStatus paymentStatus);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT DISTINCT b
+            FROM Booking b
+            LEFT JOIN FETCH b.tickets t
+            LEFT JOIN FETCH t.showtimeSeat ss
+            LEFT JOIN FETCH ss.seat s
+            LEFT JOIN FETCH ss.showtime st
+            LEFT JOIN FETCH st.movie m
+            LEFT JOIN FETCH st.room r
+            LEFT JOIN FETCH r.theater th
+            WHERE b.user = :user
+              AND b.paymentStatus = :paymentStatus
+            ORDER BY b.bookingTime DESC
+            """)
+    List<Booking> findByUserAndPaymentStatusWithDetails(
+            @org.springframework.data.repository.query.Param("user") User user,
+            @org.springframework.data.repository.query.Param("paymentStatus") com.nhom_5.server.entity.enums.PaymentStatus paymentStatus);
+
     List<Booking> findByBookingTimeBetweenAndPaymentStatusOrderByBookingTimeDesc(
             java.time.Instant startTime,
             java.time.Instant endTime,

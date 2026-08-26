@@ -62,15 +62,23 @@ public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID
             """)
     void deleteByRoomIdCascade(@Param("roomId") UUID roomId);
 
-    // Lấy các ghế của 1 suất chiếu
-    List<ShowtimeSeat> findByShowtimeId(UUID showtimeId);
+    // Lấy các ghế của 1 suất chiếu (kèm theo Seat để tránh N+1 và sắp xếp theo hàng/số ghế)
+    @Query("""
+            SELECT ss
+            FROM ShowtimeSeat ss
+            JOIN FETCH ss.seat s
+            WHERE ss.showtime.id = :showtimeId
+            ORDER BY s.seatRow ASC, s.seatNumber ASC
+            """)
+    List<ShowtimeSeat> findByShowtimeId(@Param("showtimeId") UUID showtimeId);
 
     // Lấy + khóa các ghế theo ID
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT ss
             FROM ShowtimeSeat ss
-            WHERE ss.id IN : ids
+            JOIN FETCH ss.seat s
+            WHERE ss.id IN :ids
             """)
     List<ShowtimeSeat> findAllByIdForUpdate(@Param("ids") List<UUID> ids);
 
@@ -79,6 +87,7 @@ public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID
     @Query("""
             SELECT ss
             FROM ShowtimeSeat ss
+            JOIN FETCH ss.seat s
             WHERE ss.showtime.id = :showtimeId
             AND ss.id IN :ids
             """)

@@ -34,20 +34,23 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, UUID>, JpaSp
             @Param("newEndTime") Instant newEndTime,
             @Param("excludedId") UUID excludedId);
 
-        @Query("""
-                        select showtime
-                        from Showtime showtime
-                        where showtime.movie.id = :movieId
-                            and showtime.room.theater.id = :theaterId
-                            and showtime.startTime >= :startTime
-                            and showtime.startTime < :endTime
-                        order by showtime.startTime
-                        """)
-        List<Showtime> findAllByMovieIdAndTheaterIdAndStartTimeBetween(
-                        @Param("movieId") UUID movieId,
-                        @Param("theaterId") UUID theaterId,
-                        @Param("startTime") Instant startTime,
-                        @Param("endTime") Instant endTime);
+    @Query("""
+            select showtime
+            from Showtime showtime
+            join fetch showtime.room room
+            join fetch room.theater theater
+            join fetch showtime.movie movie
+            where showtime.movie.id = :movieId
+                and room.theater.id = :theaterId
+                and showtime.startTime >= :startTime
+                and showtime.startTime < :endTime
+            order by showtime.startTime
+            """)
+    List<Showtime> findAllByMovieIdAndTheaterIdAndStartTimeBetween(
+            @Param("movieId") UUID movieId,
+            @Param("theaterId") UUID theaterId,
+            @Param("startTime") Instant startTime,
+            @Param("endTime") Instant endTime);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Showtime s SET s.status = :newStatus WHERE s.status = :oldStatus AND s.endTime <= :now")
