@@ -155,9 +155,9 @@ class AuthServiceTest {
                 .password("Password@123")
                 .build();
 
+        when(userRepository.findByUsernameOrEmail("johndoe@example.com")).thenReturn(Optional.of(sampleUser));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(new UsernamePasswordAuthenticationToken(sampleUser.getEmail(), "Password@123"));
-        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(Optional.of(sampleUser));
         when(jwtService.generateToken(sampleUser)).thenReturn("mocked.jwt.token");
         when(jwtService.getExpirationMs()).thenReturn(604800000L);
 
@@ -177,10 +177,36 @@ class AuthServiceTest {
                 .password("WrongPassword")
                 .build();
 
+        when(userRepository.findByUsernameOrEmail("johndoe@example.com")).thenReturn(Optional.of(sampleUser));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         AppException ex = assertThrows(AppException.class, () -> authService.login(request));
         assertEquals(ErrorCode.INVALID_CREDENTIALS, ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Đăng nhập thất bại khi tài khoản đã bị khóa (LOCKED)")
+    void testLoginLockedAccount() {
+        User lockedUser = User.builder()
+                .id(UUID.randomUUID())
+                .username("lockeduser")
+                .password("encodedPassword")
+                .email("locked@example.com")
+                .fullName("Locked User")
+                .role(Role.USER)
+                .status(UserStatus.LOCKED)
+                .build();
+
+        LoginRequest request = LoginRequest.builder()
+                .email("locked@example.com")
+                .password("Password@123")
+                .build();
+
+        when(userRepository.findByUsernameOrEmail("locked@example.com")).thenReturn(Optional.of(lockedUser));
+
+        AppException ex = assertThrows(AppException.class, () -> authService.login(request));
+        assertEquals(ErrorCode.ACCOUNT_LOCKED, ex.getErrorCode());
+        verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 }

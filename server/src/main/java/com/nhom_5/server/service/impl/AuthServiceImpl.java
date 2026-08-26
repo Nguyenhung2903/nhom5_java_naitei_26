@@ -88,20 +88,32 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
-        log.info("Processing login attempt for email: [{}]", email);
+        String identifier = request.getEmail().trim().toLowerCase();
+        log.info("Processing login attempt for identifier: [{}]", identifier);
+
+        // 1. Kiểm tra tài khoản trong database trước
+        User user = userRepository.findByUsernameOrEmail(identifier)
+                .orElseGet(() -> userRepository.findByEmail(identifier)
+                        .orElse(null));
+
+        if (user != null && user.getStatus() == UserStatus.LOCKED) {
+            log.warn("Login rejected: Account [{}] is LOCKED", identifier);
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
 
         try {
             // Xác thực thông tin đăng nhập qua Spring Security AuthenticationManager
+            String loginEmail = user != null ? user.getEmail() : identifier;
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
+                    new UsernamePasswordAuthenticationToken(loginEmail, request.getPassword())
             );
 
-            // Tìm entity User theo email
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+            if (user == null) {
+                user = userRepository.findByEmail(loginEmail)
+                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+            }
 
-            // Kiểm tra trạng thái tài khoản
+            // Kiểm tra lại trạng thái tài khoản lần nữa để đảm bảo tính nhất quán tuyệt đối
             if (user.getStatus() == UserStatus.LOCKED) {
                 throw new AppException(ErrorCode.ACCOUNT_LOCKED);
             }
@@ -118,10 +130,10 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
         } catch (BadCredentialsException ex) {
-            log.warn("Login failed for email [{}]: Invalid credentials", email);
+            log.warn("Login failed for identifier [{}]: Invalid credentials", identifier);
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         } catch (LockedException | DisabledException ex) {
-            log.warn("Login failed for email [{}]: Account is locked or disabled", email);
+            log.warn("Login failed for identifier [{}]: Account is locked or disabled", identifier);
             throw new AppException(ErrorCode.ACCOUNT_LOCKED);
         }
     }
@@ -133,6 +145,10 @@ public class AuthServiceImpl implements AuthService {
         // Load lại phiên bản mới nhất từ database để đảm bảo tính nhất quán
         User freshUser = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (freshUser.getStatus() == UserStatus.LOCKED) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
 
         return UserProfileDto.fromEntity(freshUser);
     }

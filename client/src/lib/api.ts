@@ -76,6 +76,24 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     } catch {
       errorData = await response.text()
     }
+
+    // Nếu tài khoản bị khóa (403 với thông báo liên quan đến khóa hoặc mã ACCOUNT_LOCKED)
+    const isLockedError =
+      response.status === 403 &&
+      (errorMessage.toLowerCase().includes('khóa') ||
+        errorMessage.toLowerCase().includes('tạm ngưng') ||
+        (typeof errorData === 'object' && errorData !== null && 'code' in errorData && (errorData as { code: unknown }).code === 403))
+
+    if (isLockedError && typeof window !== 'undefined') {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user_profile')
+      window.dispatchEvent(
+        new CustomEvent('auth:account-locked', {
+          detail: { message: errorMessage || 'Tài khoản của bạn đã bị khóa hoặc tạm ngưng hoạt động' },
+        })
+      )
+    }
+
     throw new ApiError(response.status, response.statusText, errorData, errorMessage)
   }
 
