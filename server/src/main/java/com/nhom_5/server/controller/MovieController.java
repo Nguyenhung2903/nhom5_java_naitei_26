@@ -2,6 +2,7 @@ package com.nhom_5.server.controller;
 
 import com.nhom_5.server.dto.request.MovieRequest;
 import com.nhom_5.server.dto.response.ApiResponse;
+import com.nhom_5.server.dto.response.GenreResponse;
 import com.nhom_5.server.dto.response.MovieResponse;
 import com.nhom_5.server.entity.enums.MovieStatus;
 import com.nhom_5.server.service.MovieService;
@@ -51,6 +52,18 @@ public class MovieController {
             @RequestParam(required = false) MovieStatus status
     ) {
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách phim thành công", movieService.getMovies(keyword, status)));
+    }
+
+    @Operation(
+            summary = "[PUBLIC] Lấy danh sách tất cả thể loại phim",
+            description = "Tra cứu toàn bộ thể loại phim có trong hệ thống theo thứ tự bảng chữ cái."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lấy danh sách thể loại thành công")
+    })
+    @GetMapping("/genres")
+    public ResponseEntity<ApiResponse<List<GenreResponse>>> getGenres() {
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách thể loại thành công", movieService.getGenres()));
     }
 
     @Operation(

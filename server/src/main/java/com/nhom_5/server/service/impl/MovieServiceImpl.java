@@ -1,6 +1,7 @@
 package com.nhom_5.server.service.impl;
 
 import com.nhom_5.server.dto.request.MovieRequest;
+import com.nhom_5.server.dto.response.GenreResponse;
 import com.nhom_5.server.dto.response.MovieResponse;
 import com.nhom_5.server.entity.Genre;
 import com.nhom_5.server.entity.Movie;
@@ -11,6 +12,7 @@ import com.nhom_5.server.repository.GenreRepository;
 import com.nhom_5.server.repository.MovieRepository;
 import com.nhom_5.server.service.MovieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +28,14 @@ public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GenreResponse> getGenres() {
+        return genreRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
+                .map(GenreResponse::fromEntity)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)
