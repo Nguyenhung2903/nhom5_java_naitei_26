@@ -3,6 +3,7 @@ package com.nhom_5.server.repository;
 import com.nhom_5.server.entity.Showtime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,11 @@ import java.util.UUID;
 
 public interface ShowtimeRepository extends JpaRepository<Showtime, UUID>, JpaSpecificationExecutor<Showtime> {
     boolean existsByRoomId(UUID roomId);
+    List<Showtime> findByRoomId(UUID roomId);
+
+    @Modifying
+    @Query("DELETE FROM Showtime s WHERE s.room.id = :roomId")
+    void deleteByRoomId(@Param("roomId") UUID roomId);
 
     @Query("""
             select count(showtime) > 0

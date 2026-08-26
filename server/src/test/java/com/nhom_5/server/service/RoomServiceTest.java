@@ -8,6 +8,7 @@ import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.RoomRepository;
 import com.nhom_5.server.repository.SeatRepository;
 import com.nhom_5.server.repository.ShowtimeRepository;
+import com.nhom_5.server.repository.ShowtimeSeatRepository;
 import com.nhom_5.server.repository.TheaterRepository;
 import com.nhom_5.server.service.impl.RoomServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -16,12 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +38,8 @@ class RoomServiceTest {
     private SeatRepository seatRepository;
     @Mock
     private ShowtimeRepository showtimeRepository;
+    @Mock
+    private ShowtimeSeatRepository showtimeSeatRepository;
     @InjectMocks
     private RoomServiceImpl roomService;
 
@@ -51,14 +57,31 @@ class RoomServiceTest {
     }
 
     @Test
-    void deleteRejectsRoomWithSeats() {
+    void deleteRejectsRoomWhenShowtimeHasBookedOrHeldSeats() {
         UUID roomId = UUID.randomUUID();
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(Room.builder().id(roomId).build()));
-        when(seatRepository.existsByRoomId(roomId)).thenReturn(true);
+        when(showtimeSeatRepository.existsBookedOrHeldByRoomId(eq(roomId), any())).thenReturn(true);
 
         AppException exception = assertThrows(AppException.class, () -> roomService.delete(roomId));
 
         assertEquals(ErrorCode.BAD_REQUEST, exception.getErrorCode());
+    }
+
+    @Test
+    void deleteSuccessfullyDeletesShowtimeSeatsShowtimesSeatsAndRoom() {
+        UUID roomId = UUID.randomUUID();
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(Room.builder().id(roomId).build()));
+        when(showtimeSeatRepository.existsBookedOrHeldByRoomId(eq(roomId), any())).thenReturn(false);
+
+        roomService.delete(roomId);
+
+        verify(showtimeSeatRepository).deleteByRoomIdCascade(roomId);
+        verify(showtimeSeatRepository).flush();
+        verify(showtimeRepository).deleteByRoomId(roomId);
+        verify(showtimeRepository).flush();
+        verify(seatRepository).deleteByRoomId(roomId);
+        verify(seatRepository).flush();
+        verify(roomRepository).deleteById(roomId);
     }
 
     @Test

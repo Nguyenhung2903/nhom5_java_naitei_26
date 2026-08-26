@@ -190,7 +190,7 @@ export function TheaterDetailManagementPage() {
       setDeletingRoom(null)
       await loadData()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Không thể xóa phòng chiếu (có thể phòng đang có suất chiếu)')
+      setError(err instanceof Error ? err.message : 'Không thể xóa phòng chiếu')
     } finally {
       setIsDeletingRoom(false)
     }
@@ -568,7 +568,7 @@ export function TheaterDetailManagementPage() {
       <ConfirmDialog
         open={!!deletingRoom}
         title="Xác nhận xóa phòng chiếu"
-        description={`Bạn có chắc chắn muốn xóa phòng chiếu "${deletingRoom?.name}" khỏi cụm rạp này? Toàn bộ sơ đồ ghế của phòng cũng sẽ bị xóa.`}
+        description={`Bạn có chắc chắn muốn xóa phòng chiếu "${deletingRoom?.name}" khỏi cụm rạp này? Toàn bộ sơ đồ ghế và các suất chiếu chưa có người đặt vé thuộc phòng này sẽ bị xóa.`}
         confirmLabel="Xóa phòng chiếu"
         cancelLabel="Hủy bỏ"
         variant="danger"

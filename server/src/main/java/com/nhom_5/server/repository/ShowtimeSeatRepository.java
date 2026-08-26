@@ -2,6 +2,7 @@ package com.nhom_5.server.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,7 +23,27 @@ public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, UUID
     boolean existsByShowtimeIdAndStatusIn(UUID showtimeId,
             List<com.nhom_5.server.entity.enums.ShowtimeSeatStatus> statuses);
 
-    void deleteByShowtimeId(UUID showtimeId);
+    @Modifying
+    @Query("DELETE FROM ShowtimeSeat ss WHERE ss.showtime.id = :showtimeId")
+    void deleteByShowtimeId(@Param("showtimeId") UUID showtimeId);
+
+    @Query("""
+            SELECT COUNT(ss) > 0
+            FROM ShowtimeSeat ss
+            WHERE (ss.showtime.id IN (SELECT st.id FROM Showtime st WHERE st.room.id = :roomId)
+                   OR ss.seat.id IN (SELECT s.id FROM Seat s WHERE s.room.id = :roomId))
+              AND ss.status IN :statuses
+            """)
+    boolean existsBookedOrHeldByRoomId(@Param("roomId") UUID roomId,
+            @Param("statuses") List<com.nhom_5.server.entity.enums.ShowtimeSeatStatus> statuses);
+
+    @Modifying
+    @Query("""
+            DELETE FROM ShowtimeSeat ss
+            WHERE ss.showtime.id IN (SELECT st.id FROM Showtime st WHERE st.room.id = :roomId)
+               OR ss.seat.id IN (SELECT s.id FROM Seat s WHERE s.room.id = :roomId)
+            """)
+    void deleteByRoomIdCascade(@Param("roomId") UUID roomId);
 
     // Lấy các ghế của 1 suất chiếu
     List<ShowtimeSeat> findByShowtimeId(UUID showtimeId);
