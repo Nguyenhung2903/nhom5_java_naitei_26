@@ -77,12 +77,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       errorData = await response.text()
     }
 
-    // Nếu tài khoản bị khóa (403 với thông báo liên quan đến khóa hoặc mã ACCOUNT_LOCKED)
+    // Nếu tài khoản bị khóa (403 với thông báo chính xác từ ErrorCode.ACCOUNT_LOCKED)
+    const lowerMessage = errorMessage.toLowerCase()
     const isLockedError =
       response.status === 403 &&
-      (errorMessage.toLowerCase().includes('khóa') ||
-        errorMessage.toLowerCase().includes('tạm ngưng') ||
-        (typeof errorData === 'object' && errorData !== null && 'code' in errorData && (errorData as { code: unknown }).code === 403))
+      (lowerMessage.includes('tài khoản của bạn đã bị khóa') ||
+        lowerMessage.includes('tạm ngưng hoạt động'))
 
     if (isLockedError && typeof window !== 'undefined') {
       localStorage.removeItem('access_token')

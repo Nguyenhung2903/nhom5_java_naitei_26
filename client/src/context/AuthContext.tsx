@@ -108,7 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err: unknown) {
         const isLocked =
           err instanceof Error &&
-          (err.message.toLowerCase().includes('khóa') || err.message.toLowerCase().includes('tạm ngưng'))
+          (err.message.toLowerCase().includes('tài khoản của bạn đã bị khóa') ||
+            err.message.toLowerCase().includes('tạm ngưng hoạt động'))
         if (isLocked) {
           logout()
           if (window.location.pathname !== '/login') {
