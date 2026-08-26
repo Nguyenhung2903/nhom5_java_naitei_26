@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface TicketComboRepository extends JpaRepository<TicketCombo, UUID> {
+    boolean existsByComboId(UUID comboId);
 }

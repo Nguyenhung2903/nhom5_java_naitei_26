@@ -58,6 +58,12 @@ function formatVND(amount: number | undefined | null): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
 }
 
+function formatCompactVND(amount: number): string {
+  if (amount >= 1000000) return `${(amount / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}M đ`
+  if (amount >= 1000) return `${Math.round(amount / 1000).toLocaleString('vi-VN')}K đ`
+  return `${Math.round(amount).toLocaleString('vi-VN')} đ`
+}
+
 function formatDate(dateStr: string | undefined | null): string {
   if (!dateStr) return '-'
   try {
@@ -299,6 +305,29 @@ export function RevenueManagementPage() {
     if (timeSeries.length === 0) return 1000000
     const max = Math.max(...timeSeries.map((t) => t.totalRevenue || 0))
     return max > 0 ? max : 1000000
+  }, [timeSeries])
+
+  const chartPoints = useMemo(() => {
+    const lastIndex = Math.max(timeSeries.length - 1, 1)
+    const getX = (index: number) => 72 + (index / lastIndex) * 908
+    const getY = (value: number) => 260 - (Math.max(value, 0) / maxRevenueValue) * 220
+    const toPoints = (getValue: (item: RevenueTimePoint) => number) =>
+      timeSeries.map((item, index) => `${getX(index)},${getY(getValue(item))}`).join(' ')
+
+    return {
+      total: toPoints((item) => item.totalRevenue),
+      ticket: toPoints((item) => item.ticketRevenue),
+      combo: toPoints((item) => item.comboRevenue),
+    }
+  }, [maxRevenueValue, timeSeries])
+
+  const chartLabelIndexes = useMemo(() => {
+    const maxLabels = 7
+    if (timeSeries.length <= maxLabels) return timeSeries.map((_, index) => index)
+    const step = Math.ceil((timeSeries.length - 1) / (maxLabels - 1))
+    const indexes = timeSeries.map((_, index) => index).filter((index) => index % step === 0)
+    if (indexes[indexes.length - 1] !== timeSeries.length - 1) indexes.push(timeSeries.length - 1)
+    return indexes
   }, [timeSeries])
 
   // Bookings Table Columns Definition
@@ -597,26 +626,11 @@ export function RevenueManagementPage() {
               <span>Biểu Đồ Xu Hướng Doanh Thu</span>
             </CardTitle>
             <CardDescription className="text-xs text-[var(--rogym-text-secondary)]">
-              Biến động tổng doanh thu, doanh thu vé và combo theo từng mốc thời gian
+              Theo dõi doanh thu vé, combo và tổng doanh thu theo thời gian
             </CardDescription>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4 text-xs font-medium">
-              <span className="flex items-center gap-1.5 text-white">
-                <span className="w-3 h-3 rounded-sm bg-[var(--rogym-green)] inline-block" />
-                Tổng doanh thu
-              </span>
-              <span className="flex items-center gap-1.5 text-sky-400">
-                <span className="w-3 h-3 rounded-sm bg-sky-400 inline-block" />
-                Thu vé
-              </span>
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-3 h-3 rounded-sm bg-amber-400 inline-block" />
-                Thu combo
-              </span>
-            </div>
-
             <div className="flex items-center border border-[var(--rogym-border-subtle)] rounded-lg p-0.5">
               <button
                 type="button"
@@ -652,60 +666,82 @@ export function RevenueManagementPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* SVG / HTML Interactive Chart */}
-              <div className="h-72 w-full flex items-end gap-2 sm:gap-3 pt-6 pb-2 px-2 border-b border-[var(--rogym-border-subtle)] overflow-x-auto">
-                {timeSeries.map((item, index) => {
-                  const heightPercent = Math.max(8, Math.round((item.totalRevenue / maxRevenueValue) * 100))
-                  const ticketPercent = item.totalRevenue > 0 ? (item.ticketRevenue / item.totalRevenue) * 100 : 80
-                  const comboPercent = 100 - ticketPercent
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex-1 min-w-[38px] max-w-[64px] h-full flex flex-col justify-end items-center group relative cursor-pointer"
-                    >
-                      {/* Hover Tooltip */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col z-30 p-2.5 rounded-xl bg-black/90 border border-[var(--rogym-border-subtle)] shadow-2xl text-[11px] text-white whitespace-nowrap pointer-events-none backdrop-blur-md">
-                        <span className="font-bold text-[var(--rogym-teal)] border-b border-white/10 pb-1 mb-1">
-                          {item.dateLabel}
-                        </span>
-                        <div className="space-y-0.5">
-                          <p className="flex justify-between gap-3">
-                            <span className="text-[var(--rogym-text-muted)]">Tổng:</span>
-                            <strong className="text-[var(--rogym-green)]">{formatVND(item.totalRevenue)}</strong>
-                          </p>
-                          <p className="flex justify-between gap-3 text-sky-300">
-                            <span>Vé:</span>
-                            <span>{formatVND(item.ticketRevenue)} ({item.ticketCount} vé)</span>
-                          </p>
-                          <p className="flex justify-between gap-3 text-amber-300">
-                            <span>Combo:</span>
-                            <span>{formatVND(item.comboRevenue)}</span>
-                          </p>
-                        </div>
+              {/* Interactive chart. The tooltip stays inside the chart so it is never clipped. */}
+              <div className="relative h-80 w-full border-b border-[var(--rogym-border-subtle)] px-2 pb-8 pt-2">
+                <span className="pointer-events-none absolute left-0 top-0 text-[10px] font-semibold text-[var(--rogym-text-muted)]">Doanh thu</span>
+                <div className="relative h-full pt-3">
+                  {chartViewMode === 'line' ? (
+                    <>
+                      <svg viewBox="0 0 1000 280" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" role="img" aria-label="Biểu đồ đường doanh thu">
+                        {[0, 25, 50, 75, 100].map((percent) => {
+                          const y = 260 - percent * 2.2
+                          return <line key={percent} x1="72" y1={y} x2="980" y2={y} stroke="rgba(138,184,156,0.16)" strokeWidth="1" />
+                        })}
+                        <line x1="72" y1="20" x2="72" y2="260" stroke="rgba(138,184,156,0.3)" strokeWidth="1" />
+                        <polyline points={chartPoints.total} fill="none" stroke="var(--rogym-green)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                        <polyline points={chartPoints.ticket} fill="none" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        <polyline points={chartPoints.combo} fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        {timeSeries.map((item, index) => {
+                          const lastIndex = Math.max(timeSeries.length - 1, 1)
+                          const x = 72 + (index / lastIndex) * 908
+                          const getY = (value: number) => 260 - (Math.max(value, 0) / maxRevenueValue) * 220
+                          return (
+                            <g key={index}>
+                              <circle cx={x} cy={getY(item.totalRevenue)} r="4.5" fill="var(--rogym-green)" stroke="var(--rogym-bg-card)" strokeWidth="2" />
+                              <circle cx={x} cy={getY(item.ticketRevenue)} r="3.5" fill="#38bdf8" stroke="var(--rogym-bg-card)" strokeWidth="1.5" />
+                              <circle cx={x} cy={getY(item.comboRevenue)} r="3.5" fill="#fbbf24" stroke="var(--rogym-bg-card)" strokeWidth="1.5" />
+                            </g>
+                          )
+                        })}
+                      </svg>
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex w-14 flex-col justify-between py-0.5 text-right text-[10px] text-[var(--rogym-text-muted)]">
+                        {[100, 75, 50, 25, 0].map((percent) => <span key={percent}>{formatCompactVND((maxRevenueValue * percent) / 100)}</span>)}
                       </div>
-
-                      {/* Bar Visualization */}
-                      <div
-                        style={{ height: `${heightPercent}%` }}
-                        className="w-full rounded-t-md overflow-hidden flex flex-col justify-end transition-all duration-300 group-hover:brightness-125 shadow-lg group-hover:shadow-[var(--rogym-green)]/20"
-                      >
-                        <div
-                          style={{ height: `${comboPercent}%` }}
-                          className="w-full bg-amber-400"
-                        />
-                        <div
-                          style={{ height: `${ticketPercent}%` }}
-                          className="w-full bg-[var(--rogym-green)]"
-                        />
+                      {timeSeries.map((item, index) => {
+                        const left = `${timeSeries.length === 1 ? 50 : (index / (timeSeries.length - 1)) * 90.8 + 7.2}%`
+                        const top = `${Math.max(0, 91.7 - (item.totalRevenue / maxRevenueValue) * 91.7)}%`
+                        return (
+                          <div key={index} className="group absolute z-10 -translate-x-1/2" style={{ left, top }}>
+                            <span className="block h-3 w-3 rounded-full border-2 border-[var(--rogym-bg-card)] bg-[var(--rogym-green)] shadow-[0_0_0_3px_rgba(6,195,132,0.2)]" />
+                            <div className="pointer-events-none absolute bottom-5 left-1/2 z-30 hidden -translate-x-1/2 flex-col whitespace-nowrap rounded-lg border border-[var(--rogym-border-subtle)] bg-black/95 p-2.5 text-[11px] text-white shadow-2xl group-hover:flex">
+                              <span className="mb-1 border-b border-white/10 pb-1 font-bold text-[var(--rogym-teal)]">{item.dateLabel}</span>
+                              <span className="text-[var(--rogym-green)]">Tổng: {formatVND(item.totalRevenue)}</span>
+                              <span className="text-sky-300">Vé: {formatVND(item.ticketRevenue)} ({item.ticketCount} vé)</span>
+                              <span className="text-amber-300">Combo: {formatVND(item.comboRevenue)}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                      <div className="absolute inset-x-0 -bottom-7 h-5">
+                        {chartLabelIndexes.map((index) => <span key={index} className="absolute -translate-x-1/2 whitespace-nowrap text-[10px] font-mono text-[var(--rogym-text-muted)]" style={{ left: `${timeSeries.length === 1 ? 50 : (index / (timeSeries.length - 1)) * 90.8 + 7.2}%` }}>{timeSeries[index].dateLabel}</span>)}
                       </div>
+                    </>
+                  ) : (
+                    <div className="flex h-full items-end gap-2 px-2 sm:gap-3">
+                      {timeSeries.map((item, index) => {
+                        const heightPercent = Math.max(8, Math.round((item.totalRevenue / maxRevenueValue) * 100))
+                        const ticketPercent = item.totalRevenue > 0 ? (item.ticketRevenue / item.totalRevenue) * 100 : 80
+                        const comboPercent = 100 - ticketPercent
 
-                      <span className="text-[10px] font-mono text-[var(--rogym-text-muted)] mt-2 group-hover:text-white transition-colors truncate max-w-full">
-                        {item.dateLabel.length > 5 ? item.dateLabel.slice(0, 5) : item.dateLabel}
-                      </span>
+                        return (
+                          <div key={index} className="group relative flex h-full min-w-[38px] max-w-[64px] flex-1 cursor-pointer flex-col items-center justify-end">
+                            <div className="pointer-events-none absolute left-1/2 top-1 z-30 hidden -translate-x-1/2 flex-col whitespace-nowrap rounded-xl border border-[var(--rogym-border-subtle)] bg-black/95 p-2.5 text-[11px] text-white shadow-2xl group-hover:flex">
+                              <span className="mb-1 border-b border-white/10 pb-1 font-bold text-[var(--rogym-teal)]">{item.dateLabel}</span>
+                              <span className="text-[var(--rogym-green)]">Tổng: {formatVND(item.totalRevenue)}</span>
+                              <span className="text-sky-300">Vé: {formatVND(item.ticketRevenue)} ({item.ticketCount} vé)</span>
+                              <span className="text-amber-300">Combo: {formatVND(item.comboRevenue)}</span>
+                            </div>
+                            <div style={{ height: `${heightPercent}%` }} className="w-full overflow-hidden rounded-t-md shadow-lg transition-all duration-300 group-hover:brightness-125 group-hover:shadow-[var(--rogym-green)]/20">
+                              <div style={{ height: `${comboPercent}%` }} className="w-full bg-amber-400" />
+                              <div style={{ height: `${ticketPercent}%` }} className="w-full bg-sky-400" />
+                            </div>
+                            <span className="mt-2 max-w-full truncate text-[10px] font-mono text-[var(--rogym-text-muted)] transition-colors group-hover:text-white" title={`Ngày ${item.dateLabel}`}>{item.dateLabel}</span>
+                          </div>
+                        )
+                      })}
                     </div>
-                  )
-                })}
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between text-xs text-[var(--rogym-text-muted)] px-2">
