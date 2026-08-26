@@ -1,26 +1,8 @@
-import { useState } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom'
 import { ButtonLink } from '@/components/ui'
-import {
-  Clapperboard,
-  Film,
-  Newspaper,
-  Sparkles,
-  Menu,
-  X,
-} from 'lucide-react'
+import { Clapperboard } from 'lucide-react'
 
 export function LandingLayout() {
-  const location = useLocation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const navLinks = [
-    { label: 'Trang chủ', path: '/', icon: <Film className="w-4 h-4" /> },
-    { label: 'Rạp chiếu', path: '/cinemas', icon: <Clapperboard className="w-4 h-4" /> },
-    { label: 'Tin tức', path: '/news', icon: <Newspaper className="w-4 h-4" /> },
-    { label: 'Khuyến mãi', path: '/promotions', icon: <Sparkles className="w-4 h-4" /> },
-  ]
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--rogym-bg-base)] text-[var(--rogym-text-primary)] font-body selection:bg-[var(--rogym-teal)] selection:text-black">
       {/* Top Navigation Bar */}
@@ -41,29 +23,8 @@ export function LandingLayout() {
             </div>
           </Link>
 
-          {/* Desktop Nav Items */}
-          <nav className="hidden md:flex items-center gap-1.5">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-[var(--rogym-green)]/10 text-[var(--rogym-teal)] border border-[var(--rogym-green)]/20 shadow-sm'
-                      : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 border border-transparent'
-                  }`}
-                >
-                  {link.icon}
-                  <span>{link.label}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
           {/* Right Action / Auth Buttons */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <ButtonLink to="/login" variant="secondary" size="sm">
               Đăng nhập
             </ButtonLink>
@@ -76,69 +37,7 @@ export function LandingLayout() {
               Đăng ký
             </ButtonLink>
           </div>
-
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5 transition-colors focus:outline-none"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
         </div>
-
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b border-[var(--rogym-border-subtle)] bg-[var(--rogym-bg-base)]/95 backdrop-blur-xl px-4 pt-2 pb-6 space-y-3">
-            <nav className="space-y-1">
-              {navLinks.map((link) => {
-                const isActive = location.pathname === link.path
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-[var(--rogym-green)]/10 text-[var(--rogym-teal)] border border-[var(--rogym-green)]/20'
-                        : 'text-[var(--rogym-text-secondary)] hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {link.icon}
-                    <span>{link.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-
-            {/* Mobile Auth Actions */}
-            <div className="pt-3 border-t border-[var(--rogym-border-subtle)]">
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <ButtonLink
-                  to="/login"
-                  variant="secondary"
-                  size="sm"
-                  className="w-full justify-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Đăng nhập
-                </ButtonLink>
-                <ButtonLink
-                  to="/register"
-                  variant="primary"
-                  size="sm"
-                  className="w-full justify-center shadow-lg shadow-[var(--rogym-green)]/20"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Đăng ký
-                </ButtonLink>
-              </div>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Main Page Content */}
@@ -168,9 +67,8 @@ export function LandingLayout() {
               <h3 className="text-xs font-bold uppercase tracking-wider text-white">Khám phá</h3>
               <ul className="space-y-1.5 text-xs text-[var(--rogym-text-secondary)]">
                 <li><Link to="/" className="hover:text-[var(--rogym-teal)] transition-colors">Trang chủ</Link></li>
-                <li><Link to="/#movies" className="hover:text-[var(--rogym-teal)] transition-colors">Phim đang chiếu</Link></li>
-                <li><Link to="/cinemas" className="hover:text-[var(--rogym-teal)] transition-colors">Cụm rạp</Link></li>
-                <li><Link to="/promotions" className="hover:text-[var(--rogym-teal)] transition-colors">Khuyến mãi</Link></li>
+                <li><a href="#movies" className="hover:text-[var(--rogym-teal)] transition-colors">Phim đang chiếu</a></li>
+                <li><a href="#news" className="hover:text-[var(--rogym-teal)] transition-colors">Tin tức điện ảnh</a></li>
               </ul>
             </div>
 

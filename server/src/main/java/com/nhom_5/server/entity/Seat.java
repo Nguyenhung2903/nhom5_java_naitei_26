@@ -16,13 +16,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import jakarta.persistence.UniqueConstraint;
+
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "seat")
+@Table(name = "seat", uniqueConstraints = @UniqueConstraint(columnNames = { "room_id", "seat_row", "seat_number" }))
 public class Seat extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

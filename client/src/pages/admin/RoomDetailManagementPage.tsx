@@ -28,7 +28,7 @@ import {
 
 
 export function RoomDetailManagementPage() {
-  const { roomId } = useParams<{ roomId: string }>()
+  const { theaterId, roomId } = useParams<{ theaterId?: string; roomId: string }>()
   const navigate = useNavigate()
 
   const [room, setRoom] = useState<Room | null>(null)
@@ -44,6 +44,8 @@ export function RoomDetailManagementPage() {
     theaterId: '',
   })
   const [savingRoom, setSavingRoom] = useState(false)
+
+  const parentTheaterUrl = room?.theaterId ? `/admin/theaters/${room.theaterId}` : (theaterId ? `/admin/theaters/${theaterId}` : '/admin/theaters')
 
   const loadData = useCallback(async () => {
     if (!roomId) return
@@ -108,8 +110,8 @@ export function RoomDetailManagementPage() {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 text-center space-y-4">
         <p className="text-red-400 font-semibold">{error || 'Không tìm thấy phòng chiếu'}</p>
-        <Button variant="primary" onClick={() => navigate('/admin/rooms')}>
-          Quay lại danh sách phòng
+        <Button variant="primary" onClick={() => navigate(parentTheaterUrl)}>
+          Quay lại cụm rạp
         </Button>
       </div>
     )
@@ -125,29 +127,33 @@ export function RoomDetailManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--rogym-border-subtle)] pb-4">
         <div className="flex items-center gap-3">
           <Link
-            to="/admin/rooms"
+            to={parentTheaterUrl}
             className="p-2 rounded-xl bg-[var(--rogym-bg-card)] border border-[var(--rogym-border-subtle)] text-[var(--rogym-text-muted)] hover:text-white hover:border-[var(--rogym-teal)] transition-all"
-            title="Quay lại danh sách phòng"
+            title="Quay lại cụm rạp"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-muted)]">
-              <Link to="/admin/rooms" className="hover:underline">
-                Quản lý phòng chiếu
+            <div className="flex items-center gap-2 text-xs text-[var(--rogym-text-muted)] flex-wrap">
+              <Link to="/admin/theaters" className="hover:underline hover:text-white transition-colors">
+                Quản lý Cụm Rạp & Phòng Chiếu
+              </Link>
+              <span>/</span>
+              <Link to={parentTheaterUrl} className="hover:underline hover:text-white transition-colors">
+                {room?.theaterName || 'Cụm rạp'}
               </Link>
               <span>/</span>
               <span className="text-white font-medium">{room?.name}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold font-display uppercase tracking-wide text-white mt-0.5">
-              {room?.name} ({room?.theaterName})
+              {room?.name} <span className="text-[var(--rogym-text-muted)] text-xl font-normal">({room?.theaterName})</span>
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => navigate('/admin/rooms')} size="sm">
-            Danh sách phòng
+          <Button variant="secondary" onClick={() => navigate(parentTheaterUrl)} size="sm">
+            Quản lý phòng rạp
           </Button>
         </div>
       </div>
@@ -222,22 +228,22 @@ export function RoomDetailManagementPage() {
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-3.5 shadow-md">
-          <div className="p-3 rounded-xl bg-purple-500/15 text-purple-400">
+          <div className="p-3 rounded-xl bg-emerald-500/15 text-emerald-400">
             <Armchair className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-[var(--rogym-text-muted)]">Ghế thường (A-B)</p>
-            <p className="text-xl font-bold text-purple-300">{normalSeats.length}</p>
+            <p className="text-xl font-bold text-emerald-300">{normalSeats.length}</p>
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--rogym-bg-elevated)] border border-[var(--rogym-border-subtle)] flex items-center gap-3.5 shadow-md">
-          <div className="p-3 rounded-xl bg-[var(--rogym-teal)]/15 text-[var(--rogym-teal)]">
+          <div className="p-3 rounded-xl bg-amber-500/15 text-amber-400">
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-[var(--rogym-text-muted)]">Ghế VIP (C-D)</p>
-            <p className="text-xl font-bold text-[var(--rogym-teal)]">{vipSeats.length}</p>
+            <p className="text-xl font-bold text-amber-300">{vipSeats.length}</p>
           </div>
         </div>
 
@@ -267,3 +273,6 @@ export function RoomDetailManagementPage() {
     </div>
   )
 }
+
+export default RoomDetailManagementPage
+

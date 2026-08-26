@@ -28,8 +28,10 @@ import java.util.List;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import jakarta.persistence.criteria.Predicate;
 
 @Service
@@ -44,9 +46,27 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     private final ShowtimeSeatRepository showtimeSeatRepository;
     private final TheaterRepository theaterRepository;
 
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void autoUpdateFinishedShowtimes() {
+        int updated = showtimeRepository.updateStatusByEndTimeBeforeAndStatus(
+                ShowtimeStatus.OPEN,
+                ShowtimeStatus.FINISHED,
+                Instant.now()
+        );
+        if (updated > 0) {
+            System.out.println("Auto updated " + updated + " showtimes to FINISHED status.");
+        }
+    }
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ShowtimeResponse> getAll(UUID movieId, UUID theaterId, UUID roomId, LocalDate date, ShowtimeStatus status) {
+        showtimeRepository.updateStatusByEndTimeBeforeAndStatus(
+                ShowtimeStatus.OPEN,
+                ShowtimeStatus.FINISHED,
+                Instant.now()
+        );
         var startOfDay = date == null ? null : date.atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
         var startOfNextDay = date == null ? null : date.plusDays(1).atStartOfDay(BUSINESS_TIME_ZONE).toInstant();
         Specification<Showtime> specification = (root, query, criteriaBuilder) -> {
@@ -65,8 +85,13 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ShowtimeResponse> getByMovieAndTheaterAndDate(UUID movieId, UUID theaterId, LocalDate date) {
+        showtimeRepository.updateStatusByEndTimeBeforeAndStatus(
+                ShowtimeStatus.OPEN,
+                ShowtimeStatus.FINISHED,
+                Instant.now()
+        );
         if (!movieRepository.existsById(movieId)) {
             throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy phim với ID: " + movieId);
         }
@@ -126,13 +151,13 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         return ShowtimeResponse.fromEntity(savedShowtime);
     }
 
-    private BigDecimal calculateSeatPrice(SeatType seatType) {
+    public static BigDecimal calculateSeatPrice(SeatType seatType) {
         if (seatType == null) {
             return BigDecimal.valueOf(75000);
         }
         return switch (seatType) {
             case VIP -> BigDecimal.valueOf(95000);
-            case COUPLE -> BigDecimal.valueOf(160000);
+            case COUPLE -> BigDecimal.valueOf(80000);
             case NORMAL -> BigDecimal.valueOf(75000);
         };
     }

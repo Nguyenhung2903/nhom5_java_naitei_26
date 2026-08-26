@@ -11,18 +11,23 @@ import com.nhom_5.server.repository.RoomRepository;
 import com.nhom_5.server.repository.SeatRepository;
 import com.nhom_5.server.repository.ShowtimeSeatRepository;
 import com.nhom_5.server.service.impl.SeatServiceImpl;
+import com.nhom_5.server.repository.ShowtimeRepository;
+import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +36,8 @@ class SeatServiceTest {
     private SeatRepository seatRepository;
     @Mock
     private RoomRepository roomRepository;
+    @Mock
+    private ShowtimeRepository showtimeRepository;
     @Mock
     private ShowtimeSeatRepository showtimeSeatRepository;
     @InjectMocks
@@ -53,10 +60,10 @@ class SeatServiceTest {
     }
 
     @Test
-    void deleteRejectsSeatAssignedToShowtime() {
+    void deleteRejectsSeatWithBookedOrHeldStatus() {
         UUID seatId = UUID.randomUUID();
         when(seatRepository.findById(seatId)).thenReturn(Optional.of(Seat.builder().id(seatId).build()));
-        when(showtimeSeatRepository.existsBySeatId(seatId)).thenReturn(true);
+        when(showtimeSeatRepository.existsBySeatIdAndStatusIn(eq(seatId), any())).thenReturn(true);
 
         AppException exception = assertThrows(AppException.class, () -> seatService.delete(seatId));
 

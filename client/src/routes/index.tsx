@@ -12,9 +12,6 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 
 // Lazy loaded Pages (Code Splitting)
 const HomePage = lazy(() => import('@/pages/landing/HomePage').then((m) => ({ default: m.HomePage })))
-const CinemasPage = lazy(() => import('@/pages/landing/CinemasPage').then((m) => ({ default: m.CinemasPage })))
-const PromotionPage = lazy(() => import('@/pages/landing/PromotionPage').then((m) => ({ default: m.PromotionPage })))
-const NewsPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsPage })))
 const NewsDetailPage = lazy(() => import('@/pages/landing/NewsPage').then((m) => ({ default: m.NewsDetailPage })))
 
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })))
@@ -34,8 +31,9 @@ const VNPayReturnPage = lazy(() => import('@/pages/user/VNPayReturnPage').then((
 
 const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const TheaterManagementPage = lazy(() => import('@/pages/admin/TheaterManagementPage').then((m) => ({ default: m.TheaterManagementPage })))
-const RoomManagementPage = lazy(() => import('@/pages/admin/RoomManagementPage').then((m) => ({ default: m.RoomManagementPage })))
+const TheaterDetailManagementPage = lazy(() => import('@/pages/admin/TheaterDetailManagementPage').then((m) => ({ default: m.TheaterDetailManagementPage })))
 const RoomDetailManagementPage = lazy(() => import('@/pages/admin/RoomDetailManagementPage').then((m) => ({ default: m.RoomDetailManagementPage })))
+const RoomRedirectPage = lazy(() => import('@/pages/admin/RoomRedirectPage').then((m) => ({ default: m.RoomRedirectPage })))
 
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
@@ -44,6 +42,7 @@ const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage')
 const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
 const ComboManagementPage = lazy(() => import('@/pages/admin/ComboManagementPage').then((m) => ({ default: m.ComboManagementPage })))
 const UserManagementPage = lazy(() => import('@/pages/admin/UserManagementPage').then((m) => ({ default: m.UserManagementPage })))
+const RevenueManagementPage = lazy(() => import('@/pages/admin/RevenueManagementPage').then((m) => ({ default: m.RevenueManagementPage })))
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })))
 
 const NotFoundPage = lazy(() => import('@/pages/common/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
@@ -58,49 +57,44 @@ function withSuspense(Component: React.ComponentType) {
 }
 
 export const router = createBrowserRouter([
-  // Nhánh 1: Phân hệ Landing Page (Chỉ dành cho khách chưa đăng nhập)
+  // Nhánh 1: Phân hệ Landing Page (Chỉ hiển thị HomePage tích hợp Tin tức trên 1 trang duy nhất)
   {
-    element: <PublicOnlyRoute />,
+    path: '/',
+    element: <LandingLayout />,
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        path: '/',
-        element: <LandingLayout />,
-        children: [
-          {
-            index: true,
-            element: withSuspense(HomePage),
-          },
-          {
-            path: 'movies',
-            element: withSuspense(HomePage),
-          },
-          {
-            path: 'cinemas',
-            element: withSuspense(CinemasPage),
-          },
-          {
-            path: 'promotions',
-            element: withSuspense(PromotionPage),
-          },
-          {
-            path: 'news',
-            element: withSuspense(NewsPage),
-          },
-          {
-            path: 'news/:newsId',
-            element: withSuspense(NewsDetailPage),
-          },
-          // Redirect tương thích với các link cũ
-          {
-            path: 'profile',
-            element: <Navigate to="/user/profile" replace />,
-          },
-          {
-            path: 'my-tickets',
-            element: <Navigate to="/user/tickets" replace />,
-          },
-        ],
+        index: true,
+        element: withSuspense(HomePage),
+      },
+      {
+        path: 'movies',
+        element: withSuspense(HomePage),
+      },
+      {
+        path: 'news/:newsId',
+        element: withSuspense(NewsDetailPage),
+      },
+      // Redirect tương thích với các liên kết cũ về trang chủ
+      {
+        path: 'cinemas',
+        element: <Navigate to="/" replace />,
+      },
+      {
+        path: 'promotions',
+        element: <Navigate to="/" replace />,
+      },
+      {
+        path: 'news',
+        element: <Navigate to="/#news" replace />,
+      },
+      {
+        path: 'profile',
+        element: <Navigate to="/user/profile" replace />,
+      },
+      {
+        path: 'my-tickets',
+        element: <Navigate to="/user/tickets" replace />,
       },
     ],
   },
@@ -219,21 +213,39 @@ export const router = createBrowserRouter([
             element: withSuspense(ShowtimeManagementPage),
           },
           {
+            path: 'theaters',
+            children: [
+              {
+                index: true,
+                element: withSuspense(TheaterManagementPage),
+              },
+              {
+                path: ':theaterId',
+                element: withSuspense(TheaterDetailManagementPage),
+              },
+              {
+                path: ':theaterId/rooms/:roomId',
+                element: withSuspense(RoomDetailManagementPage),
+              },
+            ],
+          },
+
+          // Tương thích ngược: Redirect các route cũ
+          {
             path: 'rooms',
-            element: withSuspense(RoomManagementPage),
+            element: <Navigate to="/admin/theaters" replace />,
           },
           {
             path: 'rooms/:roomId',
-            element: withSuspense(RoomDetailManagementPage),
-          },
-
-          {
-            path: 'theaters',
-            element: withSuspense(TheaterManagementPage),
+            element: withSuspense(RoomRedirectPage),
           },
           {
             path: 'users',
             element: withSuspense(UserManagementPage),
+          },
+          {
+            path: 'revenue',
+            element: withSuspense(RevenueManagementPage),
           },
           {
             path: 'profile',

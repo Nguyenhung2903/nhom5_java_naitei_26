@@ -8,6 +8,7 @@ import com.nhom_5.server.exception.ErrorCode;
 import com.nhom_5.server.repository.RoomRepository;
 import com.nhom_5.server.repository.SeatRepository;
 import com.nhom_5.server.repository.ShowtimeRepository;
+import com.nhom_5.server.repository.ShowtimeSeatRepository;
 import com.nhom_5.server.repository.TheaterRepository;
 import com.nhom_5.server.service.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nhom_5.server.entity.Seat;
 import com.nhom_5.server.entity.enums.SeatType;
+import com.nhom_5.server.entity.enums.ShowtimeSeatStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ public class RoomServiceImpl implements RoomService {
     private final TheaterRepository theaterRepository;
     private final SeatRepository seatRepository;
     private final ShowtimeRepository showtimeRepository;
+    private final ShowtimeSeatRepository showtimeSeatRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -122,10 +125,8 @@ public class RoomServiceImpl implements RoomService {
         if (showtimeRepository.existsByRoomId(id)) {
             throw new AppException(ErrorCode.BAD_REQUEST, "Không thể thiết lập lại sơ đồ ghế cho phòng đã có suất chiếu");
         }
-        List<Seat> existingSeats = seatRepository.findByRoomIdOrderBySeatRowAscSeatNumberAsc(id);
-        if (!existingSeats.isEmpty()) {
-            seatRepository.deleteAll(existingSeats);
-        }
+        seatRepository.deleteByRoomId(id);
+        seatRepository.flush();
         List<Seat> standardSeats = generateStandardSeats(room);
         seatRepository.saveAll(standardSeats);
     }
@@ -134,9 +135,27 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     public void delete(UUID id) {
         findRoom(id);
-        if (seatRepository.existsByRoomId(id) || showtimeRepository.existsByRoomId(id)) {
-            throw new AppException(ErrorCode.BAD_REQUEST, "Không thể xóa phòng đang có ghế hoặc suất chiếu");
+
+        // 1. Kiểm tra an toàn: Nếu có bất kỳ ghế suất chiếu nào liên kết với phòng đã có khách đặt hoặc giữ chỗ
+        boolean hasBookedOrHeld = showtimeSeatRepository.existsBookedOrHeldByRoomId(
+                id, List.of(ShowtimeSeatStatus.BOOKED, ShowtimeSeatStatus.HELD));
+        if (hasBookedOrHeld) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Không thể xóa phòng chiếu do có suất chiếu đã có khách đặt vé hoặc đang giữ chỗ");
         }
+
+        // 2. Xóa toàn bộ ghế suất chiếu liên kết với phòng (cả theo showtime_id và seat_id)
+        showtimeSeatRepository.deleteByRoomIdCascade(id);
+        showtimeSeatRepository.flush();
+
+        // 3. Xóa các suất chiếu thuộc phòng
+        showtimeRepository.deleteByRoomId(id);
+        showtimeRepository.flush();
+
+        // 4. Xóa toàn bộ ghế của phòng
+        seatRepository.deleteByRoomId(id);
+        seatRepository.flush();
+
+        // 5. Xóa phòng chiếu
         roomRepository.deleteById(id);
     }
 

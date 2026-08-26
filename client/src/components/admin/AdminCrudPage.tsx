@@ -56,7 +56,8 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
 
   const [items, setItems] = useState<T[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [tableError, setTableError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [form, setForm] = useState<TForm>(initialForm)
@@ -65,13 +66,23 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   const [modalOpen, setModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  // Auto-dismiss thông báo sau 5 giây
+  useEffect(() => {
+    if (!feedback && !actionError) return
+    const timer = setTimeout(() => {
+      setFeedback(null)
+      setActionError(null)
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [feedback, actionError])
+
   const loadItems = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setTableError(null)
     try {
       setItems(await service.getAll())
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : 'Không thể tải dữ liệu')
+      setTableError(caught instanceof Error ? caught.message : 'Không thể tải dữ liệu')
     } finally {
       setLoading(false)
     }
@@ -85,12 +96,16 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   const openCreate = () => {
     setEditing(null)
     setForm(initialForm)
+    setActionError(null)
+    setFeedback(null)
     setModalOpen(true)
   }
 
   const openEdit = (item: T) => {
     setEditing(item)
     setForm(toForm(item))
+    setActionError(null)
+    setFeedback(null)
     setModalOpen(true)
   }
 
@@ -101,7 +116,8 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSubmitting(true)
-    setError(null)
+    setActionError(null)
+    setFeedback(null)
     try {
       if (editing) {
         await service.update(editing.id, form)
@@ -117,7 +133,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       setModalOpen(false)
       await loadItems()
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : 'Thao tác thất bại')
+      setActionError(caught instanceof Error ? caught.message : 'Thao tác thất bại')
     } finally {
       setSubmitting(false)
     }
@@ -126,15 +142,16 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
   const handleDelete = async () => {
     if (!deleteTarget) return
     setSubmitting(true)
-    setError(null)
+    setActionError(null)
+    setFeedback(null)
     try {
       await service.delete(deleteTarget.id)
-      setDeleteTarget(null)
       setFeedback('Xóa thành công')
       await loadItems()
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : 'Xóa thất bại')
+      setActionError(caught instanceof Error ? caught.message : 'Xóa thất bại')
     } finally {
+      setDeleteTarget(null)
       setSubmitting(false)
     }
   }
@@ -184,7 +201,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
       </div>
 
       {feedback && <Alert tone="success" icon={<CheckCircle2 className="h-4 w-4" />}><AlertDescription>{feedback}</AlertDescription></Alert>}
-      {error && <Alert tone="error"><AlertDescription>{error}</AlertDescription></Alert>}
+      {actionError && <Alert tone="error"><AlertDescription>{actionError}</AlertDescription></Alert>}
 
       <Card variant="glass" className="p-3.5 sm:p-4">
         <SearchInput
@@ -201,7 +218,7 @@ export function AdminCrudPage<T extends { id: string }, TForm>({
           columns={actionColumns}
           keyExtractor={(item) => item.id}
           loading={loading}
-          error={error}
+          error={tableError}
           onRetry={() => void loadItems()}
           emptyTitle="Không có dữ liệu phù hợp"
           onRowClick={onRowClick}

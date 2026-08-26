@@ -8,20 +8,20 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(router.routes.length).toBeGreaterThan(0)
   })
 
-  it('has public landing routes wrapped in PublicOnlyRoute for home, movies, cinemas, promotions, news', () => {
-    const publicOnlyBranch = router.routes[0]
-    expect(publicOnlyBranch).toBeDefined()
-    const landingRoute = publicOnlyBranch?.children?.find((r) => r.path === '/')
+  it('has public landing routes accessible for all users (home, movies, news detail)', () => {
+    const landingRoute = router.routes.find((r) => r.path === '/')
     expect(landingRoute).toBeDefined()
     expect(landingRoute?.children).toBeDefined()
 
     const childPaths = landingRoute?.children?.map((c) => c.path || (c.index ? 'index' : ''))
     expect(childPaths).toContain('index')
     expect(childPaths).toContain('movies')
-    expect(childPaths).toContain('cinemas')
-    expect(childPaths).toContain('promotions')
-    expect(childPaths).toContain('news')
     expect(childPaths).toContain('news/:newsId')
+  })
+
+  it('has auth routes (/login, /register) wrapped in PublicOnlyRoute', () => {
+    const authBranch = router.routes.find((r) => !r.path && r.children?.some((c) => !c.path))
+    expect(authBranch).toBeDefined()
   })
 
   it('defines /user Member Portal with movies, tickets, profile, and Booking routes', () => {
@@ -62,6 +62,14 @@ describe('Router Configuration & Auth Redirection', () => {
     expect(adminPaths).not.toContain('bookings')
     expect(adminPaths).toContain('users')
     expect(adminPaths).toContain('profile')
+
+    // Kiểm tra cấu trúc phân cấp Theaters -> :theaterId -> :theaterId/rooms/:roomId
+    const theaterBranch = adminLayoutChild?.children?.find((c) => c.path === 'theaters')
+    expect(theaterBranch?.children).toBeDefined()
+    const theaterPaths = theaterBranch?.children?.map((c) => c.path || (c.index ? 'index' : ''))
+    expect(theaterPaths).toContain('index')
+    expect(theaterPaths).toContain(':theaterId')
+    expect(theaterPaths).toContain(':theaterId/rooms/:roomId')
   })
 
   describe('getSafeRedirectUrl helper', () => {

@@ -1,7 +1,7 @@
 import { CalendarDays } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { AdminCrudPage } from '@/components/admin'
-import { Button, DatePickerInput, FormField, Input, SearchToolbar, Select } from '@/components/ui'
+import { Badge, type BadgeTone, Button, DatePickerInput, DateTimePickerInput, FormField, SearchToolbar, Select } from '@/components/ui'
 import type { ColumnDef } from '@/components/ui/ResponsiveTable'
 import { movieService } from '@/services/movieService'
 import { roomService } from '@/services/roomService'
@@ -11,13 +11,27 @@ import type { Room } from '@/types/room'
 import type { Showtime, ShowtimeFilters, ShowtimeRequest, ShowtimeStatus } from '@/types/showtime'
 
 const initialForm: ShowtimeRequest = { movieId: '', roomId: '', startTime: '', status: 'OPEN' }
+
+const statusConfigMap: Record<ShowtimeStatus, { label: string; tone: BadgeTone }> = {
+  OPEN: { label: 'Mở bán', tone: 'success' },
+  CANCELLED: { label: 'Đã hủy', tone: 'danger' },
+  FINISHED: { label: 'Đã kết thúc', tone: 'muted' },
+}
+
 const columns: ColumnDef<Showtime>[] = [
   { key: 'movieTitle', header: 'Phim', render: (item) => <strong className="text-white">{item.movieTitle}</strong> },
   { key: 'theaterName', header: 'Rạp' },
   { key: 'roomName', header: 'Phòng' },
   { key: 'startTime', header: 'Bắt đầu', render: (item) => new Date(item.startTime).toLocaleString('vi-VN') },
   { key: 'endTime', header: 'Kết thúc', render: (item) => new Date(item.endTime).toLocaleString('vi-VN') },
-  { key: 'status', header: 'Trạng thái' },
+  {
+    key: 'status',
+    header: 'Trạng thái',
+    render: (item) => {
+      const config = statusConfigMap[item.status] || { label: item.status, tone: 'muted' as BadgeTone }
+      return <Badge tone={config.tone} size="sm">{config.label}</Badge>
+    },
+  },
 ]
 
 const toInputDateTime = (value?: string) => {
@@ -114,12 +128,8 @@ export function ShowtimeManagementPage() {
         </SearchToolbar>
       )}
       getSearchText={(item) => `${item.movieTitle} ${item.theaterName} ${item.roomName} ${item.status}`}
-      renderForm={(form, update) => {
-        const previewMovie = movies.find((movie) => movie.id === form.movieId)
-        const endTimePreview = previewMovie && form.startTime
-          ? new Date(new Date(form.startTime).getTime() + previewMovie.duration * 60 * 1000).toLocaleString('vi-VN')
-          : 'Tự tính sau khi chọn phim và giờ bắt đầu'
-        return <>
+      renderForm={(form, update) => (
+        <>
           <FormField label="Phim" htmlFor="showtime-movie" required>
             <Select value={form.movieId} onValueChange={(value) => update('movieId', value)} required>
               <option value="">Chọn phim</option>
@@ -132,14 +142,16 @@ export function ShowtimeManagementPage() {
               {rooms.map((room) => <option key={room.id} value={room.id}>{room.theaterName} - {room.name}</option>)}
             </Select>
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Bắt đầu" htmlFor="showtime-start" required>
-              <Input id="showtime-start" type="datetime-local" value={toInputDateTime(form.startTime)} onChange={(event) => update('startTime', event.target.value ? toInstant(event.target.value) : '')} required />
-            </FormField>
-            <FormField label="Kết thúc">
-              <Input value={endTimePreview} readOnly disabled />
-            </FormField>
-          </div>
+          <FormField label="Bắt đầu" htmlFor="showtime-start" required>
+            <DateTimePickerInput
+              value={toInputDateTime(form.startTime)}
+              onChange={(value) => update('startTime', value ? toInstant(value) : '')}
+              min={new Date().toISOString().slice(0, 10)}
+              minuteStep={5}
+              placeholder="Chọn thời gian bắt đầu..."
+              aria-label="Thời gian bắt đầu"
+            />
+          </FormField>
           <FormField label="Trạng thái" htmlFor="showtime-status" required>
             <Select value={form.status} onValueChange={(value) => update('status', value as ShowtimeStatus)} required>
               <option value="OPEN">Mở bán</option>
@@ -148,7 +160,7 @@ export function ShowtimeManagementPage() {
             </Select>
           </FormField>
         </>
-      }}
+      )}
     />
   )
 }

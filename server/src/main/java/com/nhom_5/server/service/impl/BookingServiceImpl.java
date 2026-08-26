@@ -117,11 +117,31 @@ public class BookingServiceImpl implements BookingService {
         for (UUID seatId : request.getSeatIds()) {
             ShowtimeSeat seat = showtimeSeatRepository.findById(seatId)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy thông tin ghế"));
+
+            Showtime showtime = seat.getShowtime();
+            Instant now = Instant.now();
+            if (showtime != null) {
+                if (showtime.getStatus() != com.nhom_5.server.entity.enums.ShowtimeStatus.OPEN) {
+                    throw new AppException(ErrorCode.BAD_REQUEST, "Suất chiếu không ở trạng thái mở bán");
+                }
+                if (showtime.getStartTime().isBefore(now)) {
+                    throw new AppException(ErrorCode.BAD_REQUEST, "Suất chiếu đã bắt đầu hoặc đã qua giờ chiếu");
+                }
+            }
+
+            if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
+                throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đã được đặt và thanh toán trước đó");
+            }
+
+            if (seat.getStatus() == ShowtimeSeatStatus.HELD) {
+                if (seat.getHeldUntil() != null && seat.getHeldUntil().isAfter(now)) {
+                    if (seat.getHeldBy() != null && !seat.getHeldBy().getId().equals(currentUser.getId())) {
+                        throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đang được giữ bởi người khác");
+                    }
+                }
+            }
             
             if (isPaymentSuccess) {
-                if (seat.getStatus() == ShowtimeSeatStatus.BOOKED) {
-                    throw new AppException(ErrorCode.BAD_REQUEST, "Ghế " + seat.getSeat().getSeatRow() + seat.getSeat().getSeatNumber() + " đã được đặt và thanh toán trước đó");
-                }
                 seat.setStatus(ShowtimeSeatStatus.BOOKED);
                 seat.setHeldBy(null);
                 seat.setHeldUntil(null);
@@ -235,7 +255,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<MyBookingResponse> getMyBookings() {
         User currentUser = SecurityUtil.getCurrentUser();
-        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusOrderByBookingTimeDesc(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
+        List<Booking> bookings = bookingRepository.findByUserAndPaymentStatusWithDetails(currentUser, com.nhom_5.server.entity.enums.PaymentStatus.PAID);
 
         return bookings.stream().map(booking -> {
             MyBookingResponse response = MyBookingResponse.builder()

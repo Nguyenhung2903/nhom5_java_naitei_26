@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
 import type { ShowtimeSeat } from '@/types/showtimeSeat'
@@ -110,6 +110,38 @@ export function ShowtimeSeatPage() {
   const selectedSeats = seats.filter((s) => selectedSeatIds.includes(s.id))
   const totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0)
 
+  const selectedSeatsSummary = useMemo(() => {
+    const list: { label: string; isCouple: boolean }[] = []
+    const processed = new Set<string>()
+
+    const selected = seats.filter((s) => selectedSeatIds.includes(s.id))
+    for (const s of selected) {
+      if (processed.has(s.id)) continue
+
+      if (s.seatType === 'COUPLE') {
+        const partner = selected.find(
+          (other) =>
+            other.id !== s.id &&
+            other.seatRow === s.seatRow &&
+            other.seatType === 'COUPLE' &&
+            Math.abs(other.seatNumber - s.seatNumber) === 1
+        )
+        if (partner) {
+          processed.add(s.id)
+          processed.add(partner.id)
+          const minNum = Math.min(s.seatNumber, partner.seatNumber)
+          const maxNum = Math.max(s.seatNumber, partner.seatNumber)
+          list.push({ label: `${s.seatRow}${minNum}-${s.seatRow}${maxNum} (Đôi)`, isCouple: true })
+          continue
+        }
+      }
+
+      processed.add(s.id)
+      list.push({ label: `${s.seatRow}${s.seatNumber}`, isCouple: false })
+    }
+    return list
+  }, [seats, selectedSeatIds])
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header section */}
@@ -168,12 +200,16 @@ export function ShowtimeSeatPage() {
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm text-[var(--rogym-text-muted)]">Ghế đã chọn:</span>
               <div className="flex flex-wrap gap-1.5">
-                {selectedSeats.map((s) => (
+                {selectedSeatsSummary.map((item, idx) => (
                   <span
-                    key={s.id}
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-[var(--rogym-green)]/15 text-[var(--rogym-green)] border border-[var(--rogym-green)]/30"
+                    key={idx}
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${
+                      item.isCouple
+                        ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                        : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                    }`}
                   >
-                    {s.seatRow}{s.seatNumber}
+                    {item.label}
                   </span>
                 ))}
               </div>
