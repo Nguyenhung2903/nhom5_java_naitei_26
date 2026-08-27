@@ -69,10 +69,10 @@ describe('ProfilePage', () => {
     expect(refreshProfile).toHaveBeenCalled()
   })
 
-  it('renders reward points correctly when user has points', () => {
+  it('renders Silver tier and progress bar correctly when user has 14 points', () => {
     const userWithPoints = {
       ...mockUser,
-      points: 150,
+      points: 14,
     }
     const refreshProfile = vi.fn()
     vi.mocked(useAuth).mockReturnValue({
@@ -93,9 +93,73 @@ describe('ProfilePage', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText('Điểm thưởng')).toBeTruthy()
-    expect(screen.getByText('150 pts')).toBeTruthy()
-    expect(refreshProfile).toHaveBeenCalled()
+    expect(screen.getByText('Bạc (Silver)')).toBeTruthy()
+    expect(screen.getByText('14 pts')).toBeTruthy()
+    expect(screen.getByText('Tiến trình Thăng Hạng')).toBeTruthy()
+    expect(screen.getByText('14 / 500 pts')).toBeTruthy()
+    expect(screen.getByText(/Tích lũy thêm/i)).toBeTruthy()
+    expect(screen.getByText(/486 điểm/i)).toBeTruthy()
+  })
+
+  it('renders Gold tier and progress bar correctly when user has 650 points', () => {
+    const userWithPoints = {
+      ...mockUser,
+      points: 650,
+    }
+    const refreshProfile = vi.fn()
+    vi.mocked(useAuth).mockReturnValue({
+      user: userWithPoints,
+      refreshProfile,
+      isAuthenticated: true,
+      isAdmin: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Vàng (Gold)')).toBeTruthy()
+    expect(screen.getByText('650 pts')).toBeTruthy()
+    expect(screen.getByText('650 / 1000 pts')).toBeTruthy()
+    expect(screen.getByText(/350 điểm/i)).toBeTruthy()
+    expect(screen.getByText(/Kim Cương \(Diamond\)/i)).toBeTruthy()
+  })
+
+  it('renders Diamond tier at max level when user has 1200 points', () => {
+    const userWithPoints = {
+      ...mockUser,
+      points: 1200,
+    }
+    const refreshProfile = vi.fn()
+    vi.mocked(useAuth).mockReturnValue({
+      user: userWithPoints,
+      refreshProfile,
+      isAuthenticated: true,
+      isAdmin: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Kim Cương (Diamond)')).toBeTruthy()
+    expect(screen.getByText('1200 pts')).toBeTruthy()
+    expect(screen.getByText('1200 pts (Tối đa)')).toBeTruthy()
+    expect(screen.getByText(/Bạn đã đạt cấp bậc hội viên cao nhất/i)).toBeTruthy()
   })
 
   it('switches to edit mode, submits changes, and calls setUserSession', async () => {
