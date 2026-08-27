@@ -27,6 +27,9 @@ public class Genre extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @JsonIgnore
     @ManyToMany(mappedBy = "genres")
     @Builder.Default

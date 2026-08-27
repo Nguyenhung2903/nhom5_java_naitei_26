@@ -52,6 +52,9 @@ public class UserProfileDto {
     @Schema(description = "Đường dẫn ảnh đại diện")
     private String avatar;
 
+    @Schema(description = "Điểm thưởng tích lũy", example = "120")
+    private Integer points;
+
     @Schema(description = "Thời gian tạo tài khoản")
     private Instant createdAt;
 
@@ -73,6 +76,7 @@ public class UserProfileDto {
                 .birthday(user.getBirthday())
                 .gender(user.getGender())
                 .avatar(user.getAvatar())
+                .points(user.getPoints() != null ? user.getPoints() : 0)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

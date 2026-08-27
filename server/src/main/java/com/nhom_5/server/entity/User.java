@@ -58,4 +58,8 @@ public class User extends BaseEntity {
     @Builder.Default
     @Column(name = "status", nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
+
+    @Builder.Default
+    @Column(name = "points", nullable = false)
+    private Integer points = 0;
 }

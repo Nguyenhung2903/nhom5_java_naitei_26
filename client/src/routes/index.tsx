@@ -38,6 +38,7 @@ const RoomRedirectPage = lazy(() => import('@/pages/admin/RoomRedirectPage').the
 const ShowtimeManagementPage = lazy(() => import('@/pages/admin/ShowtimeManagementPage').then((m) => ({ default: m.ShowtimeManagementPage })))
 const MovieManagementPage = lazy(() => import('@/pages/admin/MovieManagementPage').then((m) => ({ default: m.MovieManagementPage })))
 const MovieDetailManagementPage = lazy(() => import('@/pages/admin/MovieDetailManagementPage').then((m) => ({ default: m.MovieDetailManagementPage })))
+const GenreManagementPage = lazy(() => import('@/pages/admin/GenreManagementPage').then((m) => ({ default: m.GenreManagementPage })))
 const NewsManagementPage = lazy(() => import('@/pages/admin/NewsManagementPage').then((m) => ({ default: m.NewsManagementPage })))
 const PromotionManagementPage = lazy(() => import('@/pages/admin/PromotionManagementPage').then((m) => ({ default: m.PromotionManagementPage })))
 const ComboManagementPage = lazy(() => import('@/pages/admin/ComboManagementPage').then((m) => ({ default: m.ComboManagementPage })))
@@ -195,6 +196,10 @@ export const router = createBrowserRouter([
           {
             path: 'movies/:movieId',
             element: withSuspense(MovieDetailManagementPage),
+          },
+          {
+            path: 'genres',
+            element: withSuspense(GenreManagementPage),
           },
           {
             path: 'news',

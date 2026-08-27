@@ -12,6 +12,7 @@ export interface UserProfile {
   birthday?: string | null
   gender?: string | null
   avatar?: string | null
+  points?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -43,6 +44,7 @@ export interface CreateUserPayload {
   birthday?: string
   gender?: string
   avatar?: string
+  points?: number
   role?: Role
   status?: UserStatus
 }
@@ -54,6 +56,7 @@ export interface AdminUpdateUserPayload {
   birthday?: string
   gender?: string
   avatar?: string
+  points?: number
   role: Role
   status: UserStatus
   password?: string

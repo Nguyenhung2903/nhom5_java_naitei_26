@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { MyBookingResponse } from '@/services/bookingService'
 import { bookingService } from '@/services/bookingService'
+import { calculateMembershipTier } from '@/utils/membership'
 import {
   StatCard,
   Card,
@@ -62,13 +63,9 @@ export function UserDashboardPage() {
     }).format(amount)
   }
 
-  const membershipPoints = Math.floor(totalSpent / 10000)
-  const memberTier =
-    membershipPoints >= 1000
-      ? 'Kim Cương (Diamond)'
-      : membershipPoints >= 500
-      ? 'Vàng (Gold)'
-      : 'Bạc (Silver)'
+  const membershipPoints = user?.points ?? 0
+  const tierInfo = calculateMembershipTier(membershipPoints)
+  const memberTier = tierInfo.name
 
   const stats = [
     {
@@ -275,8 +272,8 @@ export function UserDashboardPage() {
                   {user?.fullName || 'CinemaNest Member'}
                 </p>
               </div>
-              <Badge tone="accent" size="sm">
-                {memberTier.split(' ')[0]}
+              <Badge tone={tierInfo.badgeTone} size="sm">
+                {tierInfo.shortName}
               </Badge>
             </div>
 

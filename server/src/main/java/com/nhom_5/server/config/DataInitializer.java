@@ -130,24 +130,49 @@ public class DataInitializer implements CommandLineRunner {
         initializePromotions();
     }
 
+    private record GenreSeed(String name, String description) {}
+
     private List<Genre> initializeGenres() {
-        List<String> genreNames = List.of(
-                "Hành động",
-                "Phiêu lưu",
-                "Hoạt hình",
-                "Hài",
-                "Tâm lý",
-                "Kinh dị",
-                "Khoa học viễn tưởng",
-                "Lãng mạn",
-                "Gia đình",
-                "Tội phạm"
+        List<GenreSeed> genreSeeds = List.of(
+                new GenreSeed("Hành động", "Các bộ phim có tiết tấu nhanh, nhiều pha rượt đuổi, võ thuật và kỹ xảo mãn nhãn."),
+                new GenreSeed("Phiêu lưu", "Hành trình khám phá các vùng đất mới, vượt qua thử thách kỳ thú."),
+                new GenreSeed("Hoạt hình", "Phim hoạt họa phù hợp cho mọi lứa tuổi với hình ảnh sinh động và câu chuyện ý nghĩa."),
+                new GenreSeed("Hài", "Những câu chuyện hài hước, mang lại tiếng cười sảng khoái và giây phút giải trí."),
+                new GenreSeed("Tâm lý", "Khai thác sâu sắc chiều sâu tâm lý, cảm xúc và các mối quan hệ xã hội phức tạp."),
+                new GenreSeed("Kinh dị", "Tạo cảm giác sợ hãi, kịch tính, hồi hộp với các yếu tố siêu nhiên hoặc giật gân."),
+                new GenreSeed("Khoa học viễn tưởng", "Khám phá tương lai, công nghệ tân tiến, vũ trụ và các giả thuyết khoa học."),
+                new GenreSeed("Lãng mạn", "Tôn vinh tình yêu lứa đôi với những cung bậc cảm xúc ngọt ngào và rung động."),
+                new GenreSeed("Gia đình", "Đề cao tình cảm gia đình ấm áp, bài học nhân văn sâu sắc cho cả nhà."),
+                new GenreSeed("Tội phạm", "Các vụ án hình sự, đấu trí căng thẳng giữa cảnh sát và giới tội phạm.")
         );
 
-        return genreNames.stream()
-                .map(name -> genreRepository.findByNameIgnoreCase(name)
-                        .orElseGet(() -> genreRepository.save(Genre.builder().name(name).build())))
+        List<Genre> initialized = genreSeeds.stream()
+                .map(seed -> genreRepository.findByNameIgnoreCase(seed.name())
+                        .map(existing -> {
+                            if (existing.getDescription() == null || existing.getDescription().isBlank()) {
+                                existing.setDescription(seed.description());
+                                genreRepository.save(existing);
+                            }
+                            return existing;
+                        })
+                        .orElseGet(() -> genreRepository.save(Genre.builder()
+                                .name(seed.name())
+                                .description(seed.description())
+                                .build())))
                 .toList();
+
+        // Đồng thời cập nhật mô tả cho bất kỳ thể loại nào khác trong CSDL nếu chưa có mô tả
+        List<Genre> existingAll = genreRepository.findAll();
+        if (existingAll != null) {
+            existingAll.forEach(genre -> {
+                if (genre != null && (genre.getDescription() == null || genre.getDescription().isBlank())) {
+                    genre.setDescription("Phim thuộc thể loại " + genre.getName() + " mang đến những trải nghiệm điện ảnh đặc sắc và hấp dẫn.");
+                    genreRepository.save(genre);
+                }
+            });
+        }
+
+        return initialized;
     }
 
     private void initializeMovies(List<Genre> genres) {

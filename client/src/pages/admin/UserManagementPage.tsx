@@ -11,6 +11,7 @@ import {
   Phone,
   KeyRound,
   Image as ImageIcon,
+  Award,
 } from 'lucide-react'
 import {
   Card,
@@ -49,6 +50,7 @@ const initialCreateForm: CreateUserPayload = {
   birthday: '',
   gender: 'Nam',
   avatar: '',
+  points: 0,
   role: 'USER',
   status: 'ACTIVE',
 }
@@ -60,6 +62,7 @@ const initialEditForm: AdminUpdateUserPayload = {
   birthday: '',
   gender: 'Nam',
   avatar: '',
+  points: 0,
   role: 'USER',
   status: 'ACTIVE',
   password: '',
@@ -194,6 +197,7 @@ export function UserManagementPage() {
         birthday: createForm.birthday || undefined,
         gender: createForm.gender || undefined,
         avatar: createForm.avatar?.trim() || undefined,
+        points: createForm.points !== undefined ? Number(createForm.points) : 0,
         role: createForm.role,
         status: createForm.status,
       })
@@ -221,6 +225,7 @@ export function UserManagementPage() {
       birthday: user.birthday || '',
       gender: user.gender || 'Nam',
       avatar: user.avatar || '',
+      points: user.points ?? 0,
       role: user.role,
       status: user.status,
       password: '',
@@ -250,6 +255,10 @@ export function UserManagementPage() {
 
     if (editForm.phone && !/^(0|\+84)[0-9]{9}$/.test(editForm.phone.trim())) {
       errors.phone = 'Số điện thoại không đúng định dạng Việt Nam'
+    }
+
+    if (editForm.points !== undefined && editForm.points < 0) {
+      errors.points = 'Điểm thưởng không được là số âm'
     }
 
     if (editForm.password && editForm.password.length < 6) {
@@ -283,6 +292,7 @@ export function UserManagementPage() {
         birthday: editForm.birthday || undefined,
         gender: editForm.gender || undefined,
         avatar: editForm.avatar?.trim() || undefined,
+        points: editForm.points !== undefined ? Number(editForm.points) : undefined,
         role: editForm.role,
         status: editForm.status,
         password: editForm.password?.trim() || undefined,
@@ -443,6 +453,7 @@ export function UserManagementPage() {
                     <th className="px-4 py-3 font-semibold">Tài khoản & Email</th>
                     <th className="px-4 py-3 font-semibold">Số điện thoại</th>
                     <th className="px-4 py-3 font-semibold">Vai trò</th>
+                    <th className="px-4 py-3 font-semibold">Điểm thưởng</th>
                     <th className="px-4 py-3 font-semibold">Trạng thái</th>
                     <th className="px-4 py-3 font-semibold text-right">Thao tác</th>
                   </tr>
@@ -501,6 +512,13 @@ export function UserManagementPage() {
                           <Badge tone={item.role === 'ADMIN' ? 'accent' : 'primary'} size="sm">
                             {item.role === 'ADMIN' ? 'Quản Trị Viên' : 'Khách Hàng'}
                           </Badge>
+                        </td>
+
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-1 font-semibold text-[var(--rogym-green)]">
+                            <Award className="h-3.5 w-3.5" />
+                            <span>{item.points ?? 0} pts</span>
+                          </div>
                         </td>
 
                         <td className="px-4 py-3.5">
@@ -701,19 +719,37 @@ export function UserManagementPage() {
             </FormField>
           </div>
 
-          <FormField
-            label="URL Ảnh đại diện"
-            htmlFor="createAvatar"
-          >
-            <Input
-              id="createAvatar"
-              placeholder="https://example.com/avatar.jpg"
-              leftIcon={<ImageIcon className="h-4 w-4" />}
-              value={createForm.avatar ?? ''}
-              onChange={(e) => setCreateForm({ ...createForm, avatar: e.target.value })}
-              disabled={saving}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField
+              label="URL Ảnh đại diện"
+              htmlFor="createAvatar"
+            >
+              <Input
+                id="createAvatar"
+                placeholder="https://example.com/avatar.jpg"
+                leftIcon={<ImageIcon className="h-4 w-4" />}
+                value={createForm.avatar ?? ''}
+                onChange={(e) => setCreateForm({ ...createForm, avatar: e.target.value })}
+                disabled={saving}
+              />
+            </FormField>
+
+            <FormField
+              label="Điểm thưởng ban đầu"
+              htmlFor="createPoints"
+            >
+              <Input
+                id="createPoints"
+                type="number"
+                min="0"
+                placeholder="0"
+                leftIcon={<Award className="h-4 w-4 text-[var(--rogym-green)]" />}
+                value={createForm.points ?? 0}
+                onChange={(e) => setCreateForm({ ...createForm, points: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                disabled={saving}
+              />
+            </FormField>
+          </div>
 
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-white/5">
             <Button
@@ -854,7 +890,7 @@ export function UserManagementPage() {
             </FormField>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <FormField
               label="Trạng thái tài khoản"
               htmlFor="editStatus"
@@ -875,6 +911,23 @@ export function UserManagementPage() {
                 <option value="ACTIVE">Hoạt động (ACTIVE)</option>
                 <option value="LOCKED">Bị khóa (LOCKED)</option>
               </Select>
+            </FormField>
+
+            <FormField
+              label="Điểm thưởng tích lũy"
+              htmlFor="editPoints"
+              error={editErrors.points}
+            >
+              <Input
+                id="editPoints"
+                type="number"
+                min="0"
+                placeholder="0"
+                leftIcon={<Award className="h-4 w-4 text-[var(--rogym-green)]" />}
+                value={editForm.points ?? 0}
+                onChange={(e) => setEditForm({ ...editForm, points: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                disabled={saving}
+              />
             </FormField>
 
             <FormField

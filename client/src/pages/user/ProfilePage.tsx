@@ -24,11 +24,13 @@ import {
   AlertDescription,
   Avatar,
   Badge,
+  ProgressBar,
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from '@/components/ui'
+import { calculateMembershipTier } from '@/utils/membership'
 import {
   User as UserIcon,
   Mail,
@@ -113,6 +115,11 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
   const [passwordErrorMsg, setPasswordErrorMsg] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
+  // Tự động đồng bộ lại thông tin hồ sơ và điểm thưởng mới nhất từ server khi vào trang
+  useEffect(() => {
+    void refreshProfile()
+  }, [refreshProfile])
+
   // Fetch bookings for membership calculations only when needed
   useEffect(() => {
     if (!shouldShowMemberStats) return
@@ -142,13 +149,8 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
   }, [user])
 
   // Compute membership stats
-  const totalSpent = useMemo(() => {
-    return bookings
-      .filter((b) => b.paymentStatus === 'PAID')
-      .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
-  }, [bookings])
-
-  const membershipPoints = Math.floor(totalSpent / 10000)
+  const membershipPoints = user?.points ?? 0
+  const tierInfo = useMemo(() => calculateMembershipTier(membershipPoints), [membershipPoints])
 
   const handleStartEdit = () => {
 
@@ -353,9 +355,15 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
 
             {/* Badges */}
             <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
-              <Badge tone={user?.role === 'ADMIN' ? 'accent' : 'primary'} size="sm">
-                {user?.role === 'ADMIN' ? 'Quản Trị Viên' : 'Khách Hàng'}
-              </Badge>
+              {user?.role === 'ADMIN' ? (
+                <Badge tone="accent" size="sm">
+                  Quản Trị Viên
+                </Badge>
+              ) : (
+                <Badge tone={tierInfo.badgeTone} size="sm">
+                  {tierInfo.name}
+                </Badge>
+              )}
               <Badge tone="success" size="sm">
                 {user?.status || 'ACTIVE'}
               </Badge>
@@ -363,25 +371,82 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
 
             {/* Quick Member Stats */}
             {shouldShowMemberStats && (
-              <div className="w-full grid grid-cols-2 gap-2.5 mt-6 pt-4 border-t border-white/10">
-                <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
-                    <Ticket className="w-3.5 h-3.5 text-[var(--rogym-green)]" />
-                    <span>Vé đã xem</span>
-                  </div>
-                  <p className="text-base font-bold text-white mt-1">{bookings.length}</p>
-                </Card>
+              <>
+                <div className="w-full grid grid-cols-2 gap-2.5 mt-6 pt-4 border-t border-white/10">
+                  <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
+                    <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
+                      <Ticket className="w-3.5 h-3.5 text-[var(--rogym-green)]" />
+                      <span>Vé đã xem</span>
+                    </div>
+                    <p className="text-base font-bold text-white mt-1">{bookings.length}</p>
+                  </Card>
 
-                <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
-                    <Award className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
-                    <span>Điểm thưởng</span>
+                  <Card variant="compact" padding="xs" className="bg-white/[0.03] border-white/5 flex flex-col items-center justify-center text-center">
+                    <div className="flex items-center justify-center gap-1 text-[11px] text-[var(--rogym-text-muted)]">
+                      <Award className="w-3.5 h-3.5 text-[var(--rogym-teal)]" />
+                      <span>Điểm thưởng</span>
+                    </div>
+                    <p className="text-base font-bold text-[var(--rogym-green)] mt-1">
+                      {membershipPoints} pts
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Membership Tier Progress & Benefits Card */}
+                <Card
+                  variant="compact"
+                  padding="sm"
+                  className="w-full mt-3 bg-white/[0.02] border-white/10 text-left space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[var(--rogym-green)]" />
+                      <span>Tiến trình Thăng Hạng</span>
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-[var(--rogym-green)]">
+                      {tierInfo.nextTierThreshold
+                        ? `${tierInfo.currentPoints} / ${tierInfo.nextTierThreshold} pts`
+                        : `${tierInfo.currentPoints} pts (Tối đa)`}
+                    </span>
                   </div>
-                  <p className="text-base font-bold text-[var(--rogym-green)] mt-1">
-                    {membershipPoints} pts
+
+                  <ProgressBar
+                    value={tierInfo.progressPercent}
+                    max={100}
+                    size="sm"
+                    tone={tierInfo.key === 'DIAMOND' ? 'primary' : tierInfo.key === 'GOLD' ? 'warning' : 'info'}
+                    className="bg-white/10"
+                  />
+
+                  <p className="text-[11px] text-[var(--rogym-text-secondary)] leading-relaxed">
+                    {tierInfo.nextTierName ? (
+                      <>
+                        Tích lũy thêm <strong className="text-white font-mono">{tierInfo.pointsNeeded} điểm</strong> để nâng hạng{' '}
+                        <strong className="text-[var(--rogym-green)]">{tierInfo.nextTierName}</strong>
+                      </>
+                    ) : (
+                      <span className="text-[var(--rogym-teal)] font-medium">
+                        ✨ Bạn đã đạt cấp bậc hội viên cao nhất ({tierInfo.shortName})!
+                      </span>
+                    )}
                   </p>
+
+                  {/* Tier Benefits */}
+                  <div className="pt-2 border-t border-white/5 space-y-1.5">
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--rogym-text-muted)]">
+                      Đặc quyền {tierInfo.shortName}
+                    </p>
+                    <ul className="space-y-1 text-[11px] text-[var(--rogym-text-secondary)]">
+                      {tierInfo.benefits.map((benefit, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-[var(--rogym-green)] shrink-0" />
+                          <span className="truncate">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </Card>
-              </div>
+              </>
             )}
           </Card>
 

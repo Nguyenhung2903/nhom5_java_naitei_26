@@ -44,6 +44,7 @@ public class BookingServiceImpl implements BookingService {
     private final TicketRepository ticketRepository;
     private final TicketComboRepository ticketComboRepository;
     private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
     private final VNPayConfig vnPayConfig;
 
     @Override
@@ -173,24 +174,56 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        // 4. Calculate Final Amount
+        // 4. Calculate Final Amount & Discounts
         BigDecimal subTotal = seatsTotal.add(combosTotal);
-        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal voucherDiscountAmount = BigDecimal.ZERO;
         
         if (promotion != null) {
             switch (promotion.getDiscountType()) {
                 case PERCENT:
-                    discountAmount = subTotal.multiply(promotion.getDiscountValue()).divide(BigDecimal.valueOf(100));
+                    voucherDiscountAmount = subTotal.multiply(promotion.getDiscountValue()).divide(BigDecimal.valueOf(100));
                     break;
                 case FIXED:
-                    discountAmount = promotion.getDiscountValue();
+                    voucherDiscountAmount = promotion.getDiscountValue();
                     break;
             }
         }
         
-        BigDecimal finalTotal = subTotal.subtract(discountAmount);
+        BigDecimal remainingAfterPromotion = subTotal.subtract(voucherDiscountAmount);
+        if (remainingAfterPromotion.compareTo(BigDecimal.ZERO) < 0) {
+            remainingAfterPromotion = BigDecimal.ZERO;
+        }
+
+        // 4.1. Process Reward Points (1 point = 1,000 VND)
+        int requestedPoints = request.getPointsToUse() != null ? Math.max(0, request.getPointsToUse()) : 0;
+        User managedUser = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        
+        int currentBalance = managedUser.getPoints() != null ? managedUser.getPoints() : 0;
+        if (requestedPoints > currentBalance) {
+            throw new AppException(ErrorCode.BAD_REQUEST, "Số điểm thưởng sử dụng (" + requestedPoints + " điểm) vượt quá số dư hiện có (" + currentBalance + " điểm)");
+        }
+
+        // Tối đa số điểm cần để đưa đơn về 0đ
+        int maxPointsNeeded = remainingAfterPromotion.divide(BigDecimal.valueOf(1000), 0, java.math.RoundingMode.CEILING).intValue();
+        int actualPointsUsed = Math.min(requestedPoints, maxPointsNeeded);
+
+        BigDecimal pointsDiscountAmount = BigDecimal.valueOf(actualPointsUsed).multiply(BigDecimal.valueOf(1000));
+        if (pointsDiscountAmount.compareTo(remainingAfterPromotion) > 0) {
+            pointsDiscountAmount = remainingAfterPromotion;
+        }
+
+        BigDecimal finalTotal = remainingAfterPromotion.subtract(pointsDiscountAmount);
         if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
             finalTotal = BigDecimal.ZERO;
+        }
+
+        // Tích điểm: Cứ 10.000 VNĐ thanh toán thực tế = 1 điểm
+        int pointsEarned = finalTotal.divide(BigDecimal.valueOf(10000), 0, java.math.RoundingMode.FLOOR).intValue();
+
+        // Nếu đơn hàng 0 VNĐ hoặc thanh toán bằng điểm
+        if (finalTotal.compareTo(BigDecimal.ZERO) == 0 || request.getPaymentMethod() == PaymentMethod.POINTS) {
+            isPaymentSuccess = true;
         }
 
         // Generate Booking Code (e.g., BK-TIMESTAMP-UUID)
@@ -198,10 +231,13 @@ public class BookingServiceImpl implements BookingService {
 
         // 5. Create Booking
         Booking booking = Booking.builder()
-                .user(currentUser)
+                .user(managedUser)
                 .promotion(promotion)
                 .bookingCode(bookingCode)
                 .totalAmount(finalTotal)
+                .pointsUsed(actualPointsUsed)
+                .pointsDiscountAmount(pointsDiscountAmount)
+                .pointsEarned(pointsEarned)
                 .bookingStatus(isPaymentSuccess ? BookingStatus.CONFIRMED : BookingStatus.CANCELLED)
                 .paymentStatus(isPaymentSuccess ? PaymentStatus.PAID : PaymentStatus.UNPAID)
                 .build();
@@ -209,6 +245,11 @@ public class BookingServiceImpl implements BookingService {
         booking = bookingRepository.save(booking);
 
         if (isPaymentSuccess) {
+            // Update user's points balance (deduct used points, add earned points)
+            int newBalance = Math.max(0, currentBalance - actualPointsUsed + pointsEarned);
+            managedUser.setPoints(newBalance);
+            userRepository.save(managedUser);
+
             // 6. Create Tickets and attach Combos to the first ticket
             boolean isFirstTicket = true;
             for (ShowtimeSeat seat : showtimeSeats) {
@@ -235,9 +276,14 @@ public class BookingServiceImpl implements BookingService {
                 ? request.getPaymentTransactionId()
                 : "TXN-" + Instant.now().toEpochMilli();
 
+        PaymentMethod paymentMethod = request.getPaymentMethod() != null ? request.getPaymentMethod() : PaymentMethod.VNPAY;
+        if (finalTotal.compareTo(BigDecimal.ZERO) == 0 && actualPointsUsed > 0) {
+            paymentMethod = PaymentMethod.POINTS;
+        }
+
         Payment payment = Payment.builder()
                 .booking(booking)
-                .method(request.getPaymentMethod() != null ? request.getPaymentMethod() : PaymentMethod.VNPAY)
+                .method(paymentMethod)
                 .amount(finalTotal)
                 .transactionId(txnId)
                 .paymentTime(Instant.now())
@@ -265,6 +311,9 @@ public class BookingServiceImpl implements BookingService {
                     .totalAmount(booking.getTotalAmount())
                     .bookingStatus(booking.getBookingStatus())
                     .paymentStatus(booking.getPaymentStatus())
+                    .pointsUsed(booking.getPointsUsed() != null ? booking.getPointsUsed() : 0)
+                    .pointsDiscountAmount(booking.getPointsDiscountAmount() != null ? booking.getPointsDiscountAmount() : BigDecimal.ZERO)
+                    .pointsEarned(booking.getPointsEarned() != null ? booking.getPointsEarned() : 0)
                     .build();
 
             // Lấy thông tin phim và rạp từ vé đầu tiên (nếu có)
@@ -349,6 +398,17 @@ public class BookingServiceImpl implements BookingService {
                     showtimeSeatRepository.save(seat);
                 }
             }
+        }
+
+        // Hoàn lại điểm đã dùng và thu hồi điểm đã tích nếu đơn đã PAID
+        if (booking.getPaymentStatus() == PaymentStatus.PAID && booking.getUser() != null) {
+            User bookingUser = booking.getUser();
+            int pointsUsed = booking.getPointsUsed() != null ? booking.getPointsUsed() : 0;
+            int pointsEarned = booking.getPointsEarned() != null ? booking.getPointsEarned() : 0;
+            int currentPts = bookingUser.getPoints() != null ? bookingUser.getPoints() : 0;
+            int adjustedPoints = Math.max(0, currentPts + pointsUsed - pointsEarned);
+            bookingUser.setPoints(adjustedPoints);
+            userRepository.save(bookingUser);
         }
 
         booking.setBookingStatus(BookingStatus.CANCELLED);

@@ -23,6 +23,9 @@ public class MyBookingResponse {
     private BigDecimal totalAmount;
     private BookingStatus bookingStatus;
     private PaymentStatus paymentStatus;
+    private Integer pointsUsed;
+    private BigDecimal pointsDiscountAmount;
+    private Integer pointsEarned;
 
     // Movie info
     private String movieTitle;

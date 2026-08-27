@@ -67,4 +67,9 @@ public class CreateUserRequest {
     @Builder.Default
     @Schema(description = "Trạng thái tài khoản", example = "ACTIVE")
     private UserStatus status = UserStatus.ACTIVE;
+
+    @jakarta.validation.constraints.Min(value = 0, message = "Điểm thưởng không được âm")
+    @Schema(description = "Điểm thưởng tích lũy", example = "100")
+    @Builder.Default
+    private Integer points = 0;
 }

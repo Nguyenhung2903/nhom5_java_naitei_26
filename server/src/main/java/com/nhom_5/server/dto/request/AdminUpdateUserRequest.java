@@ -60,4 +60,8 @@ public class AdminUpdateUserRequest {
     @Size(min = 6, max = 100, message = "Mật khẩu mới phải từ 6 đến 100 ký tự nếu cung cấp")
     @Schema(description = "Mật khẩu mới (Tùy chọn: chỉ truyền khi muốn đặt lại mật khẩu cho user)", example = "NewPass@123")
     private String password;
+
+    @jakarta.validation.constraints.Min(value = 0, message = "Điểm thưởng không được âm")
+    @Schema(description = "Điểm thưởng tích lũy", example = "150")
+    private Integer points;
 }

@@ -57,6 +57,8 @@ class DataInitializerTest {
         ReflectionTestUtils.setField(dataInitializer, "adminFullName", "System Administrator");
 
         lenient().when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        lenient().when(genreRepository.findAll()).thenReturn(java.util.List.of());
+        lenient().when(genreRepository.save(any(Genre.class))).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(genreRepository.findByNameIgnoreCase(anyString()))
                 .thenAnswer(invocation -> Optional.of(Genre.builder().name(invocation.getArgument(0)).build()));
     }

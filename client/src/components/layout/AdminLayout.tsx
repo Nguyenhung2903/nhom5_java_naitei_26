@@ -17,6 +17,7 @@ import {
   X,
   User,
   TrendingUp,
+  Tags,
 } from 'lucide-react'
 
 export function AdminLayout() {
@@ -34,6 +35,7 @@ export function AdminLayout() {
     { label: 'Tổng quan (Dashboard)', path: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
     { label: 'Báo cáo Doanh thu', path: '/admin/revenue', icon: <TrendingUp className="w-4 h-4" /> },
     { label: 'Quản lý Phim', path: '/admin/movies', icon: <Film className="w-4 h-4" /> },
+    { label: 'Quản lý Thể loại', path: '/admin/genres', icon: <Tags className="w-4 h-4" /> },
     { label: 'Quản lý Tin tức', path: '/admin/news', icon: <Newspaper className="w-4 h-4" /> },
     { label: 'Quản lý Khuyến mãi', path: '/admin/promotions', icon: <BadgePercent className="w-4 h-4" /> },
     { label: 'Quản lý Combo', path: '/admin/combos', icon: <Utensils className="w-4 h-4" /> },

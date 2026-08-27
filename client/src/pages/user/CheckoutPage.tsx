@@ -14,7 +14,7 @@ import {
   Input,
   FormField,
 } from '@/components/ui'
-import { AlertCircle, ArrowLeft, Clock, Ticket, Film, MapPin, Tag } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Clock, Ticket, Film, MapPin, Tag, Award, Sparkles } from 'lucide-react'
 export function CheckoutPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
   const location = useLocation()
@@ -90,6 +90,11 @@ export function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState('')
   const [discountAmount, setDiscountAmount] = useState(0)
 
+  // Reward Points
+  const userPoints = user?.points || 0
+  const [pointsInput, setPointsInput] = useState('')
+  const [pointsToUse, setPointsToUse] = useState(0)
+
   // Countdown timer state
   const [countdown, setCountdown] = useState<number | null>(null)
 
@@ -126,19 +131,51 @@ export function CheckoutPage() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
+  const subTotal = (seatsTotalAmount || 0) + (combosTotalAmount || 0)
+  const remainingAfterVoucher = Math.max(0, subTotal - discountAmount)
+  const maxUsablePoints = Math.min(userPoints, Math.ceil(remainingAfterVoucher / 1000))
+  const pointsDiscountAmount = Math.min(remainingAfterVoucher, pointsToUse * 1000)
+  const finalTotalAmount = Math.max(0, remainingAfterVoucher - pointsDiscountAmount)
+  const estimatedPointsEarned = Math.floor(finalTotalAmount / 10000)
+
   const handleApplyDiscount = async () => {
     setError(null)
     try {
       const promotion = await promotionService.validateCode(discountCode)
-      const subTotal = (seatsTotalAmount || 0) + (combosTotalAmount || 0)
       const amount = promotion.discountType === 'PERCENT'
         ? subTotal * promotion.discountValue / 100
         : promotion.discountValue
-      setDiscountAmount(Math.min(subTotal, amount))
+      const actualDiscount = Math.min(subTotal, amount)
+      setDiscountAmount(actualDiscount)
+      
+      // Re-validate points if needed
+      const newRemaining = Math.max(0, subTotal - actualDiscount)
+      const newMaxPoints = Math.min(userPoints, Math.ceil(newRemaining / 1000))
+      if (pointsToUse > newMaxPoints) {
+        setPointsToUse(newMaxPoints)
+        setPointsInput(newMaxPoints > 0 ? String(newMaxPoints) : '')
+      }
     } catch (caught: unknown) {
       setDiscountAmount(0)
       setError(caught instanceof Error ? caught.message : 'Mã giảm giá không hợp lệ hoặc đã hết hạn')
     }
+  }
+
+  const handleApplyPoints = (val: string) => {
+    const parsed = parseInt(val.replace(/\D/g, ''), 10) || 0
+    if (parsed < 0) {
+      setPointsToUse(0)
+      setPointsInput('')
+      return
+    }
+    const clamped = Math.min(parsed, maxUsablePoints)
+    setPointsToUse(clamped)
+    setPointsInput(clamped > 0 ? String(clamped) : '')
+  }
+
+  const handleUseMaxPoints = () => {
+    setPointsToUse(maxUsablePoints)
+    setPointsInput(maxUsablePoints > 0 ? String(maxUsablePoints) : '')
   }
 
   const handlePayment = () => {
@@ -156,6 +193,8 @@ export function CheckoutPage() {
         combosTotalAmount,
         discountAmount,
         discountCode,
+        pointsToUse,
+        pointsDiscountAmount,
         finalTotalAmount,
         receiverInfo: {
           fullName,
@@ -164,9 +203,6 @@ export function CheckoutPage() {
       }
     })
   }
-
-  const subTotal = (seatsTotalAmount || 0) + (combosTotalAmount || 0)
-  const finalTotalAmount = Math.max(0, subTotal - discountAmount)
 
   if (!selectedSeatIds) return null
   
@@ -251,6 +287,56 @@ export function CheckoutPage() {
             </div>
           </div>
 
+          {/* Dùng Điểm Thưởng */}
+          <div className="bg-[var(--rogym-surface)] border border-[var(--rogym-border-subtle)] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Award className="w-5 h-5 text-[var(--rogym-green)]" />
+                Điểm thưởng thành viên
+              </h2>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--rogym-green)]/10 text-[var(--rogym-green)] border border-[var(--rogym-green)]/30 font-medium">
+                Số dư: {userPoints} điểm
+              </span>
+            </div>
+            
+            <p className="text-xs text-[var(--rogym-text-secondary)] mb-4">
+              Quy đổi: <strong className="text-white">1 điểm = 1.000 VNĐ</strong>. Bạn có thể dùng tối đa {maxUsablePoints} điểm cho đơn hàng này.
+            </p>
+
+            {userPoints > 0 ? (
+              <div className="space-y-3">
+                <div className="flex gap-4">
+                  <Input 
+                    type="number"
+                    min="0"
+                    max={maxUsablePoints}
+                    value={pointsInput} 
+                    onChange={(e) => handleApplyPoints(e.target.value)} 
+                    placeholder={`Nhập số điểm (tối đa ${maxUsablePoints})...`}
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline-white" 
+                    onClick={handleUseMaxPoints}
+                    disabled={maxUsablePoints === 0}
+                  >
+                    Dùng tối đa
+                  </Button>
+                </div>
+                {pointsToUse > 0 && (
+                  <p className="text-xs text-[var(--rogym-green)] flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Đã áp dụng {pointsToUse} điểm để giảm {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pointsDiscountAmount)}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--rogym-text-muted)] italic">
+                Bạn chưa có điểm thưởng tích lũy. Đặt vé xem phim ngay để tích lũy 10% giá trị đơn hàng!
+              </p>
+            )}
+          </div>
+
         </div>
 
         {/* Cột Phải - Thông tin phim & Thanh toán */}
@@ -300,8 +386,14 @@ export function CheckoutPage() {
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-400">
-                    <span>Giảm giá</span>
+                    <span>Mã giảm giá</span>
                     <span>-{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountAmount)}</span>
+                  </div>
+                )}
+                {pointsDiscountAmount > 0 && (
+                  <div className="flex justify-between text-[var(--rogym-green)]">
+                    <span>Điểm thưởng ({pointsToUse} pts)</span>
+                    <span>-{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pointsDiscountAmount)}</span>
                   </div>
                 )}
                 
@@ -311,6 +403,13 @@ export function CheckoutPage() {
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalTotalAmount)}
                   </span>
                 </div>
+
+                {estimatedPointsEarned > 0 && (
+                  <div className="text-xs text-[var(--rogym-text-secondary)] text-right pt-1 flex items-center justify-end gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    Tích lũy: <strong className="text-amber-400">+{estimatedPointsEarned} điểm</strong> sau khi thanh toán
+                  </div>
+                )}
               </div>
 
               <Button 
@@ -320,7 +419,7 @@ export function CheckoutPage() {
                 onClick={handlePayment}
                 disabled={loading}
               >
-                {loading ? <PageLoader ariaLabel="Đang xử lý..." className="scale-75" /> : 'Xác Nhận Thanh Toán'}
+                {loading ? <PageLoader ariaLabel="Đang xử lý..." className="scale-75" /> : (finalTotalAmount === 0 ? 'Xác Nhận Đặt Vé (0 VNĐ)' : 'Tiến Hành Thanh Toán')}
               </Button>
             </div>
           </div>

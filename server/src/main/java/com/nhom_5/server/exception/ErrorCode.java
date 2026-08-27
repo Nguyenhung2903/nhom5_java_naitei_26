@@ -14,6 +14,8 @@ public enum ErrorCode {
     OLD_PASSWORD_INCORRECT(400, "Mật khẩu hiện tại không chính xác", HttpStatus.BAD_REQUEST),
     PASSWORDS_DO_NOT_MATCH(400, "Xác nhận mật khẩu mới không khớp", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_SAME_AS_OLD(400, "Mật khẩu mới không được trùng với mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
+    GENRE_NAME_ALREADY_EXISTS(400, "Tên thể loại phim đã tồn tại trong hệ thống", HttpStatus.BAD_REQUEST),
+    GENRE_IN_USE(400, "Không thể xóa thể loại đang được liên kết với các bộ phim trong hệ thống", HttpStatus.BAD_REQUEST),
 
     // 401 Unauthorized
     UNAUTHORIZED(401, "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn", HttpStatus.UNAUTHORIZED),
@@ -28,6 +30,7 @@ public enum ErrorCode {
     // 404 Not Found
     NOT_FOUND(404, "Không tìm thấy tài nguyên yêu cầu", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND(404, "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
+    GENRE_NOT_FOUND(404, "Không tìm thấy thể loại phim", HttpStatus.NOT_FOUND),
 
     // 500 Internal Server Error
     INTERNAL_SERVER_ERROR(500, "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -2,11 +2,13 @@ import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { bookingService } from '@/services/bookingService'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
+import { useAuth } from '@/hooks/useAuth'
 import { PageLoader, Alert, AlertDescription, Button } from '@/components/ui'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export function VNPayReturnPage() {
   const [searchParams] = useSearchParams()
+  const { refreshProfile } = useAuth()
   
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -49,6 +51,11 @@ export function VNPayReturnPage() {
         })
 
         localStorage.removeItem('pending_vnpay_booking')
+        try {
+          await refreshProfile()
+        } catch (e) {
+          console.error('Failed to refresh profile after VNPay return:', e)
+        }
         setStatus('success')
       } catch (err: any) {
         setStatus('error')
@@ -61,7 +68,7 @@ export function VNPayReturnPage() {
     }
 
     processReturn()
-  }, [searchParams])
+  }, [searchParams, refreshProfile])
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-16 text-center">

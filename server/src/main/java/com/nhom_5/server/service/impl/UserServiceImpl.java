@@ -163,6 +163,7 @@ public class UserServiceImpl implements UserService {
                 .avatar(request.getAvatar())
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .status(request.getStatus() != null ? request.getStatus() : UserStatus.ACTIVE)
+                .points(request.getPoints() != null ? request.getPoints() : 0)
                 .build();
 
         User savedUser = userRepository.save(newUser);
@@ -202,6 +203,9 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(request.getAvatar());
         user.setRole(request.getRole());
         user.setStatus(request.getStatus());
+        if (request.getPoints() != null) {
+            user.setPoints(request.getPoints());
+        }
 
         // Đặt lại mật khẩu mới nếu được cung cấp
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
