@@ -9,9 +9,10 @@ export interface CreateBookingRequest {
   showtimeId: string;
   seatIds: string[];
   combos: ComboItemRequest[];
-  paymentMethod: 'VNPAY';
+  paymentMethod: 'VNPAY' | 'POINTS';
   paymentTransactionId?: string;
   discountCode?: string;
+  pointsToUse?: number;
   vnpayParams?: Record<string, string>;
 }
 
@@ -22,6 +23,9 @@ export interface MyBookingResponse {
   totalAmount: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'EXPIRED';
   paymentStatus: 'UNPAID' | 'PAID' | 'FAILED';
+  pointsUsed?: number;
+  pointsDiscountAmount?: number;
+  pointsEarned?: number;
   movieTitle: string;
   moviePoster: string;
   ageRating: string;

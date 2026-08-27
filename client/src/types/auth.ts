@@ -13,6 +13,7 @@ export interface UserProfile {
   birthday?: string | null
   gender?: string | null
   avatar?: string | null
+  points?: number
   createdAt?: string
   updatedAt?: string
 }

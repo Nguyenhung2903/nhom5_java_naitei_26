@@ -142,13 +142,7 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
   }, [user])
 
   // Compute membership stats
-  const totalSpent = useMemo(() => {
-    return bookings
-      .filter((b) => b.paymentStatus === 'PAID')
-      .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
-  }, [bookings])
-
-  const membershipPoints = Math.floor(totalSpent / 10000)
+  const membershipPoints = user?.points ?? 0
 
   const handleStartEdit = () => {
 

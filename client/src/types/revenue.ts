@@ -66,6 +66,9 @@ export interface AdminBookingDetail {
   ticketCount: number
   combos: AdminBookingComboItem[]
   promotionCode: string | null
+  pointsUsed?: number
+  pointsDiscountAmount?: number
+  pointsEarned?: number
   totalAmount: number
   paymentMethod: string
   paymentStatus: 'PAID' | 'UNPAID' | 'CANCELLED' | 'REFUNDED' | string

@@ -36,6 +36,9 @@ public class CreateBookingRequest {
     @Schema(description = "Mã khuyến mãi giảm giá (nếu có)", example = "WEEKEND20")
     private String discountCode;
 
+    @Schema(description = "Số điểm thưởng muốn sử dụng để giảm giá (1 điểm = 1.000 VNĐ)", example = "50")
+    private Integer pointsToUse;
+
     @Schema(description = "Các tham số phản hồi từ VNPay (khi xử lý callback đơn hàng)")
     private Map<String, String> vnpayParams;
 }

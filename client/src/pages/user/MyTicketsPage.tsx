@@ -323,11 +323,23 @@ function BookingCard({
                 size="xs"
               >
                 {booking.paymentStatus === 'PAID'
-                  ? 'Đã thanh toán (VNPay)'
+                  ? (booking.totalAmount === 0 ? 'Điểm thưởng (100%)' : 'Đã thanh toán (VNPay)')
                   : booking.paymentStatus === 'UNPAID'
                   ? 'Chưa thanh toán'
                   : booking.paymentStatus}
               </Badge>
+
+              {booking.pointsUsed !== undefined && booking.pointsUsed > 0 && (
+                <Badge tone="accent" size="xs">
+                  Dùng {booking.pointsUsed} điểm
+                </Badge>
+              )}
+
+              {booking.pointsEarned !== undefined && booking.pointsEarned > 0 && (
+                <span className="text-[11px] text-amber-400 font-medium">
+                  +{booking.pointsEarned} pts
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-4">

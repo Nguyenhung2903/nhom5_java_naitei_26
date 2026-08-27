@@ -63,6 +63,18 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_status", nullable = false)
     private BookingStatus bookingStatus = BookingStatus.PENDING;
 
+    @Builder.Default
+    @Column(name = "points_used", nullable = false)
+    private Integer pointsUsed = 0;
+
+    @Builder.Default
+    @Column(name = "points_discount_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal pointsDiscountAmount = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "points_earned", nullable = false)
+    private Integer pointsEarned = 0;
+
     @JsonIgnore
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

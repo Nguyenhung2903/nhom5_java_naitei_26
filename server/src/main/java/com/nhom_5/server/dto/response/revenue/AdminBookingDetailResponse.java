@@ -68,6 +68,15 @@ public class AdminBookingDetailResponse {
     @Schema(description = "Mã giảm giá áp dụng (nếu có)", example = "SUMMER2026")
     private String promotionCode;
 
+    @Schema(description = "Số điểm thưởng đã sử dụng", example = "50")
+    private Integer pointsUsed;
+
+    @Schema(description = "Số tiền đã giảm từ điểm thưởng", example = "50000")
+    private BigDecimal pointsDiscountAmount;
+
+    @Schema(description = "Số điểm thưởng tích lũy từ đơn", example = "20")
+    private Integer pointsEarned;
+
     @Schema(description = "Tổng số tiền thanh toán (VNĐ)", example = "250000")
     private BigDecimal totalAmount;
 

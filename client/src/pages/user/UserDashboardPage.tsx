@@ -62,7 +62,7 @@ export function UserDashboardPage() {
     }).format(amount)
   }
 
-  const membershipPoints = Math.floor(totalSpent / 10000)
+  const membershipPoints = user?.points ?? 0
   const memberTier =
     membershipPoints >= 1000
       ? 'Kim Cương (Diamond)'
