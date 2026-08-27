@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { bookingService } from '@/services/bookingService'
 import { showtimeSeatService } from '@/services/showtimeSeatService'
+import { useAuth } from '@/hooks/useAuth'
 import {
   Alert,
   AlertDescription,
@@ -14,6 +15,7 @@ export function PaymentPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>()
   const location = useLocation()
   const navigate = useNavigate()
+  const { refreshProfile } = useAuth()
   
   const { 
     holdExpiration, 
@@ -100,6 +102,11 @@ export function PaymentPage() {
           ...bookingPayload,
           paymentMethod: 'POINTS',
         })
+        try {
+          await refreshProfile()
+        } catch (e) {
+          console.error('Failed to refresh profile after payment:', e)
+        }
         setIsSuccess(true)
         setIsProcessing(false)
         return

@@ -66,6 +66,36 @@ describe('ProfilePage', () => {
     expect(screen.getByText('johndoe@cinemanest.vn')).toBeTruthy()
     expect(screen.getByText('0912345678')).toBeTruthy()
     expect(screen.getByText('Chỉnh sửa')).toBeTruthy()
+    expect(refreshProfile).toHaveBeenCalled()
+  })
+
+  it('renders reward points correctly when user has points', () => {
+    const userWithPoints = {
+      ...mockUser,
+      points: 150,
+    }
+    const refreshProfile = vi.fn()
+    vi.mocked(useAuth).mockReturnValue({
+      user: userWithPoints,
+      refreshProfile,
+      isAuthenticated: true,
+      isAdmin: false,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      token: 'fake-token',
+    })
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText('Điểm thưởng')).toBeTruthy()
+    expect(screen.getByText('150 pts')).toBeTruthy()
+    expect(refreshProfile).toHaveBeenCalled()
   })
 
   it('switches to edit mode, submits changes, and calls setUserSession', async () => {

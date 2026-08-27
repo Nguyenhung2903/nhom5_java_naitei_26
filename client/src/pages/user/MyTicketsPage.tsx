@@ -2,11 +2,13 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import type { MyBookingResponse } from '@/services/bookingService'
 import { bookingService } from '@/services/bookingService'
+import { useAuth } from '@/hooks/useAuth'
 import { PageLoader, Button, Badge, ConfirmDialog, Alert } from '@/components/ui'
 import { TicketIcon, Calendar, Clock, MapPin, Popcorn, AlertCircle, Ban } from 'lucide-react'
 import { format } from 'date-fns'
 
 export function MyTicketsPage() {
+  const { refreshProfile } = useAuth()
   const [bookings, setBookings] = useState<MyBookingResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,6 +41,11 @@ export function MyTicketsPage() {
       setIsCancelling(true)
       setActionAlert(null)
       await bookingService.cancelBooking(selectedBookingForCancel.id)
+      try {
+        await refreshProfile()
+      } catch (e) {
+        console.error('Failed to refresh profile after cancelling ticket:', e)
+      }
       setActionAlert({
         type: 'success',
         message: `Hủy vé mã ${selectedBookingForCancel.bookingCode} thành công. Ghế đã được hoàn trả về hệ thống!`,

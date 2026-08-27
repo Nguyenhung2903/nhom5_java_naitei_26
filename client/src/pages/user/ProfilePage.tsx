@@ -113,6 +113,11 @@ export function ProfilePage({ showMemberStats }: ProfilePageProps = {}) {
   const [passwordErrorMsg, setPasswordErrorMsg] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
+  // Tự động đồng bộ lại thông tin hồ sơ và điểm thưởng mới nhất từ server khi vào trang
+  useEffect(() => {
+    void refreshProfile()
+  }, [refreshProfile])
+
   // Fetch bookings for membership calculations only when needed
   useEffect(() => {
     if (!shouldShowMemberStats) return
